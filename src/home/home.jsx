@@ -9,6 +9,42 @@ const Home = () => {
   const [search, setSearch] = useState("");
   const [selectedQuests, setSelectedQuests] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [objectiveLocations, setObjectiveLocations] = useState([]);
+
+  const LOCATIONS = [
+    { id: 6, name: "Reserve" },
+    { id: 1, name: "Customs" },
+    { id: 0, name: "Factory" },
+    { id: -1, name: "Any" },
+  ];
+
+
+
+
+
+
+
+  const toggleLocation = (id) => {
+    if (id === -1) {
+      setObjectiveLocations([]);
+      return;
+    }
+
+    setObjectiveLocations((prev) =>
+      prev.includes(id)
+        ? prev.filter((l) => l !== id)
+        : [...prev, id]
+    );
+  };
+
+
+
+
+
+
+
+
+
 
   // ✅ LOAD (ครั้งแรกเท่านั้น)
   useEffect(() => {
@@ -94,31 +130,45 @@ const Home = () => {
         </div>
       )}
 
-      {/* Selected Quests */}
-      {/* <div className="row g-4">
-        {selectedQuests.map((quest) => (
-          <div key={quest.id} className="col-md-4">
-            <div className="card shadow-sm border-primary">
-              <div className="card-body">
-                <div className="d-flex justify-content-between">
-                  <h5>{quest.locales.en}</h5>
-                  <button
-                    className="btn btn-sm btn-outline-danger"
-                    onClick={() => removeQuest(quest.id)}
-                  >
-                    ✕
-                  </button>
-                </div>
-                <p>EXP: {quest.exp}</p>
+
+
+      <div className="row justify-content-center mb-4">
+        <div className="col-md-8">
+          <div className="card shadow-sm">
+            <div className="card-body">
+              <h6 className="fw-bold mb-3">
+                🗺️ Filter Objectives by Location
+              </h6>
+
+              <div className="d-flex flex-wrap gap-2">
+                {LOCATIONS.map((loc) => {
+                  const active =
+                    loc.id === -1
+                      ? objectiveLocations.length === 0
+                      :
+                       objectiveLocations.includes(loc.id);
+
+                  return (
+                    <button
+                      key={loc.id}
+                      onClick={() => toggleLocation(loc.id)}
+                      className={`btn btn-sm rounded-pill px-3 ${active
+                        ? "btn-primary"
+                        : "btn-outline-secondary"
+                        }`}
+                    >
+                      {loc.name}
+                    </button>
+                  );
+                })}
               </div>
+
             </div>
           </div>
-        ))}
-      </div> */}
+        </div>
+      </div>
 
-
-
-{selectedQuests.length > 0 && (
+      {selectedQuests.length > 0 && (
         <div className="row g-4">
           {selectedQuests.map((quest) => (
             <motion.div
@@ -151,12 +201,21 @@ const Home = () => {
 
                   <strong>Objectives:</strong>
                   <ul>
-                    {quest.objectives.map((obj, i) => (
-                      <li key={i}>
-                        {obj.type} × {obj.number}
-                      </li>
-                    ))}
+                    {quest.objectives
+                      .filter((obj) =>
+                        objectiveLocations.length === 0 ||
+                        objectiveLocations.includes(obj.location)
+                      )
+                      .map((obj) => (
+                        <li key={obj.id}>
+                          <strong>{obj.type}</strong> – {obj.target} × {obj.number}
+                          <span className="badge bg-secondary ms-2">
+                            {LOCATIONS.find((l) => l.id === obj.location)?.name}
+                          </span>
+                        </li>
+                      ))}
                   </ul>
+
                 </div>
               </div>
             </motion.div>
