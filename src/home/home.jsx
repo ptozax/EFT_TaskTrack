@@ -12,10 +12,12 @@ const Home = () => {
   const [objectiveLocations, setObjectiveLocations] = useState([]);
 
   const LOCATIONS = [
+      { id: -1, name: "Any" },
     { id: 6, name: "Reserve" },
     { id: 1, name: "Customs" },
     { id: 0, name: "Factory" },
-    { id: -1, name: "Any" },
+  
+     { id: 3, name: "Shoreline" },
   ];
 
 
@@ -146,7 +148,7 @@ const Home = () => {
                     loc.id === -1
                       ? objectiveLocations.length === 0
                       :
-                       objectiveLocations.includes(loc.id);
+                      objectiveLocations.includes(loc.id);
 
                   return (
                     <button
@@ -181,7 +183,14 @@ const Home = () => {
                 <div className="card-body">
                   <div className="d-flex justify-content-between">
                     <h5 className="fw-bold">
-                      {quest.locales.en}
+                      <a
+                        href={quest.wiki}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-decoration-none text-primary"
+                      >
+                        {quest.locales.en}
+                      </a>
                     </h5>
                     <button
                       className="btn btn-sm btn-outline-danger"
