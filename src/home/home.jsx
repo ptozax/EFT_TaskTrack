@@ -12,15 +12,56 @@ const Home = () => {
   const [objectiveLocations, setObjectiveLocations] = useState([]);
 
   const LOCATIONS = [
-    "Any",
+"Any",
+
     "Ground Zero",
     "Ground Zero 21+",
-    "Customs",
+
     "Factory",
     "Night Factory",
+
+    "Customs",
+
     "Reserve",
+    "Streets of Tarkov",
+    "The Lab",
+    "Woods",
+    "Interchange",
+
+    "Lighthouse",
     "Shoreline",
+
+    "The Labyrinth",
+
+
   ];
+
+
+
+
+
+
+
+  const getAllObjectiveLocations = (quests) => {
+    const locations = new Set();
+
+    quests.forEach((quest) => {
+      quest.objectives?.forEach((obj) => {
+        obj.maps?.forEach((map) => {
+          if (map?.name) {
+            locations.add(map.name);
+          }
+        });
+      });
+    });
+
+    return Array.from(locations).map((name) => ({ name }));
+  };
+
+  const allLocations = getAllObjectiveLocations(quests);
+  console.log(allLocations);
+
+
 
   /* ---------------- LOCATION FILTER ---------------- */
   const toggleLocation = (name) => {
@@ -137,8 +178,8 @@ const Home = () => {
                       key={loc}
                       onClick={() => toggleLocation(loc)}
                       className={`btn btn-sm rounded-pill px-3 ${active
-                          ? "btn-primary"
-                          : "btn-outline-secondary"
+                        ? "btn-primary"
+                        : "btn-outline-secondary"
                         }`}
                     >
                       {loc}
