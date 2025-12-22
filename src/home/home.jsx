@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import "bootstrap/dist/css/bootstrap.min.css";
-import quests from "../data/quests";
+import quests from "../data/tasks";
 
 const STORAGE_KEY = "eft_selected_quests";
 
@@ -12,71 +12,54 @@ const Home = () => {
   const [objectiveLocations, setObjectiveLocations] = useState([]);
 
   const LOCATIONS = [
-      { id: -1, name: "Any" },
-    { id: 6, name: "Reserve" },
-    { id: 1, name: "Customs" },
-    { id: 0, name: "Factory" },
-  
-     { id: 3, name: "Shoreline" },
+    "Any",
+    "Ground Zero",
+    "Ground Zero 21+",
+    "Customs",
+    "Factory",
+    "Night Factory",
+    "Reserve",
+    "Shoreline",
   ];
 
-
-
-
-
-
-
-  const toggleLocation = (id) => {
-    if (id === -1) {
+  /* ---------------- LOCATION FILTER ---------------- */
+  const toggleLocation = (name) => {
+    if (name === "Any") {
       setObjectiveLocations([]);
       return;
     }
 
     setObjectiveLocations((prev) =>
-      prev.includes(id)
-        ? prev.filter((l) => l !== id)
-        : [...prev, id]
+      prev.includes(name)
+        ? prev.filter((l) => l !== name)
+        : [...prev, name]
     );
   };
 
-
-
-
-
-
-
-
-
-
-  // ✅ LOAD (ครั้งแรกเท่านั้น)
+  /* ---------------- LOAD ---------------- */
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
-
     if (saved) {
       try {
         setSelectedQuests(JSON.parse(saved));
-      } catch (err) {
-        console.error("localStorage parse error", err);
+      } catch (e) {
+        console.error(e);
       }
     }
-
     setIsLoaded(true);
   }, []);
 
-  // ✅ SAVE (หลังจากโหลดแล้วเท่านั้น)
+  /* ---------------- SAVE ---------------- */
   useEffect(() => {
     if (!isLoaded) return;
-
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(selectedQuests)
-    );
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(selectedQuests));
   }, [selectedQuests, isLoaded]);
 
+  /* ---------------- SEARCH ---------------- */
   const searchResults = quests.filter(
     (q) =>
-      q.locales.en.toLowerCase().includes(search.toLowerCase()) &&
-      !selectedQuests.some((s) => s.id === q.id)
+      q.name.toLowerCase().includes(search.toLowerCase()) &&
+      !selectedQuests.some((s) => s.name === q.name)
   );
 
   const addQuest = (quest) => {
@@ -84,12 +67,13 @@ const Home = () => {
     setSearch("");
   };
 
-  const removeQuest = (id) => {
+  const removeQuest = (name) => {
     setSelectedQuests((prev) =>
-      prev.filter((q) => q.id !== id)
+      prev.filter((q) => q.name !== name)
     );
   };
 
+  /* ---------------- UI ---------------- */
   return (
     <div className="container py-5">
       <h1 className="text-center fw-bold text-primary mb-4">
@@ -108,17 +92,17 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Search Result */}
+      {/* Search Results */}
       {search && (
         <div className="row justify-content-center mb-4">
           <div className="col-md-6">
             <ul className="list-group">
               {searchResults.map((q) => (
                 <li
-                  key={q.id}
-                  className="list-group-item d-flex justify-content-between align-items-center"
+                  key={q.name}
+                  className="list-group-item d-flex justify-content-between"
                 >
-                  {q.locales.en}
+                  {q.name}
                   <button
                     className="btn btn-sm btn-success"
                     onClick={() => addQuest(q)}
@@ -132,49 +116,47 @@ const Home = () => {
         </div>
       )}
 
-
-
+      {/* Location Filter */}
       <div className="row justify-content-center mb-4">
         <div className="col-md-8">
           <div className="card shadow-sm">
             <div className="card-body">
               <h6 className="fw-bold mb-3">
-                🗺️ Filter Objectives by Location
+                🗺️ Filter Objectives by Map
               </h6>
 
               <div className="d-flex flex-wrap gap-2">
                 {LOCATIONS.map((loc) => {
                   const active =
-                    loc.id === -1
+                    loc === "Any"
                       ? objectiveLocations.length === 0
-                      :
-                      objectiveLocations.includes(loc.id);
+                      : objectiveLocations.includes(loc);
 
                   return (
                     <button
-                      key={loc.id}
-                      onClick={() => toggleLocation(loc.id)}
+                      key={loc}
+                      onClick={() => toggleLocation(loc)}
                       className={`btn btn-sm rounded-pill px-3 ${active
-                        ? "btn-primary"
-                        : "btn-outline-secondary"
+                          ? "btn-primary"
+                          : "btn-outline-secondary"
                         }`}
                     >
-                      {loc.name}
+                      {loc}
                     </button>
                   );
                 })}
               </div>
-
             </div>
           </div>
         </div>
       </div>
 
+      {/* Selected Quests */}
       {selectedQuests.length > 0 && (
         <div className="row g-4">
           {selectedQuests.map((quest) => (
             <motion.div
-              key={quest.id}
+              key={quest.name}
               className="col-md-6 col-lg-4"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
@@ -184,55 +166,59 @@ const Home = () => {
                   <div className="d-flex justify-content-between">
                     <h5 className="fw-bold">
                       <a
-                        href={quest.wiki}
+                        href={quest.wikiLink}
                         target="_blank"
-                        rel="noopener noreferrer"
+                        rel="noreferrer"
                         className="text-decoration-none text-primary"
                       >
-                        {quest.locales.en}
+                        {quest.name}
                       </a>
                     </h5>
                     <button
                       className="btn btn-sm btn-outline-danger"
-                      onClick={() => removeQuest(quest.id)}
+                      onClick={() => removeQuest(quest.name)}
                     >
                       ✕
                     </button>
                   </div>
 
                   <p className="text-muted mb-1">
-                    Required Level: {quest.require.level}
+                    Required Level: {quest.minPlayerLevel}
                   </p>
 
                   <p>
-                    <strong>EXP:</strong> {quest.exp}
+                    <strong>EXP:</strong> {quest.experience}
                   </p>
 
                   <strong>Objectives:</strong>
                   <ul>
                     {quest.objectives
-                      .filter((obj) =>
-                        objectiveLocations.length === 0 ||
-                        objectiveLocations.includes(obj.location)
+                      ?.filter(
+                        (obj) =>
+                          objectiveLocations.length === 0 ||
+                          (Array.isArray(obj.maps) &&
+                            obj.maps.some((m) =>
+                              objectiveLocations.includes(m.name)
+                            ))
                       )
-                      .map((obj) => (
-                        <li key={obj.id}>
-                          <strong>{obj.type}</strong> – {obj.target} × {obj.number}
-                          <span className="badge bg-secondary ms-2">
-                            {LOCATIONS.find((l) => l.id === obj.location)?.name}
-                          </span>
+                      .map((obj, i) => (
+                        <li key={i}>
+                          {obj.description}
+
+                          {Array.isArray(obj.maps) && obj.maps.length > 0 && (
+                            <span className="badge bg-secondary ms-2">
+                              {obj.maps.map((m) => m.name).join(", ")}
+                            </span>
+                          )}
                         </li>
                       ))}
                   </ul>
-
                 </div>
               </div>
             </motion.div>
           ))}
         </div>
       )}
-
-
     </div>
   );
 };
