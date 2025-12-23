@@ -106,6 +106,20 @@ const AddQuest = () => {
     loadSelected(); // 👈 refresh list
   };
 
+
+  const removeQuest = (questName) => {
+    const saved = getSavedQuests().filter(
+      (q) => q.name !== questName
+    );
+
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(saved)
+    );
+
+    loadSelected(); // 👈 refresh list
+  };
+
   const autoMatchQuest = (text) => {
     const matched = [];
     let remainingText = text.toLowerCase();
@@ -258,8 +272,8 @@ const AddQuest = () => {
                 <button
                   key={trader}
                   className={`btn btn-sm ${selectedTraders.includes(trader)
-                      ? "btn-primary"
-                      : "btn-outline-primary"
+                    ? "btn-primary"
+                    : "btn-outline-primary"
                     }`}
                   onClick={() => toggleTrader(trader)}
                 >
@@ -293,12 +307,19 @@ const AddQuest = () => {
             </div>
           ) : (
             <ul className="list-group list-group-flush">
-              {filteredSelectedQuests.map((q) => (
+              {filteredSelectedQuests.map((quest) => (
                 <li
-                  key={q.name}
-                  className="list-group-item"
+                  key={quest.name}
+                  className="list-group-item d-flex justify-content-between align-items-center"
                 >
-                  {q.name}
+                  <span>{quest.name}</span>
+
+                  <button
+                    className="btn btn-sm btn-outline-danger"
+                    onClick={() => removeQuest(quest.name)}
+                  >
+                    ✕
+                  </button>
                 </li>
               ))}
             </ul>
