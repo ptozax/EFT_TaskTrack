@@ -183,7 +183,7 @@ const Home = () => {
                     >
                       {/* LEFT : QUEST INFO */}
                       <div>
-                        <h6 className="fw-bold text-primary mb-1">
+                        <h6 className="fw-bold text-info mb-1">
                           {quest.name}
                         </h6>
                         <p className="text-muted small mb-0">
@@ -207,9 +207,9 @@ const Home = () => {
 
           {/* RIGHT */}
           <div className="col-md-8">
-            <div className="card shadow-sm h-100">
+            <div className="card shadow-sm h-100 bg-dark text-light border-secondary">
               <div className="card-body">
-                <h5 className="fw-bold mb-3">🎯 Objectives</h5>
+                <h5 className="fw-bold mb-3 text-info">🎯 Objectives</h5>
 
                 {selectedQuests.map((quest) => (
                   <div key={quest.name} className="mb-4">
@@ -241,7 +241,7 @@ const Home = () => {
                               }
                               className={`mb-2 p-2 rounded ${checked
                                   ? "bg-success bg-opacity-10 border border-success text-success"
-                                  : "bg-light"
+                                  : "bg-secondary bg-opacity-10 border border-secondary text-light"
                                 }`}
                               style={{ cursor: "pointer" }}
                             >
