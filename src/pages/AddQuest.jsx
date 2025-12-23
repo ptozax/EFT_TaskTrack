@@ -227,7 +227,7 @@ const autoMatchQuest = (text) => {
 
 
 {/* OCR UNMATCHED TEXT */}
-{ocrMatched === false && ocrUnmatchedText && (
+{ocrUnmatchedText && (
   <div className="card mt-3 border-warning">
     <div className="card-body">
       <h6 className="fw-bold text-warning">
