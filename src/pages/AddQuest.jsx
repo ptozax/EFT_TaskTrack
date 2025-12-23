@@ -12,7 +12,35 @@ const AddQuest = () => {
   const [ocrMatched, setOcrMatched] = useState(null);
   const [ocrMatchedQuests, setOcrMatchedQuests] = useState([]);
 const [ocrUnmatchedText, setOcrUnmatchedText] = useState("");
+const [selectedTraders, setSelectedTraders] = useState([]);
 
+
+
+
+const traderOptions = [
+  ...new Set(
+    selectedQuests
+      .map((q) => q.trader?.name)
+      .filter(Boolean)
+  ),
+];
+
+
+
+const filteredSelectedQuests =
+  selectedTraders.length === 0
+    ? selectedQuests
+    : selectedQuests.filter((q) =>
+        selectedTraders.includes(q.trader?.name)
+      );
+
+const toggleTrader = (trader) => {
+  setSelectedTraders((prev) =>
+    prev.includes(trader)
+      ? prev.filter((t) => t !== trader)
+      : [...prev, trader]
+  );
+};
   /* ---------------- LOAD SELECTED QUESTS ---------------- */
   useEffect(() => {
     loadSelected();
@@ -217,7 +245,41 @@ const autoMatchQuest = (text) => {
 
 
 
+{/* 🧑‍💼 TRADER FILTER */}
+{traderOptions.length > 0 && (
+  <div className="card mb-3">
+    <div className="card-body">
+      <h6 className="fw-bold mb-2">
+        🧑‍💼 Filter by Trader
+      </h6>
 
+      <div className="d-flex flex-wrap gap-2">
+        {traderOptions.map((trader) => (
+          <button
+            key={trader}
+            className={`btn btn-sm ${
+              selectedTraders.includes(trader)
+                ? "btn-primary"
+                : "btn-outline-primary"
+            }`}
+            onClick={() => toggleTrader(trader)}
+          >
+            {trader}
+          </button>
+        ))}
+      </div>
+
+      {selectedTraders.length > 0 && (
+        <button
+          className="btn btn-sm btn-link mt-2 text-danger"
+          onClick={() => setSelectedTraders([])}
+        >
+          Clear filter
+        </button>
+      )}
+    </div>
+  </div>
+)}
 
       {/* ✅ SELECTED QUESTS (NAME ONLY) */}
       <div className="card mb-4">
@@ -232,7 +294,7 @@ const autoMatchQuest = (text) => {
             </div>
           ) : (
             <ul className="list-group list-group-flush">
-              {selectedQuests.map((q) => (
+              {filteredSelectedQuests .map((q) => (
                 <li
                   key={q.name}
                   className="list-group-item"
