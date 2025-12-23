@@ -13,6 +13,24 @@ const Home = () => {
   const [checkedObjectives, setCheckedObjectives] = useState({});
   const [isLoaded, setIsLoaded] = useState(false);
 
+
+  const [hiddenObjectives, setHiddenObjectives] = useState({});
+
+
+
+
+  const toggleHideObjective = (questName, index) => {
+    const key = `${questName}|${index}`;
+    setHiddenObjectives((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
+
+
+
+
   /* ---------------- UTILS ---------------- */
   const getAllObjectiveLocations = (quests) => {
     const locations = new Set();
@@ -277,24 +295,44 @@ const Home = () => {
                         {filteredObjectives.map((obj, i) => {
                           const key = `${quest.name}|${i}`;
                           const checked = checkedObjectives[key];
+                          const hidden = hiddenObjectives[key]; // ✅ เพิ่มบรรทัดนี้
+
+                          if (hidden) return null; // 👈 ซ่อนชั่วคราว
 
                           return (
                             <li
                               key={key}
-                              onClick={() => toggleObjective(quest.name, i)}
                               className={`mb-2 p-2 rounded ${checked
-                                ? "bg-success bg-opacity-10 border border-success text-success"
-                                : "bg-secondary bg-opacity-10 border border-secondary text-light"
+                                  ? "bg-success bg-opacity-10 border border-success text-success"
+                                  : "bg-secondary bg-opacity-10 border border-secondary text-light"
                                 }`}
-                              style={{ cursor: "pointer" }}
                             >
-                              <span
-                                className={`fw-medium ${checked ? "text-decoration-line-through" : ""
-                                  }`}
-                              >
-                                {obj.description}
-                              </span>
+                              {/* OBJECTIVE ROW */}
+                              <div className="d-flex justify-content-between align-items-start">
+                                {/* LEFT : DESCRIPTION (click = checklist) */}
+                                <span
+                                  onClick={() => toggleObjective(quest.name, i)}
+                                  className={`fw-medium ${checked ? "text-decoration-line-through" : ""
+                                    }`}
+                                  style={{ cursor: "pointer" }}
+                                >
+                                  {obj.description}
+                                </span>
 
+                                {/* RIGHT : HIDE BUTTON */}
+                                <button
+                                  className="btn btn-sm btn-outline-warning ms-2"
+                                  onClick={(e) => {
+                                    e.stopPropagation(); // ❗ กันไม่ให้ไป toggle checklist
+                                    toggleHideObjective(quest.name, i);
+                                  }}
+                                  title="Hide objective"
+                                >
+                                  🙈
+                                </button>
+                              </div>
+
+                              {/* MAP BADGES */}
                               {obj.maps?.length > 0 && (
                                 <div className="mt-1">
                                   {obj.maps.map((m) => (
