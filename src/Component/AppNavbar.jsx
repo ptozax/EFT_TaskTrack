@@ -17,6 +17,7 @@ function AppNavbar() {
 
     const mainNavLinks = [
         { key: "#/", href: "/", icon: FaGem, text: "Home" },
+          { key: "#/AddQuest", href: "/AddQuest", icon: FaQrcode, text: "Add Quest" },
     
     ];
 

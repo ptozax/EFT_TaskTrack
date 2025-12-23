@@ -8,10 +8,11 @@ import './index.css';
 
 
 import Home from './home/home.jsx';
+import AddQuest from "./pages/AddQuest.jsx";  
 import AppNavbar from './Component/AppNavbar.jsx';
 
 const pageComponents = {
-
+  AddQuest: <AddQuest/>,
   Default: <Home/>,
 };
 
