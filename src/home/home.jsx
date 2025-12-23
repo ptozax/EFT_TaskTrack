@@ -4,15 +4,19 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import quests from "../data/tasks";
 
 const STORAGE_KEY = "eft_selected_quests";
+const OBJECTIVE_CHECK_KEY = "eft_objective_checklist";
 
 const Home = () => {
   const [search, setSearch] = useState("");
   const [selectedQuests, setSelectedQuests] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [objectiveLocations, setObjectiveLocations] = useState([]);
+  const [checkedObjectives, setCheckedObjectives] = useState({});
+
+
 
   const LOCATIONS = [
-"Any",
+    "Any",
 
     "Ground Zero",
     "Ground Zero 21+",
@@ -58,10 +62,10 @@ const Home = () => {
     return Array.from(locations).map((name) => ({ name }));
   };
 
-const allLocations = [
-  "Any",
-  ...getAllObjectiveLocations(quests).map(l => l.name),
-];
+  const allLocations = [
+    "Any",
+    ...getAllObjectiveLocations(quests).map(l => l.name),
+  ];
 
 
   /* ---------------- LOCATION FILTER ---------------- */
@@ -88,6 +92,12 @@ const allLocations = [
         console.error(e);
       }
     }
+
+    const savedChecklist = localStorage.getItem(OBJECTIVE_CHECK_KEY);
+    if (savedChecklist) {
+      setCheckedObjectives(JSON.parse(savedChecklist));
+    }
+
     setIsLoaded(true);
   }, []);
 
@@ -96,6 +106,13 @@ const allLocations = [
     if (!isLoaded) return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(selectedQuests));
   }, [selectedQuests, isLoaded]);
+  useEffect(() => {
+    if (!isLoaded) return;
+    localStorage.setItem(
+      OBJECTIVE_CHECK_KEY,
+      JSON.stringify(checkedObjectives)
+    );
+  }, [checkedObjectives, isLoaded]);
 
   /* ---------------- SEARCH ---------------- */
   const searchResults = quests.filter(
@@ -114,6 +131,33 @@ const allLocations = [
       prev.filter((q) => q.name !== name)
     );
   };
+
+
+
+
+  const toggleObjective = (questName, index) => {
+    const key = `${questName}|${index}`;
+
+    setCheckedObjectives((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   /* ---------------- UI ---------------- */
   return (
@@ -233,28 +277,78 @@ const allLocations = [
                   </p>
 
                   <strong>Objectives:</strong>
-                  <ul>
-                    {quest.objectives
-                      ?.filter(
-                        (obj) =>
-                          objectiveLocations.length === 0 ||
-                          (Array.isArray(obj.maps) &&
-                            obj.maps.some((m) =>
-                              objectiveLocations.includes(m.name)
-                            ))
-                      )
-                      .map((obj, i) => (
-                        <li key={i}>
-                          {obj.description}
 
-                          {Array.isArray(obj.maps) && obj.maps.length > 0 && (
-                            <span className="badge bg-secondary ms-2">
-                              {obj.maps.map((m) => m.name).join(", ")}
-                            </span>
-                          )}
-                        </li>
-                      ))}
-                  </ul>
+
+                 
+
+
+
+
+
+<ul className="list-unstyled mt-2">
+  {quest.objectives
+    ?.filter(
+      (obj) =>
+        objectiveLocations.length === 0 ||
+        obj.maps?.some((m) =>
+          objectiveLocations.includes(m.name)
+        )
+    )
+    .map((obj, i) => {
+      const key = `${quest.name}|${i}`;
+      const checked = checkedObjectives[key] || false;
+
+      return (
+        <li
+          key={key}
+          onClick={() => toggleObjective(quest.name, i)}
+          className={`mb-2 p-2 rounded d-flex flex-column ${
+            checked
+              ? "bg-success bg-opacity-10 border border-success text-success"
+              : "bg-light text-dark"
+          }`}
+          style={{ cursor: "pointer" }}
+        >
+          <span
+            className={`fw-medium ${
+              checked ? "text-decoration-line-through" : ""
+            }`}
+          >
+            {obj.description}
+          </span>
+
+          {/* MAP BADGE */}
+          {obj.maps?.length > 0 && (
+            <div className="mt-1">
+              {obj.maps.map((m) => (
+                <span
+                  key={m.name}
+                  className={`badge me-1 ${
+                    checked ? "bg-success" : "bg-secondary"
+                  }`}
+                >
+                  {m.name}
+                </span>
+              ))}
+            </div>
+          )}
+
+        </li>
+      );
+    })}
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
                 </div>
               </div>
             </motion.div>
