@@ -11,7 +11,7 @@ const AddQuest = () => {
   const [selectedQuests, setSelectedQuests] = useState([]);
   const [ocrMatched, setOcrMatched] = useState(null);
   const [ocrMatchedQuests, setOcrMatchedQuests] = useState([]);
-
+const [ocrUnmatchedText, setOcrUnmatchedText] = useState("");
 
   /* ---------------- LOAD SELECTED QUESTS ---------------- */
   useEffect(() => {
@@ -78,19 +78,29 @@ const AddQuest = () => {
     loadSelected(); // 👈 refresh list
   };
 
-  const autoMatchQuest = (text) => {
-    const matched = [];
+const autoMatchQuest = (text) => {
+  const matched = [];
+  let remainingText = text.toLowerCase();
 
-    quests.forEach((quest) => {
-      if (text.toLowerCase().includes(quest.name.toLowerCase())) {
-        addQuest(quest);
-        matched.push(quest.name);
-      }
-    });
+  quests.forEach((quest) => {
+    const qName = quest.name.toLowerCase();
 
-    setOcrMatched(matched.length > 0);
-    setOcrMatchedQuests(matched);
-  };
+    if (remainingText.includes(qName)) {
+      addQuest(quest);
+      matched.push(quest.name);
+
+      // ลบ quest ที่ match ออกจาก text
+      remainingText = remainingText.replaceAll(qName, "");
+    }
+  });
+
+  setOcrMatched(matched.length > 0);
+  setOcrMatchedQuests(matched);
+
+  // เก็บ text ที่ไม่ match
+  setOcrUnmatchedText(remainingText.trim());
+};
+
 
   /* ---------------- UI ---------------- */
   return (
@@ -186,6 +196,24 @@ const AddQuest = () => {
           </div>
         </div>
       )}
+
+
+{/* OCR UNMATCHED TEXT */}
+{ocrMatched === false && ocrUnmatchedText && (
+  <div className="card mt-3 border-warning">
+    <div className="card-body">
+      <h6 className="fw-bold text-warning">
+        📝 OCR Text (Unmatched)
+      </h6>
+      <pre
+        className="small text-muted"
+        style={{ whiteSpace: "pre-wrap" }}
+      >
+        {ocrUnmatchedText}
+      </pre>
+    </div>
+  </div>
+)}
 
 
 
