@@ -9,8 +9,8 @@ const AddQuest = () => {
   const [imageText, setImageText] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedQuests, setSelectedQuests] = useState([]);
-  const [ocrMatched, setOcrMatched] = useState(null); 
-const [ocrMatchedQuests, setOcrMatchedQuests] = useState([]);
+  const [ocrMatched, setOcrMatched] = useState(null);
+  const [ocrMatchedQuests, setOcrMatchedQuests] = useState([]);
 
 
   /* ---------------- LOAD SELECTED QUESTS ---------------- */
@@ -31,18 +31,18 @@ const [ocrMatchedQuests, setOcrMatchedQuests] = useState([]);
   );
 
   /* ---------------- OCR ---------------- */
-const scanImage = async (image) => {
-  setLoading(true);
-  setOcrMatched(null);
-  setOcrMatchedQuests([]);
+  const scanImage = async (image) => {
+    setLoading(true);
+    setOcrMatched(null);
+    setOcrMatchedQuests([]);
 
-  const { data } = await Tesseract.recognize(image, "eng");
+    const { data } = await Tesseract.recognize(image, "eng");
 
-  setImageText(data.text);
-  autoMatchQuest(data.text);
+    setImageText(data.text);
+    autoMatchQuest(data.text);
 
-  setLoading(false);
-};
+    setLoading(false);
+  };
 
   /* ---------------- PASTE (CTRL+V) ---------------- */
   useEffect(() => {
@@ -78,19 +78,19 @@ const scanImage = async (image) => {
     loadSelected(); // 👈 refresh list
   };
 
-const autoMatchQuest = (text) => {
-  const matched = [];
+  const autoMatchQuest = (text) => {
+    const matched = [];
 
-  quests.forEach((quest) => {
-    if (text.toLowerCase().includes(quest.name.toLowerCase())) {
-      addQuest(quest);
-      matched.push(quest.name);
-    }
-  });
+    quests.forEach((quest) => {
+      if (text.toLowerCase().includes(quest.name.toLowerCase())) {
+        addQuest(quest);
+        matched.push(quest.name);
+      }
+    });
 
-  setOcrMatched(matched.length > 0);
-  setOcrMatchedQuests(matched);
-};
+    setOcrMatched(matched.length > 0);
+    setOcrMatchedQuests(matched);
+  };
 
   /* ---------------- UI ---------------- */
   return (
@@ -142,7 +142,7 @@ const autoMatchQuest = (text) => {
         </ul>
       )}
 
-    
+
 
       {/* SCAN */}
       <div className="card border-dashed p-4 text-center">
@@ -158,40 +158,40 @@ const autoMatchQuest = (text) => {
         )}
       </div>
 
-{/* OCR MATCH RESULT */}
-{ocrMatched !== null && (
-  <div className="card mt-3">
-    <div className="card-body">
-      {ocrMatched ? (
-        <>
-          <h6 className="fw-bold text-success">
-            ✅ OCR Matched Quests
-          </h6>
-          <ul className="mb-0">
-            {ocrMatchedQuests.map((q) => (
-              <li key={q}>{q}</li>
-            ))}
-          </ul>
-        </>
-      ) : (
-        <>
-          <h6 className="fw-bold text-danger">
-            ❌ No quest matched from OCR
-          </h6>
-          <div className="text-muted small">
-            Try clearer image or add quest manually
+      {/* OCR MATCH RESULT */}
+      {ocrMatched !== null && (
+        <div className="card mt-3">
+          <div className="card-body">
+            {ocrMatched ? (
+              <>
+                <h6 className="fw-bold text-success">
+                  ✅ OCR Matched Quests
+                </h6>
+                <ul className="mb-0">
+                  {ocrMatchedQuests.map((q) => (
+                    <li key={q}>{q}</li>
+                  ))}
+                </ul>
+              </>
+            ) : (
+              <>
+                <h6 className="fw-bold text-danger">
+                  ❌ No quest matched from OCR
+                </h6>
+                <div className="text-muted small">
+                  Try clearer image or add quest manually
+                </div>
+              </>
+            )}
           </div>
-        </>
+        </div>
       )}
-    </div>
-  </div>
-)}
 
 
 
 
 
-  {/* ✅ SELECTED QUESTS (NAME ONLY) */}
+      {/* ✅ SELECTED QUESTS (NAME ONLY) */}
       <div className="card mb-4">
         <div className="card-body">
           <h6 className="fw-bold mb-2">
