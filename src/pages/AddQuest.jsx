@@ -8,31 +8,41 @@ const AddQuest = () => {
   const [search, setSearch] = useState("");
   const [imageText, setImageText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [selectedQuests, setSelectedQuests] = useState([]);
+  const [ocrMatched, setOcrMatched] = useState(null); 
+const [ocrMatchedQuests, setOcrMatchedQuests] = useState([]);
 
 
+  /* ---------------- LOAD SELECTED QUESTS ---------------- */
+  useEffect(() => {
+    loadSelected();
+  }, []);
 
+  const loadSelected = () => {
+    const saved = JSON.parse(
+      localStorage.getItem(STORAGE_KEY) || "[]"
+    );
+    setSelectedQuests(saved);
+  };
 
-
-
-const filteredQuests = quests.filter((q) =>
-  q.name.toLowerCase().includes(search.toLowerCase())
-);
+  /* ---------------- SEARCH ---------------- */
+  const filteredQuests = quests.filter((q) =>
+    q.name.toLowerCase().includes(search.toLowerCase())
+  );
 
   /* ---------------- OCR ---------------- */
-  const scanImage = async (image) => {
-    setLoading(true);
+const scanImage = async (image) => {
+  setLoading(true);
+  setOcrMatched(null);
+  setOcrMatchedQuests([]);
 
-    const { data } = await Tesseract.recognize(
-      image,
-      "eng",
-      { logger: () => {} }
-    );
+  const { data } = await Tesseract.recognize(image, "eng");
 
-    setImageText(data.text);
-    autoMatchQuest(data.text);
+  setImageText(data.text);
+  autoMatchQuest(data.text);
 
-    setLoading(false);
-  };
+  setLoading(false);
+};
 
   /* ---------------- PASTE (CTRL+V) ---------------- */
   useEffect(() => {
@@ -43,9 +53,7 @@ const filteredQuests = quests.filter((q) =>
       for (const item of items) {
         if (item.type.includes("image")) {
           const file = item.getAsFile();
-          if (file) {
-            scanImage(file);
-          }
+          if (file) scanImage(file);
         }
       }
     };
@@ -54,7 +62,7 @@ const filteredQuests = quests.filter((q) =>
     return () => window.removeEventListener("paste", handlePaste);
   }, []);
 
-  /* ---------------- MATCH QUEST ---------------- */
+  /* ---------------- STORAGE ---------------- */
   const getSavedQuests = () =>
     JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
 
@@ -66,15 +74,23 @@ const filteredQuests = quests.filter((q) =>
       STORAGE_KEY,
       JSON.stringify([...saved, quest])
     );
+
+    loadSelected(); // 👈 refresh list
   };
 
-  const autoMatchQuest = (text) => {
-    quests.forEach((quest) => {
-      if (text.toLowerCase().includes(quest.name.toLowerCase())) {
-        addQuest(quest);
-      }
-    });
-  };
+const autoMatchQuest = (text) => {
+  const matched = [];
+
+  quests.forEach((quest) => {
+    if (text.toLowerCase().includes(quest.name.toLowerCase())) {
+      addQuest(quest);
+      matched.push(quest.name);
+    }
+  });
+
+  setOcrMatched(matched.length > 0);
+  setOcrMatchedQuests(matched);
+};
 
   /* ---------------- UI ---------------- */
   return (
@@ -82,7 +98,7 @@ const filteredQuests = quests.filter((q) =>
       <h2 className="fw-bold mb-4">➕ Add Quest</h2>
 
       {/* SEARCH */}
-      <div className="mb-4">
+      <div className="mb-3">
         <h6>🔍 Search Quest</h6>
         <input
           className="form-control"
@@ -92,40 +108,41 @@ const filteredQuests = quests.filter((q) =>
         />
       </div>
 
+      {/* SEARCH RESULT */}
+      {search && (
+        <ul className="list-group mb-4">
+          {filteredQuests.slice(0, 10).map((quest) => {
+            const saved = selectedQuests.some(
+              (q) => q.name === quest.name
+            );
 
-{/* SEARCH RESULT */}
-{search && (
-  <ul className="list-group mt-2">
-    {filteredQuests.length === 0 && (
-      <li className="list-group-item text-muted">
-        No quest found
-      </li>
-    )}
+            return (
+              <li
+                key={quest.name}
+                className="list-group-item d-flex justify-content-between align-items-center"
+              >
+                <span>{quest.name}</span>
 
-    {filteredQuests.slice(0, 10).map((quest) => {
-      const saved = getSavedQuests().some(
-        (q) => q.name === quest.name
-      );
+                <button
+                  className="btn btn-sm btn-success"
+                  disabled={saved}
+                  onClick={() => addQuest(quest)}
+                >
+                  {saved ? "Added" : "➕ Add"}
+                </button>
+              </li>
+            );
+          })}
 
-      return (
-        <li
-          key={quest.name}
-          className="list-group-item d-flex justify-content-between align-items-center"
-        >
-          <span>{quest.name}</span>
+          {filteredQuests.length === 0 && (
+            <li className="list-group-item text-muted">
+              No quest found
+            </li>
+          )}
+        </ul>
+      )}
 
-          <button
-            className="btn btn-sm btn-success"
-            disabled={saved}
-            onClick={() => addQuest(quest)}
-          >
-            {saved ? "Added" : "➕ Add"}
-          </button>
-        </li>
-      );
-    })}
-  </ul>
-)}
+    
 
       {/* SCAN */}
       <div className="card border-dashed p-4 text-center">
@@ -141,15 +158,73 @@ const filteredQuests = quests.filter((q) =>
         )}
       </div>
 
-      {/* OCR RESULT */}
-      {imageText && (
-        <div className="card mt-3">
-          <div className="card-body">
-            <h6 className="fw-bold">OCR Result</h6>
-            <pre className="small">{imageText}</pre>
+{/* OCR MATCH RESULT */}
+{ocrMatched !== null && (
+  <div className="card mt-3">
+    <div className="card-body">
+      {ocrMatched ? (
+        <>
+          <h6 className="fw-bold text-success">
+            ✅ OCR Matched Quests
+          </h6>
+          <ul className="mb-0">
+            {ocrMatchedQuests.map((q) => (
+              <li key={q}>{q}</li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <>
+          <h6 className="fw-bold text-danger">
+            ❌ No quest matched from OCR
+          </h6>
+          <div className="text-muted small">
+            Try clearer image or add quest manually
           </div>
-        </div>
+        </>
       )}
+    </div>
+  </div>
+)}
+
+
+
+
+
+  {/* ✅ SELECTED QUESTS (NAME ONLY) */}
+      <div className="card mb-4">
+        <div className="card-body">
+          <h6 className="fw-bold mb-2">
+            📋 Selected Quests
+          </h6>
+
+          {selectedQuests.length === 0 ? (
+            <div className="text-muted small">
+              No quests added yet
+            </div>
+          ) : (
+            <ul className="list-group list-group-flush">
+              {selectedQuests.map((q) => (
+                <li
+                  key={q.name}
+                  className="list-group-item"
+                >
+                  {q.name}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+
+
+
+
+
+
+
+
+
     </div>
   );
 };
