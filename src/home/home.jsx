@@ -259,7 +259,19 @@ const Home = () => {
 
                   return (
                     <div key={quest.name} className="mb-4">
-                      <h6 className="fw-bold text-primary">{quest.name}</h6>
+
+
+                      <a className="fw-bold text-primary"
+                        href={quest.wikiLink}
+                        target="_blank"
+                        rel="noreferrer"
+
+                      >
+                        {quest.name}
+                      </a>
+
+
+
 
                       <ul className="list-unstyled">
                         {filteredObjectives.map((obj, i) => {

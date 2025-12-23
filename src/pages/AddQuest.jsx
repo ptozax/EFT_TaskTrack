@@ -340,7 +340,20 @@ const AddQuest = () => {
                   key={quest.name}
                   className="list-group-item d-flex justify-content-between align-items-center"
                 >
-                  <span>{quest.name}</span>
+                  <span>
+
+
+
+                    <a className="fw-bold text-primary"
+                      href={quest.wikiLink}
+                      target="_blank"
+                      rel="noreferrer"
+
+                    >
+                      {quest.name}
+                    </a>
+
+                  </span>
 
                   <button
                     className="btn btn-sm btn-outline-danger"
