@@ -58,9 +58,10 @@ const Home = () => {
     return Array.from(locations).map((name) => ({ name }));
   };
 
-  const allLocations = getAllObjectiveLocations(quests);
-  console.log(allLocations);
-
+const allLocations = [
+  "Any",
+  ...getAllObjectiveLocations(quests).map(l => l.name),
+];
 
 
   /* ---------------- LOCATION FILTER ---------------- */
@@ -159,7 +160,7 @@ const Home = () => {
 
       {/* Location Filter */}
       <div className="row justify-content-center mb-4">
-        <div className="col-md-8">
+        <div className="col-md-12">
           <div className="card shadow-sm">
             <div className="card-body">
               <h6 className="fw-bold mb-3">
@@ -167,7 +168,7 @@ const Home = () => {
               </h6>
 
               <div className="d-flex flex-wrap gap-2">
-                {LOCATIONS.map((loc) => {
+                {allLocations.map((loc) => {
                   const active =
                     loc === "Any"
                       ? objectiveLocations.length === 0
