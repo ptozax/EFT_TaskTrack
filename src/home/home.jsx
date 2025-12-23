@@ -303,18 +303,20 @@ const Home = () => {
                             <li
                               key={key}
                               className={`mb-2 p-2 rounded ${checked
-                                  ? "bg-success bg-opacity-10 border border-success text-success"
-                                  : "bg-secondary bg-opacity-10 border border-secondary text-light"
+                                ? "bg-success bg-opacity-10 border border-success text-success"
+                                : "bg-secondary bg-opacity-10 border border-secondary text-light"
                                 }`}
                             >
                               {/* OBJECTIVE ROW */}
-                              <div className="d-flex justify-content-between align-items-start">
-                                {/* LEFT : DESCRIPTION (click = checklist) */}
+                              <div
+                                className="d-flex justify-content-between align-items-start  rounded"
+                                onClick={() => toggleObjective(quest.name, i)}
+                                style={{ cursor: "pointer" }}
+                              >
+                                {/* LEFT : DESCRIPTION */}
                                 <span
-                                  onClick={() => toggleObjective(quest.name, i)}
-                                  className={`fw-medium ${checked ? "text-decoration-line-through" : ""
+                                  className={`fw-medium ${checked ? "text-decoration-line-through text-muted" : ""
                                     }`}
-                                  style={{ cursor: "pointer" }}
                                 >
                                   {obj.description}
                                 </span>
@@ -328,7 +330,7 @@ const Home = () => {
                                   }}
                                   title="Hide objective"
                                 >
-                                  🙈
+                                 <i class="fa-regular fa-eye-slash"></i>
                                 </button>
                               </div>
 
