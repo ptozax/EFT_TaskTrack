@@ -11,36 +11,36 @@ const AddQuest = () => {
   const [selectedQuests, setSelectedQuests] = useState([]);
   const [ocrMatched, setOcrMatched] = useState(null);
   const [ocrMatchedQuests, setOcrMatchedQuests] = useState([]);
-const [ocrUnmatchedText, setOcrUnmatchedText] = useState("");
-const [selectedTraders, setSelectedTraders] = useState([]);
+  const [ocrUnmatchedText, setOcrUnmatchedText] = useState("");
+  const [selectedTraders, setSelectedTraders] = useState([]);
 
 
 
 
-const traderOptions = [
-  ...new Set(
-    selectedQuests
-      .map((q) => q.trader?.name)
-      .filter(Boolean)
-  ),
-];
+  const traderOptions = [
+    ...new Set(
+      selectedQuests
+        .map((q) => q.trader?.name)
+        .filter(Boolean)
+    ),
+  ];
 
 
 
-const filteredSelectedQuests =
-  selectedTraders.length === 0
-    ? selectedQuests
-    : selectedQuests.filter((q) =>
+  const filteredSelectedQuests =
+    selectedTraders.length === 0
+      ? selectedQuests
+      : selectedQuests.filter((q) =>
         selectedTraders.includes(q.trader?.name)
       );
 
-const toggleTrader = (trader) => {
-  setSelectedTraders((prev) =>
-    prev.includes(trader)
-      ? prev.filter((t) => t !== trader)
-      : [...prev, trader]
-  );
-};
+  const toggleTrader = (trader) => {
+    setSelectedTraders((prev) =>
+      prev.includes(trader)
+        ? prev.filter((t) => t !== trader)
+        : [...prev, trader]
+    );
+  };
   /* ---------------- LOAD SELECTED QUESTS ---------------- */
   useEffect(() => {
     loadSelected();
@@ -106,28 +106,28 @@ const toggleTrader = (trader) => {
     loadSelected(); // 👈 refresh list
   };
 
-const autoMatchQuest = (text) => {
-  const matched = [];
-  let remainingText = text.toLowerCase();
+  const autoMatchQuest = (text) => {
+    const matched = [];
+    let remainingText = text.toLowerCase();
 
-  quests.forEach((quest) => {
-    const qName = quest.name.toLowerCase();
+    quests.forEach((quest) => {
+      const qName = quest.name.toLowerCase();
 
-    if (remainingText.includes(qName)) {
-      addQuest(quest);
-      matched.push(quest.name);
+      if (remainingText.includes(qName)) {
+        addQuest(quest);
+        matched.push(quest.name);
 
-      // ลบ quest ที่ match ออกจาก text
-      remainingText = remainingText.replaceAll(qName, "");
-    }
-  });
+        // ลบ quest ที่ match ออกจาก text
+        remainingText = remainingText.replaceAll(qName, "");
+      }
+    });
 
-  setOcrMatched(matched.length > 0);
-  setOcrMatchedQuests(matched);
+    setOcrMatched(matched.length > 0);
+    setOcrMatchedQuests(matched);
 
-  // เก็บ text ที่ไม่ match
-  setOcrUnmatchedText(remainingText.trim());
-};
+    // เก็บ text ที่ไม่ match
+    setOcrUnmatchedText(remainingText.trim());
+  };
 
 
   /* ---------------- UI ---------------- */
@@ -226,60 +226,59 @@ const autoMatchQuest = (text) => {
       )}
 
 
-{/* OCR UNMATCHED TEXT */}
-{ocrUnmatchedText && (
-  <div className="card mt-3 border-warning">
-    <div className="card-body">
-      <h6 className="fw-bold text-warning">
-        📝 OCR Text (Unmatched)
-      </h6>
-      <pre
-        className="small text-muted"
-        style={{ whiteSpace: "pre-wrap" }}
-      >
-        {ocrUnmatchedText}
-      </pre>
-    </div>
-  </div>
-)}
-
-
-
-{/* 🧑‍💼 TRADER FILTER */}
-{traderOptions.length > 0 && (
-  <div className="card mb-3">
-    <div className="card-body">
-      <h6 className="fw-bold mb-2">
-        🧑‍💼 Filter by Trader
-      </h6>
-
-      <div className="d-flex flex-wrap gap-2">
-        {traderOptions.map((trader) => (
-          <button
-            key={trader}
-            className={`btn btn-sm ${
-              selectedTraders.includes(trader)
-                ? "btn-primary"
-                : "btn-outline-primary"
-            }`}
-            onClick={() => toggleTrader(trader)}
-          >
-            {trader}
-          </button>
-        ))}
-      </div>
-
-      {selectedTraders.length > 0 && (
-        <button
-          className="btn btn-sm btn-link mt-2 text-danger"
-          onClick={() => setSelectedTraders([])}
-        >
-          Clear filter
-        </button>
+      {/* OCR UNMATCHED TEXT */}
+      {ocrUnmatchedText && (
+        <div className="card mt-3 border-warning">
+          <div className="card-body">
+            <h6 className="fw-bold text-warning">
+              📝 OCR Text (Unmatched)
+            </h6>
+            <pre
+              className="small text-muted"
+              style={{ whiteSpace: "pre-wrap" }}
+            >
+              {ocrUnmatchedText}
+            </pre>
+          </div>
+        </div>
       )}
-    </div>
-  </div>
-)}
+
+
+
+      {/* 🧑‍💼 TRADER FILTER */}
+      {traderOptions.length > 0 && (
+        <div className="card mb-3">
+          <div className="card-body">
+            <h6 className="fw-bold mb-2">
+              🧑‍💼 Filter by Trader
+            </h6>
+
+            <div className="d-flex flex-wrap gap-2">
+              {traderOptions.map((trader) => (
+                <button
+                  key={trader}
+                  className={`btn btn-sm ${selectedTraders.includes(trader)
+                      ? "btn-primary"
+                      : "btn-outline-primary"
+                    }`}
+                  onClick={() => toggleTrader(trader)}
+                >
+                  {trader}
+                </button>
+              ))}
+            </div>
+
+            {selectedTraders.length > 0 && (
+              <button
+                className="btn btn-sm btn-link mt-2 text-danger"
+                onClick={() => setSelectedTraders([])}
+              >
+                Clear filter
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ✅ SELECTED QUESTS (NAME ONLY) */}
       <div className="card mb-4">
@@ -294,7 +293,7 @@ const autoMatchQuest = (text) => {
             </div>
           ) : (
             <ul className="list-group list-group-flush">
-              {filteredSelectedQuests .map((q) => (
+              {filteredSelectedQuests.map((q) => (
                 <li
                   key={q.name}
                   className="list-group-item"
@@ -306,14 +305,6 @@ const autoMatchQuest = (text) => {
           )}
         </div>
       </div>
-
-
-
-
-
-
-
-
 
     </div>
   );

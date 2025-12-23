@@ -185,9 +185,9 @@ const Home = () => {
                       <div>
                         <a className="fw-bold text-info mb-1"
                           href={quest.wikiLink}
-                        target="_blank"
-                        rel="noreferrer"
-                        
+                          target="_blank"
+                          rel="noreferrer"
+
                         >
                           {quest.name}
                         </a>
@@ -221,65 +221,62 @@ const Home = () => {
               <div className="card-body">
                 <h5 className="fw-bold mb-3 text-info">🎯 Objectives</h5>
 
-{selectedQuests.map((quest) => {
-  const filteredObjectives = quest.objectives?.filter(
-    (obj) =>
-      objectiveLocations.length === 0 ||
-      obj.maps?.some((m) => objectiveLocations.includes(m.name))
-  ) || [];
+                {selectedQuests.map((quest) => {
+                  const filteredObjectives = quest.objectives?.filter(
+                    (obj) =>
+                      objectiveLocations.length === 0 ||
+                      obj.maps?.some((m) => objectiveLocations.includes(m.name))
+                  ) || [];
 
-  // 👉 ถ้าไม่มี objective หลัง filter → ซ่อน Quest
-  if (filteredObjectives.length === 0) return null;
+                  // 👉 ถ้าไม่มี objective หลัง filter → ซ่อน Quest
+                  if (filteredObjectives.length === 0) return null;
 
-  return (
-    <div key={quest.name} className="mb-4">
-      <h6 className="fw-bold text-primary">{quest.name}</h6>
+                  return (
+                    <div key={quest.name} className="mb-4">
+                      <h6 className="fw-bold text-primary">{quest.name}</h6>
 
-      <ul className="list-unstyled">
-        {filteredObjectives.map((obj, i) => {
-          const key = `${quest.name}|${i}`;
-          const checked = checkedObjectives[key];
+                      <ul className="list-unstyled">
+                        {filteredObjectives.map((obj, i) => {
+                          const key = `${quest.name}|${i}`;
+                          const checked = checkedObjectives[key];
 
-          return (
-            <li
-              key={key}
-              onClick={() => toggleObjective(quest.name, i)}
-              className={`mb-2 p-2 rounded ${
-                checked
-                  ? "bg-success bg-opacity-10 border border-success text-success"
-                  : "bg-secondary bg-opacity-10 border border-secondary text-light"
-              }`}
-              style={{ cursor: "pointer" }}
-            >
-              <span
-                className={`fw-medium ${
-                  checked ? "text-decoration-line-through" : ""
-                }`}
-              >
-                {obj.description}
-              </span>
+                          return (
+                            <li
+                              key={key}
+                              onClick={() => toggleObjective(quest.name, i)}
+                              className={`mb-2 p-2 rounded ${checked
+                                  ? "bg-success bg-opacity-10 border border-success text-success"
+                                  : "bg-secondary bg-opacity-10 border border-secondary text-light"
+                                }`}
+                              style={{ cursor: "pointer" }}
+                            >
+                              <span
+                                className={`fw-medium ${checked ? "text-decoration-line-through" : ""
+                                  }`}
+                              >
+                                {obj.description}
+                              </span>
 
-              {obj.maps?.length > 0 && (
-                <div className="mt-1">
-                  {obj.maps.map((m) => (
-                    <span
-                      key={m.name}
-                      className={`badge me-1 ${
-                        checked ? "bg-success" : "bg-secondary"
-                      }`}
-                    >
-                      {m.name}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-    </div>
-  );
-})}
+                              {obj.maps?.length > 0 && (
+                                <div className="mt-1">
+                                  {obj.maps.map((m) => (
+                                    <span
+                                      key={m.name}
+                                      className={`badge me-1 ${checked ? "bg-success" : "bg-secondary"
+                                        }`}
+                                    >
+                                      {m.name}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </div>
+                  );
+                })}
 
 
 
