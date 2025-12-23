@@ -183,9 +183,19 @@ const Home = () => {
                     >
                       {/* LEFT : QUEST INFO */}
                       <div>
-                        <h6 className="fw-bold text-info mb-1">
+                        <a className="fw-bold text-info mb-1"
+                          href={quest.wikiLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        
+                        >
                           {quest.name}
-                        </h6>
+                        </a>
+
+
+
+
+
                         <p className="text-muted small mb-0">
                           EXP: {quest.experience} | Lv {quest.minPlayerLevel}
                         </p>
