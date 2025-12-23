@@ -3,7 +3,7 @@ import Tesseract from "tesseract.js";
 import quests from "../data/tasks";
 
 const STORAGE_KEY = "eft_selected_quests";
-const OBJECTIVE_KEY  = "eft_objective_checklist";
+const OBJECTIVE_KEY = "eft_objective_checklist";
 
 const AddQuest = () => {
   const [search, setSearch] = useState("");
@@ -108,41 +108,41 @@ const AddQuest = () => {
   };
 
 
-const removeQuest = (questName) => {
-  // ลบ quest
-  const saved = getSavedQuests().filter(
-    (q) => q.name !== questName
-  );
+  const removeQuest = (questName) => {
+    // ลบ quest
+    const saved = getSavedQuests().filter(
+      (q) => q.name !== questName
+    );
 
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify(saved)
-  );
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(saved)
+    );
 
-  // 👇 ลบ objective progress ของ quest นี้
-  clearObjectiveProgress(questName);
+    // 👇 ลบ objective progress ของ quest นี้
+    clearObjectiveProgress(questName);
 
-  loadSelected();
-};
+    loadSelected();
+  };
 
 
 
-const clearObjectiveProgress = (questName) => {
-  const saved =
-    JSON.parse(localStorage.getItem(OBJECTIVE_KEY) || "{}");
+  const clearObjectiveProgress = (questName) => {
+    const saved =
+      JSON.parse(localStorage.getItem(OBJECTIVE_KEY) || "{}");
 
-  // ลบทุก objective ที่ขึ้นต้นด้วย questName|
-  Object.keys(saved).forEach((key) => {
-    if (key.startsWith(`${questName}|`)) {
-      delete saved[key];
-    }
-  });
+    // ลบทุก objective ที่ขึ้นต้นด้วย questName|
+    Object.keys(saved).forEach((key) => {
+      if (key.startsWith(`${questName}|`)) {
+        delete saved[key];
+      }
+    });
 
-  localStorage.setItem(
-    OBJECTIVE_KEY,
-    JSON.stringify(saved)
-  );
-};
+    localStorage.setItem(
+      OBJECTIVE_KEY,
+      JSON.stringify(saved)
+    );
+  };
 
 
 

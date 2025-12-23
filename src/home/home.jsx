@@ -79,33 +79,33 @@ const Home = () => {
     setSearch("");
   };
 
-const removeQuest = (name) => {
-  // ลบ quest
-  setSelectedQuests((prev) =>
-    prev.filter((q) => q.name !== name)
-  );
+  const removeQuest = (name) => {
+    // ลบ quest
+    setSelectedQuests((prev) =>
+      prev.filter((q) => q.name !== name)
+    );
 
-  // ลบ objective progress ของ quest นี้
-  clearObjectiveProgress(name);
-};
-
-
+    // ลบ objective progress ของ quest นี้
+    clearObjectiveProgress(name);
+  };
 
 
 
-const clearObjectiveProgress = (questName) => {
-  setCheckedObjectives((prev) => {
-    const updated = { ...prev };
 
-    Object.keys(updated).forEach((key) => {
-      if (key.startsWith(`${questName}|`)) {
-        delete updated[key];
-      }
+
+  const clearObjectiveProgress = (questName) => {
+    setCheckedObjectives((prev) => {
+      const updated = { ...prev };
+
+      Object.keys(updated).forEach((key) => {
+        if (key.startsWith(`${questName}|`)) {
+          delete updated[key];
+        }
+      });
+
+      return updated;
     });
-
-    return updated;
-  });
-};
+  };
 
 
 
@@ -271,8 +271,8 @@ const clearObjectiveProgress = (questName) => {
                               key={key}
                               onClick={() => toggleObjective(quest.name, i)}
                               className={`mb-2 p-2 rounded ${checked
-                                  ? "bg-success bg-opacity-10 border border-success text-success"
-                                  : "bg-secondary bg-opacity-10 border border-secondary text-light"
+                                ? "bg-success bg-opacity-10 border border-success text-success"
+                                : "bg-secondary bg-opacity-10 border border-secondary text-light"
                                 }`}
                               style={{ cursor: "pointer" }}
                             >
