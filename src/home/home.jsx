@@ -79,9 +79,35 @@ const Home = () => {
     setSearch("");
   };
 
-  const removeQuest = (name) => {
-    setSelectedQuests((prev) => prev.filter((q) => q.name !== name));
-  };
+const removeQuest = (name) => {
+  // ลบ quest
+  setSelectedQuests((prev) =>
+    prev.filter((q) => q.name !== name)
+  );
+
+  // ลบ objective progress ของ quest นี้
+  clearObjectiveProgress(name);
+};
+
+
+
+
+
+const clearObjectiveProgress = (questName) => {
+  setCheckedObjectives((prev) => {
+    const updated = { ...prev };
+
+    Object.keys(updated).forEach((key) => {
+      if (key.startsWith(`${questName}|`)) {
+        delete updated[key];
+      }
+    });
+
+    return updated;
+  });
+};
+
+
 
   const toggleObjective = (questName, index) => {
     const key = `${questName}|${index}`;
