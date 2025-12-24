@@ -52,20 +52,35 @@ const doneIcon = new L.DivIcon({
 /* ---------------- MAP CONFIG ---------------- */
 
 
+
+
+const handleMapScale = (mapName) => {
+  switch (mapName.toLowerCase()) {
+    case "woods":
+      return offset.woods.ov_scale;
+
+    default:
+      return 1;
+  }
+};
+
+
 const offset = {
   woods: {
     scale: 6.8,
     offset_x: 39,
     offset_y:3,
+    ov_scale:0.1
   }
 }
+
 
 const MAPS = {
   Woods: {
     image: "https://assets.tarkov.dev/maps/svg/Woods.svg",
     bounds: [
-      [(-100+offset.woods.offset_x)*offset.woods.scale ,(-100+offset.woods.offset_y)*offset.woods.scale],
-      [(100+offset.woods.offset_x) *offset.woods.scale, (100+offset.woods.offset_y)*offset.woods.scale],
+      [ ((-100+offset.woods.offset_x)*offset.woods.scale )*offset.woods.ov_scale    ,((-100+offset.woods.offset_y)*offset.woods.scale)*offset.woods.ov_scale  ],
+      [((100+offset.woods.offset_x) *offset.woods.scale  )*offset.woods.ov_scale     , ((100+offset.woods.offset_y)*offset.woods.scale)*offset.woods.ov_scale  ],
     ],
   },
 };
@@ -147,7 +162,7 @@ const MapPage = () => {
             return (
               <Marker
                 key={`${key}-${idx}`}
-                position={[pin.y * 1, pin.x * -1]}
+                position={[(pin.y * 1) * handleMapScale(selectedMap),( pin.x * -1)* handleMapScale(selectedMap)]}
                 icon={icon}
               >
                 <Popup>
