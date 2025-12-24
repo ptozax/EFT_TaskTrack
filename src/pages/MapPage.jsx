@@ -106,6 +106,36 @@ const MapPage = () => {
         }))
     );
 
+
+  /* ---------- MARKER OFFSET HELPERS ---------- */
+
+  // สร้าง key สำหรับตำแหน่ง
+  const posKey = (lat, lng) =>
+    `${lat.toFixed(4)},${lng.toFixed(4)}`;
+
+  // กระจาย marker เป็นวง
+  const getOffsetPosition = (basePos, index, total, radius = 0.1) => {
+    if (total <= 1) return basePos;
+
+    const angle = (index / total) * Math.PI * 2;
+    return [
+      basePos[0] + Math.sin(angle) * radius,
+      basePos[1] + Math.cos(angle) * radius,
+    ];
+  };
+  /* ---------- PREPARE PIN POSITIONS ---------- */
+  const pinGroups = {};
+
+  objectives.forEach((obj) => {
+    getObjectivePins(obj).forEach((pin) => {
+      const basePos = toLeafletPos(pin.x, pin.y, mapConfig);
+      const key = posKey(basePos[0], basePos[1]);
+
+      if (!pinGroups[key]) pinGroups[key] = [];
+      pinGroups[key].push({ obj, pin });
+    });
+  });
+
   return (
     <div className="container py-4 text-light">
       <h3 className="fw-bold mb-3">🗺️ Interactive Quest Map</h3>
@@ -131,15 +161,23 @@ const MapPage = () => {
           bounds={getMapBounds(mapConfig)}
         />
 
-        {objectives.map((obj) =>
-          getObjectivePins(obj).map((pin, idx) => {
+        {Object.entries(pinGroups).flatMap(([groupKey, items]) =>
+          items.map((item, index) => {
+            const { obj, pin } = item;
             const key = `${obj.questName}|${obj.objectiveIndex}`;
             const isChecked = checkedObjectives[key];
 
+            const basePos = toLeafletPos(pin.x, pin.y, mapConfig);
+            const finalPos = getOffsetPosition(
+              basePos,
+              index,
+              items.length
+            );
+
             return (
               <Marker
-                key={`${key}-${idx}`}
-                position={toLeafletPos(pin.x, pin.y, mapConfig)}
+                key={`${key}-${index}`}
+                position={finalPos}
                 icon={isChecked ? ICONS.done : ICONS[pin.type]}
               >
                 <Popup>
