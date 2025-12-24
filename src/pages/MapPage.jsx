@@ -154,7 +154,8 @@ const MapPage = () => {
         center={[0, 0]}
         zoom={2}
         crs={L.CRS.Simple}
-        style={{ height: "600px" }}
+        style={{ height: "600px", backgroundColor: "#5f5f5fff" }}
+
       >
         <ImageOverlay
           url={mapConfig.image}
