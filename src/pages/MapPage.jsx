@@ -52,10 +52,10 @@ const doneIcon = new L.DivIcon({
 /* ---------------- MAP CONFIG ---------------- */
 const MAPS = {
   Woods: {
-    image: "woods.svg",
+    image: "https://assets.tarkov.dev/maps/svg/Woods.svg",
     bounds: [
-      [-100, -100],
-      [100, 100],
+      [-61, -97],
+      [139, 103],
     ],
   },
 };
@@ -137,7 +137,7 @@ const MapPage = () => {
             return (
               <Marker
                 key={`${key}-${idx}`}
-                position={[pin.y, pin.x]}
+                position={[pin.y*1/6.8, pin.x*-1/6.8]}
                 icon={icon}
               >
                 <Popup>
