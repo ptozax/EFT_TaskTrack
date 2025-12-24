@@ -9,9 +9,11 @@ import './index.css';
 
 import Home from './home/home.jsx';
 import AddQuest from "./pages/AddQuest.jsx";  
+import MapPage from "./pages/MapPage.jsx";
 import AppNavbar from './Component/AppNavbar.jsx';
 
 const pageComponents = {
+  Map : < MapPage/>,
   AddQuest: <AddQuest/>,
   Default: <Home/>,
 };

@@ -9,3 +9,26 @@ body {
     font-family: Arial, sans-serif;
   
 }
+
+
+.leaflet-container {
+  width: 100%;
+  height: 600px;
+  background: #111;
+}
+
+
+
+/* ล้าง style default ของ leaflet div icon */
+.map-icon {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 10px;
+  line-height: 1;
+}
