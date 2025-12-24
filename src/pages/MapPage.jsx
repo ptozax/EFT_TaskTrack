@@ -50,12 +50,22 @@ const doneIcon = new L.DivIcon({
 });
 
 /* ---------------- MAP CONFIG ---------------- */
+
+
+const offset = {
+  woods: {
+    scale: 6.8,
+    offset_x: 39,
+    offset_y:3,
+  }
+}
+
 const MAPS = {
   Woods: {
     image: "https://assets.tarkov.dev/maps/svg/Woods.svg",
     bounds: [
-      [-61, -97],
-      [139, 103],
+      [(-100+offset.woods.offset_x)*offset.woods.scale ,(-100+offset.woods.offset_y)*offset.woods.scale],
+      [(100+offset.woods.offset_x) *offset.woods.scale, (100+offset.woods.offset_y)*offset.woods.scale],
     ],
   },
 };
@@ -131,13 +141,13 @@ const MapPage = () => {
             const icon = isChecked
               ? doneIcon
               : pin.type === "zone"
-              ? zoneIcon
-              : possibleIcon;
+                ? zoneIcon
+                : possibleIcon;
 
             return (
               <Marker
                 key={`${key}-${idx}`}
-                position={[pin.y*1/6.8, pin.x*-1/6.8]}
+                position={[pin.y * 1, pin.x * -1]}
                 icon={icon}
               >
                 <Popup>
