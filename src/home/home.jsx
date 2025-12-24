@@ -306,12 +306,16 @@ const Home = () => {
                                 ? "bg-success bg-opacity-10 border border-success text-success"
                                 : "bg-secondary bg-opacity-10 border border-secondary text-light"
                                 }`}
+
+                              onClick={() => toggleObjective(quest.name, i)}
+                              style={{ cursor: "pointer" }}
+
                             >
                               {/* OBJECTIVE ROW */}
                               <div
                                 className="d-flex justify-content-between align-items-start  rounded"
-                                onClick={() => toggleObjective(quest.name, i)}
-                                style={{ cursor: "pointer" }}
+                              // onClick={() => toggleObjective(quest.name, i)}
+                              // style={{ cursor: "pointer" }}
                               >
                                 {/* LEFT : DESCRIPTION */}
                                 <span
@@ -330,7 +334,7 @@ const Home = () => {
                                   }}
                                   title="Hide objective"
                                 >
-                                 <i class="fa-regular fa-eye-slash"></i>
+                                  <i class="fa-regular fa-eye-slash"></i>
                                 </button>
                               </div>
 
