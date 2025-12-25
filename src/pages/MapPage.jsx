@@ -47,7 +47,7 @@ const MAPS = {
   },
 
 
-    "Night Factory": {
+  "Night Factory": {
     image: "https://assets.tarkov.dev/maps/svg/Factory.svg",
     scale: 0.74,
     offsetX: 7,
@@ -71,7 +71,7 @@ const MAPS = {
 
 
 
-    "Interchange": {
+  "Interchange": {
     image: "https://assets.tarkov.dev/maps/svg/Interchange.svg",
     scale: 4.5,
     offsetX: -1,
@@ -81,7 +81,7 @@ const MAPS = {
     invertY: 1
   },
 
-    "Lighthouse": {
+  "Lighthouse": {
     image: "https://assets.tarkov.dev/maps/svg/Lighthouse.svg",
     scale: 8.7,
     offsetX: 15.7,
@@ -91,7 +91,82 @@ const MAPS = {
     invertY: 1
   },
 
+
+  //---------------------------------------------------------------------------------
+
+  "Ground Zero": {
+    image: "https://assets.tarkov.dev/maps/svg/GroundZero.svg",
+    scale: 8.7,
+    offsetX: 15.7,
+    offsetY: 1.6,
+    overlayScale: 0.25,
+    invertX: 1,
+    invertY: 1
+  },
+
+
+  "Ground Zero 21+": {
+    image: "https://assets.tarkov.dev/maps/svg/GroundZero.svg",
+    scale: 8.7,
+    offsetX: 15.7,
+    offsetY: 1.6,
+    overlayScale: 0.25,
+    invertX: 1,
+    invertY: 1
+  },
+  "Shoreline": {
+    image: "https://assets.tarkov.dev/maps/svg/Shoreline.svg",
+    scale: 8.7,
+    offsetX: 15.7,
+    offsetY: 1.6,
+    overlayScale: 0.25,
+    invertX: 1,
+    invertY: 1
+  },
+
+
+  "Streets of Tarkov": {
+    image: "https://assets.tarkov.dev/maps/svg/StreetsOfTarkov.svg",
+    scale: 8.7,
+    offsetX: 15.7,
+    offsetY: 1.6,
+    overlayScale: 0.25,
+    invertX: 1,
+    invertY: 1
+  },
+
+  "The Lab": {
+    image: "labs.png",
+    scale: 8.7,
+    offsetX: 15.7,
+    offsetY: 1.6,
+    overlayScale: 0.15,
+    invertX: 1,
+    invertY: 1
+  },
+
+  "The Labyrinth": {
+    image: "labyrinth.png",
+    scale: 8.7,
+    offsetX: 15.7,
+    offsetY: 1.6,
+    overlayScale: 0.15,
+    invertX: 1,
+    invertY: 1
+  },
+
+    "Reserve": {
+    image: "https://assets.tarkov.dev/maps/svg/Reserve.svg",
+    scale: 8.7,
+    offsetX: 15.7,
+    offsetY: 1.6,
+    overlayScale: 0.15,
+    invertX: 1,
+    invertY: 1
+  },
+
 };
+
 
 /* ---------------- HELPERS ---------------- */
 
@@ -123,7 +198,7 @@ const getObjectivePins = (objective) => {
 };
 
 const toLeafletPos = (x, y, map) => [
-  -y * map.overlayScale  * map.invertY,
+  -y * map.overlayScale * map.invertY,
   -x * map.overlayScale * map.invertX,
 ];
 
