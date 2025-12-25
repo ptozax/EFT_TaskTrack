@@ -26,7 +26,7 @@ const ICONS = {
 
 /* ---------------- MAP CONFIG ---------------- */
 const MAPS = {
-  Woods: {
+  "Woods": {
     image: "https://assets.tarkov.dev/maps/svg/Woods.svg",
     scale: 6.8,
     offsetX: 36,
@@ -36,7 +36,7 @@ const MAPS = {
     invertY: 1
   },
 
-  Factory: {
+  "Factory": {
     image: "https://assets.tarkov.dev/maps/svg/Factory.svg",
     scale: 0.74,
     offsetX: 7,
@@ -47,7 +47,19 @@ const MAPS = {
   },
 
 
-  Customs: {
+    "Night Factory": {
+    image: "https://assets.tarkov.dev/maps/svg/Factory.svg",
+    scale: 0.74,
+    offsetX: 7,
+    offsetY: -2,
+    overlayScale: 0.15,
+    invertX: 1,
+    invertY: -1
+  },
+
+
+
+  "Customs": {
     image: "https://assets.tarkov.dev/maps/svg/Customs.svg",
     scale: 5.35,
     offsetX: 7,
@@ -56,6 +68,29 @@ const MAPS = {
     invertX: 1,
     invertY: 1
   },
+
+
+
+    "Interchange": {
+    image: "https://assets.tarkov.dev/maps/svg/Interchange.svg",
+    scale: 4.5,
+    offsetX: -1,
+    offsetY: -19,
+    overlayScale: 0.25,
+    invertX: 1,
+    invertY: 1
+  },
+
+    "Lighthouse": {
+    image: "https://assets.tarkov.dev/maps/svg/Lighthouse.svg",
+    scale: 8.7,
+    offsetX: 15.7,
+    offsetY: 1.6,
+    overlayScale: 0.25,
+    invertX: 1,
+    invertY: 1
+  },
+
 };
 
 /* ---------------- HELPERS ---------------- */
