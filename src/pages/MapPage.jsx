@@ -114,18 +114,18 @@ const MAPS = {
     invertX: 1,
     invertY: 1
   },
-  //---------------------------------------------------------------------------------
 
   "Shoreline": {
     image: "https://assets.tarkov.dev/maps/svg/Shoreline.svg",
-    scale: 8.7,
-    offsetX: 15.7,
-    offsetY: 1.6,
+    scale: 7.78,
+    offsetX: -12.5,
+    offsetY:35,
     overlayScale: 0.25,
     invertX: 1,
     invertY: 1
   },
 
+  //---------------------------------------------------------------------------------
 
   "Streets of Tarkov": {
     image: "https://assets.tarkov.dev/maps/svg/StreetsOfTarkov.svg",
