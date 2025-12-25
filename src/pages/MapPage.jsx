@@ -39,25 +39,25 @@ const MAPS = {
 
   "Factory": {
     image: "https://assets.tarkov.dev/maps/svg/Factory.svg",
-    scale: 0.74,
-    offsetX: 7,
+    scale: 0.72,
+    offsetX: 9,
     offsetY: -2,
     overlayScale: 0.15,
     invertX: 1,
-    invertY: -1,
-    rotate: 0
+    invertY: 1,
+    rotate: -90
   },
 
 
   "Night Factory": {
     image: "https://assets.tarkov.dev/maps/svg/Factory.svg",
-    scale: 0.74,
-    offsetX: 7,
+    scale: 0.72,
+    offsetX: 9,
     offsetY: -2,
     overlayScale: 0.15,
     invertX: 1,
-    invertY: -1,
-    rotate: 0
+    invertY: 1,
+    rotate: -90
   },
 
 
