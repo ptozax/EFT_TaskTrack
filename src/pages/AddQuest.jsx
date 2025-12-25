@@ -97,21 +97,20 @@ const AddQuest = () => {
 
   const addQuest = (quest) => {
     const saved = getSavedQuests();
-    if (saved.some((q) => q.name === quest.name)) return;
+    if (saved.some((q) => q.id === quest.id)) return;
 
     localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify([...saved, quest])
     );
 
-    loadSelected(); // 👈 refresh list
+    loadSelected();
   };
 
 
-  const removeQuest = (questName) => {
-    // ลบ quest
+  const removeQuest = (questId) => {
     const saved = getSavedQuests().filter(
-      (q) => q.name !== questName
+      (q) => q.id !== questId
     );
 
     localStorage.setItem(
@@ -119,21 +118,19 @@ const AddQuest = () => {
       JSON.stringify(saved)
     );
 
-    // 👇 ลบ objective progress ของ quest นี้
-    clearObjectiveProgress(questName);
-
+    clearObjectiveProgress(questId);
     loadSelected();
   };
 
 
 
-  const clearObjectiveProgress = (questName) => {
+
+  const clearObjectiveProgress = (questId) => {
     const saved =
       JSON.parse(localStorage.getItem(OBJECTIVE_KEY) || "{}");
 
-    // ลบทุก objective ที่ขึ้นต้นด้วย questName|
     Object.keys(saved).forEach((key) => {
-      if (key.startsWith(`${questName}|`)) {
+      if (key.startsWith(`${questId}|`)) {
         delete saved[key];
       }
     });
@@ -143,6 +140,7 @@ const AddQuest = () => {
       JSON.stringify(saved)
     );
   };
+
 
 
 
@@ -193,7 +191,7 @@ const AddQuest = () => {
         <ul className="list-group mb-4">
           {filteredQuests.slice(0, 10).map((quest) => {
             const saved = selectedQuests.some(
-              (q) => q.name === quest.name
+              (q) => q.id === quest.id
             );
 
             return (
@@ -337,7 +335,7 @@ const AddQuest = () => {
             <ul className="list-group list-group-flush">
               {filteredSelectedQuests.map((quest) => (
                 <li
-                  key={quest.name}
+                  key={quest.id}
                   className="list-group-item d-flex justify-content-between align-items-center"
                 >
                   <span>
@@ -357,7 +355,7 @@ const AddQuest = () => {
 
                   <button
                     className="btn btn-sm btn-outline-danger"
-                    onClick={() => removeQuest(quest.name)}
+                    onClick={() => removeQuest(quest.id)}
                   >
                     ✕
                   </button>

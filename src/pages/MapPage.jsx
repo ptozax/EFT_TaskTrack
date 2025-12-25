@@ -53,6 +53,16 @@ const MAPS = {
 };
 
 /* ---------------- HELPERS ---------------- */
+
+
+const getObjectiveKey = (questId, objectiveId) =>
+  `${questId}|${objectiveId}`;
+
+
+
+
+
+
 const getObjectivePins = (objective) => {
   const pins = [];
 
@@ -103,10 +113,10 @@ const MapPage = () => {
   }, []);
 
   /* -------- FULL QUEST DATA -------- */
-  const selectedQuestNames = selectedQuests.map((q) => q.name);
+const selectedQuestIds = selectedQuests.map((q) => q.id);
 
-  const objectives = quests
-    .filter((q) => selectedQuestNames.includes(q.name))
+const objectives = quests
+  .filter((q) => selectedQuestIds.includes(q.id))
     .flatMap((q) =>
       q.objectives
         ?.filter(
@@ -116,10 +126,10 @@ const MapPage = () => {
               (m) => m.name?.toLowerCase() === selectedMap.toLowerCase()
             )
         )
-        .map((obj, index) => ({
+        .map((obj) => ({
           ...obj,
-          questName: q.name,
-          objectiveIndex: index,
+          questId: q.id,
+          questName: q.name, // ใช้แสดงผลได้
         }))
     );
 
@@ -182,7 +192,7 @@ const MapPage = () => {
         {Object.entries(pinGroups).flatMap(([groupKey, items]) =>
           items.map((item, index) => {
             const { obj, pin } = item;
-            const key = `${obj.questName}|${obj.objectiveIndex}`;
+            const key = getObjectiveKey(obj.questId, obj.id);
             const isChecked = checkedObjectives[key];
 
             const basePos = toLeafletPos(pin.x, pin.y, mapConfig);
@@ -194,7 +204,8 @@ const MapPage = () => {
 
             return (
               <Marker
-                key={`${key}-${index}`}
+                key={`${key}-${pin.type}-${index}`}
+
                 position={finalPos}
                 icon={isChecked ? ICONS.done : ICONS[pin.type]}
               >

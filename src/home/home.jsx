@@ -19,8 +19,8 @@ const Home = () => {
 
 
 
-  const toggleHideObjective = (questName, index) => {
-    const key = `${questName}|${index}`;
+  const toggleHideObjective = (questId, objectiveId) => {
+    const key = getObjectiveKey(questId, objectiveId);
     setHiddenObjectives((prev) => ({
       ...prev,
       [key]: !prev[key],
@@ -28,7 +28,8 @@ const Home = () => {
   };
 
 
-
+  const getObjectiveKey = (questId, objectiveId) =>
+    `${questId}|${objectiveId}`;
 
 
   /* ---------------- UTILS ---------------- */
@@ -97,26 +98,26 @@ const Home = () => {
     setSearch("");
   };
 
-  const removeQuest = (name) => {
-    // ลบ quest
-    setSelectedQuests((prev) =>
-      prev.filter((q) => q.name !== name)
-    );
+const removeQuest = (questId) => {
+  // ลบ quest
+  setSelectedQuests((prev) =>
+    prev.filter((q) => q.id !== questId)
+  );
 
-    // ลบ objective progress ของ quest นี้
-    clearObjectiveProgress(name);
-  };
-
-
+  // ลบ objective progress ของ quest นี้
+  clearObjectiveProgress(questId);
+};
 
 
 
-  const clearObjectiveProgress = (questName) => {
+
+
+  const clearObjectiveProgress = (questId) => {
     setCheckedObjectives((prev) => {
       const updated = { ...prev };
 
       Object.keys(updated).forEach((key) => {
-        if (key.startsWith(`${questName}|`)) {
+        if (key.startsWith(`${questId}|`)) {
           delete updated[key];
         }
       });
@@ -127,8 +128,8 @@ const Home = () => {
 
 
 
-  const toggleObjective = (questName, index) => {
-    const key = `${questName}|${index}`;
+  const toggleObjective = (questId, objectiveId) => {
+    const key = getObjectiveKey(questId, objectiveId);
     setCheckedObjectives((prev) => ({
       ...prev,
       [key]: !prev[key],
@@ -248,7 +249,7 @@ const Home = () => {
                       {/* RIGHT : REMOVE BUTTON */}
                       <button
                         className="btn btn-sm btn-outline-danger"
-                        onClick={() => removeQuest(quest.name)}
+                        onClick={() => removeQuest(quest.id)}
                       >
                         ✕
                       </button>
@@ -292,12 +293,12 @@ const Home = () => {
 
 
                       <ul className="list-unstyled">
-                        {filteredObjectives.map((obj, i) => {
-                          const key = `${quest.name}|${i}`;
+                        {filteredObjectives.map((obj) => {
+                          const key = getObjectiveKey(quest.id, obj.id);
                           const checked = checkedObjectives[key];
-                          const hidden = hiddenObjectives[key]; // ✅ เพิ่มบรรทัดนี้
+                          const hidden = hiddenObjectives[key];
 
-                          if (hidden) return null; // 👈 ซ่อนชั่วคราว
+                          if (hidden) return null;
 
                           return (
                             <li
@@ -307,7 +308,7 @@ const Home = () => {
                                 : "bg-secondary bg-opacity-10 border border-secondary text-light"
                                 }`}
 
-                              onClick={() => toggleObjective(quest.name, i)}
+                              onClick={() => toggleObjective(quest.id, obj.id)}
                               style={{ cursor: "pointer" }}
 
                             >
@@ -330,7 +331,7 @@ const Home = () => {
                                   className="btn btn-sm btn-outline-warning ms-2"
                                   onClick={(e) => {
                                     e.stopPropagation(); // ❗ กันไม่ให้ไป toggle checklist
-                                    toggleHideObjective(quest.name, i);
+                                    toggleHideObjective(quest.id, obj.id);
                                   }}
                                   title="Hide objective"
                                 >
