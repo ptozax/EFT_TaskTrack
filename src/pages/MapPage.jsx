@@ -32,14 +32,18 @@ const MAPS = {
     offsetX: 36,
     offsetY: 3,
     overlayScale: 0.15,
+    invertX: 1,
+    invertY: 1
   },
 
   Factory: {
     image: "https://assets.tarkov.dev/maps/svg/Factory.svg",
-    scale: 6.8,
-    offsetX: -49,
-    offsetY: 48.5,
+    scale: 0.74,
+    offsetX: 7,
+    offsetY: -2,
     overlayScale: 0.15,
+    invertX: 1,
+    invertY: -1
   },
 
 
@@ -49,6 +53,8 @@ const MAPS = {
     offsetX: 7,
     offsetY: -30.5,
     overlayScale: 0.15,
+    invertX: 1,
+    invertY: 1
   },
 };
 
@@ -82,8 +88,8 @@ const getObjectivePins = (objective) => {
 };
 
 const toLeafletPos = (x, y, map) => [
-  -y * map.overlayScale,
-  -x * map.overlayScale,
+  -y * map.overlayScale  * map.invertY,
+  -x * map.overlayScale * map.invertX,
 ];
 
 const getMapBounds = (map) => {
@@ -113,10 +119,10 @@ const MapPage = () => {
   }, []);
 
   /* -------- FULL QUEST DATA -------- */
-const selectedQuestIds = selectedQuests.map((q) => q.id);
+  const selectedQuestIds = selectedQuests.map((q) => q.id);
 
-const objectives = quests
-  .filter((q) => selectedQuestIds.includes(q.id))
+  const objectives = quests
+    .filter((q) => selectedQuestIds.includes(q.id))
     .flatMap((q) =>
       q.objectives
         ?.filter(
