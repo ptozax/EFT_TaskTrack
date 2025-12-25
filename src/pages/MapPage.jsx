@@ -92,13 +92,13 @@ const MAPS = {
   },
 
 
-  //---------------------------------------------------------------------------------
+
 
   "Ground Zero": {
     image: "https://assets.tarkov.dev/maps/svg/GroundZero.svg",
-    scale: 8.7,
-    offsetX: 15.7,
-    offsetY: 1.6,
+    scale: 2.45,
+    offsetX: -49.25,
+    offsetY: -30.8,
     overlayScale: 0.25,
     invertX: 1,
     invertY: 1
@@ -107,13 +107,15 @@ const MAPS = {
 
   "Ground Zero 21+": {
     image: "https://assets.tarkov.dev/maps/svg/GroundZero.svg",
-    scale: 8.7,
-    offsetX: 15.7,
-    offsetY: 1.6,
+    scale: 2.45,
+    offsetX: -49.25,
+    offsetY: -30.8,
     overlayScale: 0.25,
     invertX: 1,
     invertY: 1
   },
+  //---------------------------------------------------------------------------------
+
   "Shoreline": {
     image: "https://assets.tarkov.dev/maps/svg/Shoreline.svg",
     scale: 8.7,
