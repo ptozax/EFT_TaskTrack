@@ -382,11 +382,11 @@ const MapPage = () => {
 
 
 
-        <Marker
+       {/* { <Marker
           key={"sdadwasdwd"}
           position={[0, 0]}
           icon={ICONS.done}
-        ></Marker>
+        ></Marker> */}
 
       </MapContainer>
     </div>
