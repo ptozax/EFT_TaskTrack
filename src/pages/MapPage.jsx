@@ -33,7 +33,8 @@ const MAPS = {
     offsetY: 3,
     overlayScale: 0.15,
     invertX: 1,
-    invertY: 1
+    invertY: 1,
+    rotate: 0
   },
 
   "Factory": {
@@ -43,7 +44,8 @@ const MAPS = {
     offsetY: -2,
     overlayScale: 0.15,
     invertX: 1,
-    invertY: -1
+    invertY: -1,
+    rotate: 0
   },
 
 
@@ -54,7 +56,8 @@ const MAPS = {
     offsetY: -2,
     overlayScale: 0.15,
     invertX: 1,
-    invertY: -1
+    invertY: -1,
+    rotate: 0
   },
 
 
@@ -66,7 +69,8 @@ const MAPS = {
     offsetY: -30.5,
     overlayScale: 0.15,
     invertX: 1,
-    invertY: 1
+    invertY: 1,
+    rotate: 0
   },
 
 
@@ -78,7 +82,8 @@ const MAPS = {
     offsetY: -19,
     overlayScale: 0.25,
     invertX: 1,
-    invertY: 1
+    invertY: 1,
+    rotate: 0
   },
 
   "Lighthouse": {
@@ -88,7 +93,8 @@ const MAPS = {
     offsetY: 1.6,
     overlayScale: 0.25,
     invertX: 1,
-    invertY: 1
+    invertY: 1,
+    rotate: 0
   },
 
 
@@ -101,7 +107,8 @@ const MAPS = {
     offsetY: -30.8,
     overlayScale: 0.25,
     invertX: 1,
-    invertY: 1
+    invertY: 1,
+    rotate: 0
   },
 
 
@@ -112,20 +119,20 @@ const MAPS = {
     offsetY: -30.8,
     overlayScale: 0.25,
     invertX: 1,
-    invertY: 1
+    invertY: 1,
+    rotate: 0
   },
 
   "Shoreline": {
     image: "https://assets.tarkov.dev/maps/svg/Shoreline.svg",
     scale: 7.78,
     offsetX: -12.5,
-    offsetY:35,
+    offsetY: 35,
     overlayScale: 0.25,
     invertX: 1,
-    invertY: 1
+    invertY: 1,
+    rotate: 0
   },
-
-  //---------------------------------------------------------------------------------
 
   "Streets of Tarkov": {
     image: "https://assets.tarkov.dev/maps/svg/StreetsOfTarkov.svg",
@@ -134,17 +141,20 @@ const MAPS = {
     offsetY: -5.25,
     overlayScale: 0.25,
     invertX: 1,
-    invertY: 1
+    invertY: 1,
+    rotate: 0
   },
 
+  //---------------------------------------------------------------------------------
   "The Lab": {
     image: "labs.png",
-    scale: 8.7,
-    offsetX: 15.7,
-    offsetY: 1.6,
+    scale: 1.5,
+    offsetX: 123.5,
+    offsetY: -226,
     overlayScale: 0.15,
     invertX: 1,
-    invertY: 1
+    invertY: 1,
+    rotate: 90
   },
 
   "The Labyrinth": {
@@ -154,23 +164,49 @@ const MAPS = {
     offsetY: 1.6,
     overlayScale: 0.15,
     invertX: 1,
-    invertY: 1
+    invertY: 1,
+    rotate: 0
   },
 
-    "Reserve": {
+  "Reserve": {
     image: "https://assets.tarkov.dev/maps/svg/Reserve.svg",
     scale: 8.7,
     offsetX: 15.7,
     offsetY: 1.6,
     overlayScale: 0.15,
     invertX: 1,
-    invertY: 1
+    invertY: 1,
+    rotate: 0
   },
 
 };
 
 
 /* ---------------- HELPERS ---------------- */
+
+
+
+
+const rotatePoint = ([lat, lng], angle) => {
+  switch (angle) {
+    case 90:
+      return [lng, -lat];
+    case -90:
+      return [-lng, lat];
+    case 180:
+      return [-lat, -lng];
+    default:
+      return [lat, lng];
+  }
+};
+
+
+
+
+
+
+
+
 
 
 const getObjectiveKey = (questId, objectiveId) =>
@@ -199,11 +235,16 @@ const getObjectivePins = (objective) => {
   return pins;
 };
 
-const toLeafletPos = (x, y, map) => [
-  -y * map.overlayScale * map.invertY,
-  -x * map.overlayScale * map.invertX,
-];
+const toLeafletPos = (x, y, map) => {
+  const base = [
+    -y * map.overlayScale * map.invertY,
+    -x * map.overlayScale * map.invertX,
+  ];
 
+  return map.rotate
+    ? rotatePoint(base, map.rotate)
+    : base;
+};
 const getMapBounds = (map) => {
   const { scale, offsetX, offsetY, overlayScale } = map;
 
