@@ -129,9 +129,9 @@ const MAPS = {
 
   "Streets of Tarkov": {
     image: "https://assets.tarkov.dev/maps/svg/StreetsOfTarkov.svg",
-    scale: 8.7,
-    offsetX: 15.7,
-    offsetY: 1.6,
+    scale: 4.15,
+    offsetX: -28,
+    offsetY: -5.25,
     overlayScale: 0.25,
     invertX: 1,
     invertY: 1
