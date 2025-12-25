@@ -29,8 +29,25 @@ const MAPS = {
   Woods: {
     image: "https://assets.tarkov.dev/maps/svg/Woods.svg",
     scale: 6.8,
-    offsetX: 38,
+    offsetX: 36,
     offsetY: 3,
+    overlayScale: 0.15,
+  },
+
+  Factory: {
+    image: "https://assets.tarkov.dev/maps/svg/Factory.svg",
+    scale: 6.8,
+    offsetX: -49,
+    offsetY: 48.5,
+    overlayScale: 0.15,
+  },
+
+
+  Customs: {
+    image: "https://assets.tarkov.dev/maps/svg/Customs.svg",
+    scale: 5.35,
+    offsetX: 7,
+    offsetY: -30.5,
     overlayScale: 0.15,
   },
 };
@@ -41,13 +58,13 @@ const getObjectivePins = (objective) => {
 
   objective.zones?.forEach((z) => {
     if (z?.position) {
-      pins.push({ x: z.position.x, y: z.position.y, type: "zone" });
+      pins.push({ x: z.position.x, y: z.position.z, type: "zone" });
     }
   });
 
   objective.possibleLocations?.forEach((loc) => {
     loc.positions?.forEach((p) => {
-      pins.push({ x: p.x, y: p.y, type: "possible" });
+      pins.push({ x: p.x, y: p.z, type: "possible" });
     });
   });
 
@@ -55,7 +72,7 @@ const getObjectivePins = (objective) => {
 };
 
 const toLeafletPos = (x, y, map) => [
-  y * map.overlayScale,
+  -y * map.overlayScale,
   -x * map.overlayScale,
 ];
 
@@ -192,6 +209,15 @@ const MapPage = () => {
             );
           })
         )}
+
+
+
+        <Marker
+          key={"sdadwasdwd"}
+          position={[0, 0]}
+          icon={ICONS.done}
+        ></Marker>
+
       </MapContainer>
     </div>
   );
