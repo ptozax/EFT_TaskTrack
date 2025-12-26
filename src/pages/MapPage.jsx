@@ -7,22 +7,7 @@ import styles from '../Component/MapComponents';
 /* ---------------- STORAGE KEYS ---------------- */
 const OBJECTIVE_CHECK_KEY = "eft_objective_checklist";
 const STORAGE_KEY = "eft_selected_quests";
-
-/* ---------------- ICONS ---------------- */
-// const createIcon = (emoji, className) =>
-//   new L.DivIcon({
-//     className: `map-icon ${className}`,
-//     html: emoji,
-//     iconSize: [20, 20],
-//     iconAnchor: [10, 10],
-//   });
-
-// const ICONS = {
-//   zone: createIcon("🔴", "zone"),
-//   possible: createIcon("🟡", "possible"),
-//   done: createIcon("✅", "done"),
-// };
-
+const MAP_KEY = "eft_selected_map";
 
 /* ---------------- MAP CONFIG ---------------- */
 const maps = [
@@ -40,309 +25,18 @@ const maps = [
 ];
 
 const getRandomColor = (existingColors) => {
-  const minGreen = 100;
-  const maxGreen = 140;
-  const rangeGreen = maxGreen - minGreen + 1; // Size of the green range (41 values)
-  const totalRange = 360;
-  const nonGreenRange = totalRange - rangeGreen;
-  let h = Math.floor(Math.random() * nonGreenRange);
-
-  if (h >= minGreen) {
-    h += rangeGreen;
-  }
-
+  let h = Math.floor(Math.random() * 360);
   return `hsl(${h}, 90%, 65%)`;
 };
-const MAPS = {
-  "Woods": {
-    image: "https://assets.tarkov.dev/maps/svg/Woods.svg",
-    scale: 6.8,
-    offsetX: 36,
-    offsetY: 3,
-    overlayScale: 0.15,
-    invertX: 1,
-    invertY: 1,
-    rotate: 0
-  },
-
-  "Factory": {
-    image: "https://assets.tarkov.dev/maps/svg/Factory.svg",
-    scale: 0.72,
-    offsetX: 9,
-    offsetY: -2,
-    overlayScale: 0.15,
-    invertX: 1,
-    invertY: 1,
-    rotate: -90
-  },
-
-
-  "Night Factory": {
-    image: "https://assets.tarkov.dev/maps/svg/Factory.svg",
-    scale: 0.72,
-    offsetX: 9,
-    offsetY: -2,
-    overlayScale: 0.15,
-    invertX: 1,
-    invertY: 1,
-    rotate: -90
-  },
-
-
-
-  "Customs": {
-    image: "https://assets.tarkov.dev/maps/svg/Customs.svg",
-    scale: 5.35,
-    offsetX: 7,
-    offsetY: -30.5,
-    overlayScale: 0.15,
-    invertX: 1,
-    invertY: 1,
-    rotate: 0
-  },
-
-
-
-  "Interchange": {
-    image: "https://assets.tarkov.dev/maps/svg/Interchange.svg",
-    scale: 4.5,
-    offsetX: -1,
-    offsetY: -19,
-    overlayScale: 0.25,
-    invertX: 1,
-    invertY: 1,
-    rotate: 0
-  },
-
-  "Lighthouse": {
-    image: "https://assets.tarkov.dev/maps/svg/Lighthouse.svg",
-    scale: 8.7,
-    offsetX: 15.7,
-    offsetY: 1.6,
-    overlayScale: 0.25,
-    invertX: 1,
-    invertY: 1,
-    rotate: 0
-  },
-
-
-
-
-  "Ground Zero": {
-    image: "https://assets.tarkov.dev/maps/svg/GroundZero.svg",
-    scale: 2.45,
-    offsetX: -49.25,
-    offsetY: -30.8,
-    overlayScale: 0.25,
-    invertX: 1,
-    invertY: 1,
-    rotate: 0
-  },
-
-
-  "Ground Zero 21+": {
-    image: "https://assets.tarkov.dev/maps/svg/GroundZero.svg",
-    scale: 2.45,
-    offsetX: -49.25,
-    offsetY: -30.8,
-    overlayScale: 0.25,
-    invertX: 1,
-    invertY: 1,
-    rotate: 0
-  },
-
-  "Shoreline": {
-    image: "https://assets.tarkov.dev/maps/svg/Shoreline.svg",
-    scale: 7.78,
-    offsetX: -12.5,
-    offsetY: 35,
-    overlayScale: 0.25,
-    invertX: 1,
-    invertY: 1,
-    rotate: 0
-  },
-
-  "Streets of Tarkov": {
-    image: "https://assets.tarkov.dev/maps/svg/StreetsOfTarkov.svg",
-    scale: 4.15,
-    offsetX: -28,
-    offsetY: -5.25,
-    overlayScale: 0.25,
-    invertX: 1,
-    invertY: 1,
-    rotate: 0
-  },
-
-  //---------------------------------------------------------------------------------
-  "The Lab": {
-    image: "labs.png",
-    scale: 1.5,
-    offsetX: 123.5,
-    offsetY: -226,
-    overlayScale: 0.15,
-    invertX: 1,
-    invertY: 1,
-    rotate: 90
-  },
-
-  "The Labyrinth": {
-    image: "labyrinth.png",
-    scale: 8.7,
-    offsetX: 15.7,
-    offsetY: 1.6,
-    overlayScale: 0.15,
-    invertX: 1,
-    invertY: 1,
-    rotate: 0
-  },
-
-  "Reserve": {
-    image: "https://assets.tarkov.dev/maps/svg/Reserve.svg",
-    scale: 8.7,
-    offsetX: 15.7,
-    offsetY: 1.6,
-    overlayScale: 0.15,
-    invertX: 1,
-    invertY: 1,
-    rotate: 0
-  },
-
-};
-
-
-/* ---------------- HELPERS ---------------- */
-
-
-
-
-const rotatePoint = ([lat, lng], angle) => {
-  switch (angle) {
-    case 90:
-      return [lng, -lat];
-    case -90:
-      return [-lng, lat];
-    case 180:
-      return [-lat, -lng];
-    default:
-      return [lat, lng];
-  }
-};
-
-
-
-
-
-
-
-
-
 
 const getObjectiveKey = (questId, objectiveId) =>
   `${questId}|${objectiveId}`;
 
-
-
-
-
-
-const getObjectivePins = (objective) => {
-  const pins = [];
-
-  objective.zones?.forEach((z) => {
-    if (z?.position) {
-      pins.push({ x: z.position.x, y: z.position.z, type: "zone" });
-    }
-  });
-
-  objective.possibleLocations?.forEach((loc) => {
-    loc.positions?.forEach((p) => {
-      pins.push({ x: p.x, y: p.z, type: "possible" });
-    });
-  });
-
-  return pins;
-};
-
-const toLeafletPos = (x, y, map) => {
-  const base = [
-    -y * map.overlayScale * map.invertY,
-    -x * map.overlayScale * map.invertX,
-  ];
-
-  return map.rotate
-    ? rotatePoint(base, map.rotate)
-    : base;
-};
-const getMapBounds = (map) => {
-  const { scale, offsetX, offsetY, overlayScale } = map;
-
-  return [
-    [(-100 + offsetX) * scale * overlayScale, (-100 + offsetY) * scale * overlayScale],
-    [(100 + offsetX) * scale * overlayScale, (100 + offsetY) * scale * overlayScale],
-  ];
-};
-
 /* ---------------- COMPONENT ---------------- */
 const MapPage = () => {
-  const [selectedMap, setSelectedMap] = useState("Woods");
   const [selectedQuests, setSelectedQuests] = useState([]);
   const [checkedObjectives, setCheckedObjectives] = useState({});
 
-  const mapConfig = MAPS[selectedMap];
-
-  /* -------- FULL QUEST DATA -------- */
-  const selectedQuestIds = selectedQuests.map((q) => q.id);
-
-  const objectives = quests
-    .filter((q) => selectedQuestIds.includes(q.id))
-    .flatMap((q) =>
-      q.objectives
-        ?.filter(
-          (obj) =>
-            !obj.maps?.length ||
-            obj.maps.some(
-              (m) => m.name?.toLowerCase() === selectedMap.toLowerCase()
-            )
-        )
-        .map((obj) => ({
-          ...obj,
-          questId: q.id,
-          questName: q.name, // ใช้แสดงผลได้
-        }))
-    );
-
-
-  /* ---------- MARKER OFFSET HELPERS ---------- */
-
-  // สร้าง key สำหรับตำแหน่ง
-  const posKey = (lat, lng) =>
-    `${lat.toFixed(4)},${lng.toFixed(4)}`;
-
-  // กระจาย marker เป็นวง
-  const getOffsetPosition = (basePos, index, total, radius = 0.1) => {
-    if (total <= 1) return basePos;
-
-    const angle = (index / total) * Math.PI * 2;
-    return [
-      basePos[0] + Math.sin(angle) * radius,
-      basePos[1] + Math.cos(angle) * radius,
-    ];
-  };
-  /* ---------- PREPARE PIN POSITIONS ---------- */
-  const pinGroups = {};
-
-  objectives.forEach((obj) => {
-    getObjectivePins(obj).forEach((pin) => {
-      const basePos = toLeafletPos(pin.x, pin.y, mapConfig);
-      const key = posKey(basePos[0], basePos[1]);
-
-      if (!pinGroups[key]) pinGroups[key] = [];
-      pinGroups[key].push({ obj, pin });
-    });
-  });
-
-
-  // __________ new logic ________________ //
   const [selectedMapId, setSelectedMapId] = useState(1);
   const [trackedQuests, setTrackedQuests] = useState([]);
   const [expandedQuestName, setExpandedQuestName] = useState(null);
@@ -352,9 +46,11 @@ const MapPage = () => {
   useEffect(() => {
     const savedQuests = localStorage.getItem(STORAGE_KEY);
     const savedChecks = localStorage.getItem(OBJECTIVE_CHECK_KEY);
+    const savemMap = localStorage.getItem(MAP_KEY);
 
     if (savedQuests) setSelectedQuests(JSON.parse(savedQuests));
     if (savedChecks) setCheckedObjectives(JSON.parse(savedChecks));
+    if (savemMap) setSelectedMapId(JSON.parse(savemMap));
   }, []);
 
   // Toggles for Map Features
@@ -388,7 +84,7 @@ const MapPage = () => {
 
   const currentMap = maps.find(m => m.id === selectedMapId);
   const currentMapName = currentMap?.map_name || "Unknown";
-  const imageSrc = currentMap.id === 5 || currentMap.id === 10 ? `./public/${currentMap.svg}.png` : `https://assets.tarkov.dev/maps/svg/${currentMap.svg}.svg`;
+  const imageSrc = currentMap.id === 5 || currentMap.id === 10 ? `./${currentMap.svg}.png` : `https://assets.tarkov.dev/maps/svg/${currentMap.svg}.svg`;
 
   const calib = mapCalibrations[selectedMapId];
 
@@ -485,114 +181,50 @@ const MapPage = () => {
       addQuest(quest.name)
   });
   return (
-    <>
-      {/* <div className="py-4 text-light">
-      <h3 className="fw-bold mb-3">🗺️ Interactive Quest Map</h3>
-
-     <select
-        className="form-select mb-3"
-        value={selectedMap}
-        onChange={(e) => setSelectedMap(e.target.value)}
-      >
-        {Object.keys(MAPS).map((map) => (
-          <option key={map}>{map}</option>
-        ))}
-      </select>
-
-      <MapContainer
-        center={[0, 0]}
-        zoom={2}
-        crs={L.CRS.Simple}
-        style={{ height: "600px", backgroundColor: "#5f5f5fff" }}
-
-      >
-        <ImageOverlay
-          url={mapConfig.image}
-          bounds={getMapBounds(mapConfig)}
-        />
-
-        {Object.entries(pinGroups).flatMap(([groupKey, items]) =>
-          items.map((item, index) => {
-            const { obj, pin } = item;
-            const key = getObjectiveKey(obj.questId, obj.id);
-            const isChecked = checkedObjectives[key];
-
-            const basePos = toLeafletPos(pin.x, pin.y, mapConfig);
-            const finalPos = getOffsetPosition(
-              basePos,
-              index,
-              items.length
-            );
-
-            return (
-              <Marker
-                key={`${key}-${pin.type}-${index}`}
-
-                position={finalPos}
-                icon={isChecked ? ICONS.done : ICONS[pin.type]}
-              >
-                <Popup>
-                  <strong>{obj.questName}</strong>
-                  <br />
-                  {obj.description}
-                  <br />
-                  <small>{pin.type}</small>
-                </Popup>
-              </Marker>
-            );
-          })
-        )}
-
-
-
-        { <Marker
-          key={"sdadwasdwd"}
-          position={[0, 0]}
-          icon={ICONS.done}
-        ></Marker>
-
-      </MapContainer> 
-     </div> */}
-      <div style={styles.container} onMouseUp={() => setIsDragging(false)}>
-        <aside style={styles.sidebar}>
-          <header style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            {/* <div style={{ background: '#2563eb', padding: '8px', borderRadius: '10px' }}>
+    <div style={styles.container} onMouseUp={() => setIsDragging(false)}>
+      <aside style={styles.sidebar}>
+        <header style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* <div style={{ background: '#2563eb', padding: '8px', borderRadius: '10px' }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
             </div> */}
-            <h1 style={{ fontSize: '20px', fontWeight: '800' }}>🗺️ Interactive Quest Map</h1>
-          </header>
+          <h1 style={{ fontSize: '20px', fontWeight: '800' }}>🗺️ Interactive Quest Map</h1>
+        </header>
 
-          <section>
-            <label style={styles.label}>Map Region</label>
-            <select
-              style={styles.select}
-              value={selectedMapId}
-              onChange={(e) => {
-                setSelectedMapId(Number(e.target.value));
-                setTrackedQuests([]);
-                setExpandedQuestName(null);
-              }}
-            >
-              {maps.map(map => <option key={map.id} value={map.id}>{map.map_name}</option>)}
-            </select>
-          </section>
+        <section>
+          <label style={styles.label}>Map Region</label>
+          <select
+            style={styles.select}
+            value={selectedMapId}
+            onChange={(e) => {
+              setSelectedMapId(Number(e.target.value));
+              localStorage.setItem(
+                MAP_KEY,
+                JSON.stringify(Number(e.target.value))
+              );
+              setTrackedQuests([]);
+              setExpandedQuestName(null);
+            }}
+          >
+            {maps.map(map => <option key={map.id} value={map.id}>{map.map_name}</option>)}
+          </select>
+        </section>
 
-          {/* Map Feature Toggles */}
-          <section>
-            <label style={styles.label}>Map Features</label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              <label style={styles.checkboxRow}>
-                <input type="checkbox" checked={showExtracts} onChange={e => setShowExtracts(e.target.checked)} />
-                Extracts
-              </label>
-              <label style={styles.checkboxRow}>
-                <input type="checkbox" checked={showTransits} onChange={e => setShowTransits(e.target.checked)} />
-                Transits
-              </label>
-            </div>
-          </section>
+        {/* Map Feature Toggles */}
+        <section>
+          <label style={styles.label}>Map Features</label>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            <label style={styles.checkboxRow}>
+              <input type="checkbox" checked={showExtracts} onChange={e => setShowExtracts(e.target.checked)} />
+              Extracts
+            </label>
+            <label style={styles.checkboxRow}>
+              <input type="checkbox" checked={showTransits} onChange={e => setShowTransits(e.target.checked)} />
+              Transits
+            </label>
+          </div>
+        </section>
 
-          {/* <section>
+        {/* <section>
             <label style={styles.label}>Add Quest</label>
             <select style={styles.select} value="" onChange={(e) => addQuest(e.target.value)}>
               <option value="" disabled>Select quest...</option>
@@ -602,336 +234,353 @@ const MapPage = () => {
             </select>
           </section> */}
 
-          <section style={{ flex: 1 }}>
-            <label style={styles.label}>Tracked ({trackedQuests.length})</label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {trackedQuests.map((tq) => {
-                const fullQuest = quests.find(qd => qd.name === tq.name);
-                const isExpanded = expandedQuestName === tq.name;
+        <section style={{ flex: 1 }}>
+          <label style={styles.label}>Tracked ({trackedQuests.length})</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {trackedQuests.map((tq) => {
+              const fullQuest = quests.find(qd => qd.name === tq.name);
+              const isExpanded = expandedQuestName === tq.name;
 
-                return (
-                  <div
-                    key={tq.name}
-                    style={{
-                      ...styles.questCard,
-                      borderColor: isExpanded ? tq.color : '#334155',
-                      borderWidth: isExpanded ? '2px' : '1px'
-                    }}
-                    onClick={() => setExpandedQuestName(isExpanded ? null : tq.name)}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: tq.color }} />
-                      <span style={{ fontSize: '13px', fontWeight: '700', flex: 1 }}>{tq.name}</span>
-                      {/* <button
+              return (
+                <div
+                  key={tq.name}
+                  style={{
+                    ...styles.questCard,
+                    borderColor: isExpanded ? tq.color : '#334155',
+                    borderWidth: isExpanded ? '2px' : '1px'
+                  }}
+                  onClick={() => setExpandedQuestName(isExpanded ? null : tq.name)}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: tq.color }} />
+                    <span style={{ fontSize: '13px', fontWeight: '700', flex: 1 }}>{tq.name}</span>
+                    {/* <button
                         onClick={(e) => removeQuest(e, tq.name)}
                         style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '18px' }}
                       >
                         ×
                       </button> */}
-                    </div>
+                  </div>
 
-                    {isExpanded && (
-                      <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #334155', fontSize: '11px' }}>
-                        <div style={{ marginBottom: '6px', color: '#94a3b8', fontWeight: 'bold' }}>Objectives:</div>
-                        {fullQuest.objectives.map((obj, idx) => (
-                          <div key={idx} style={{ marginBottom: '6px', color: '#cbd5e1', lineHeight: '1.4' }}>
-                            • {obj.description}
-                            {(checkedObjectives[getObjectiveKey(fullQuest.id, obj.id)]) ? ' ✅' : ''}
-                          </div>
-                        ))}
-                        <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ color: '#10b981', fontWeight: 'bold' }}>+{fullQuest.experience} XP</span>
-                          <a
-                            href={fullQuest.wikiLink}
-                            target="_blank"
-                            rel="noreferrer"
-                            style={{ color: '#60a5fa', textDecoration: 'none' }}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            Wiki ↗
-                          </a>
+                  {isExpanded && (
+                    <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #334155', fontSize: '11px' }}>
+                      <div style={{ marginBottom: '6px', color: '#94a3b8', fontWeight: 'bold' }}>Objectives:</div>
+                      {fullQuest.objectives.map((obj, idx) => (
+                        <div key={idx} style={{ marginBottom: '6px', color: '#cbd5e1', lineHeight: '1.4' }}>
+                          • {obj.description}
+                          {(checkedObjectives[getObjectiveKey(fullQuest.id, obj.id)]) ? ' ✅' : ''}
                         </div>
+                      ))}
+                      <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ color: '#10b981', fontWeight: 'bold' }}>+{fullQuest.experience} XP</span>
+                        <a
+                          href={fullQuest.wikiLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={{ color: '#60a5fa', textDecoration: 'none' }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Wiki ↗
+                        </a>
                       </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        </aside>
-
-        <main style={styles.main}>
-          {isLoading && <div style={{ position: 'absolute', zIndex: 60, color: '#3b82f6' }}>SYNCING...</div>}
-
-          <div style={styles.coordBox}>
-            <p style={{ margin: 0, fontSize: '12px', fontWeight: 'bold' }}>
-              GAME POS: <span style={{ color: '#ef4444' }}>X: {mousePos.gameX}, Z: {mousePos.gameZ}</span>
-            </p>
-            <p style={{ margin: '4px 0 0 0', fontSize: '10px', color: '#64748b' }}>{currentMapName} TACTICAL ALIGNMENT</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
+        </section>
+      </aside>
 
-          <div style={styles.zoomControls}>
-            <button style={styles.zoomBtn} onClick={() => setZoom(z => Math.min(10, z + 0.5))}>+</button>
-            <button style={styles.zoomBtn} onClick={() => setZoom(z => Math.max(0.5, z - 0.5))}>-</button>
-            <button style={{ ...styles.zoomBtn, fontSize: '12px' }} onClick={resetZoom}>RST</button>
-            <button style={{ ...styles.calibrationBtn, fontSize: '12px', backgroundColor: showCalibration ? 'rgba(246, 59, 59, 0.9)' : 'rgba(15, 23, 42, 0.9)', }} onClick={() => setShowCalibration(!showCalibration)}>Calib</button>
-          </div>
+      <main style={styles.main}>
+        {isLoading && <div style={{ position: 'absolute', zIndex: 60, color: '#3b82f6' }}>SYNCING...</div>}
 
-          {/* Calibration Panel */}
-          {showCalibration && (
-            <div style={styles.calibrationPanel}>
-              <div>
-                <label style={styles.label}>Origin Offset X (%)</label>
-                <div style={styles.controlRow}>
-                  <input type="range" min="0" max="100" step="0.001" style={{ flex: 1 }} value={calib.offsetX} onChange={e => updateCalib({ offsetX: parseFloat(e.target.value) })} />
-                  <input type="number" step="0.001" style={styles.inputNumber} value={calib.offsetX} onChange={e => updateCalib({ offsetX: parseFloat(e.target.value) || 0 })} />
-                </div>
-              </div>
+        <div style={styles.coordBox}>
+          <p style={{ margin: 0, fontSize: '12px', fontWeight: 'bold' }}>
+            GAME POS: <span style={{ color: '#ef4444' }}>X: {mousePos.gameX}, Z: {mousePos.gameZ}</span>
+          </p>
+          <p style={{ margin: '4px 0 0 0', fontSize: '10px', color: '#64748b' }}>{currentMapName} TACTICAL ALIGNMENT</p>
+        </div>
 
-              <div>
-                <label style={styles.label}>Origin Offset Z (%)</label>
-                <div style={styles.controlRow}>
-                  <input type="range" min="0" max="100" step="0.001" style={{ flex: 1 }} value={calib.offsetZ} onChange={e => updateCalib({ offsetZ: parseFloat(e.target.value) })} />
-                  <input type="number" step="0.001" style={styles.inputNumber} value={calib.offsetZ} onChange={e => updateCalib({ offsetZ: parseFloat(e.target.value) || 0 })} />
-                </div>
-              </div>
+        <div style={styles.zoomControls}>
+          <button style={styles.zoomBtn} onClick={() => setZoom(z => Math.min(10, z + 0.5))}>+</button>
+          <button style={styles.zoomBtn} onClick={() => setZoom(z => Math.max(0.5, z - 0.5))}>-</button>
+          <button style={{ ...styles.zoomBtn, fontSize: '12px' }} onClick={resetZoom}>RST</button>
+          <button style={{ ...styles.calibrationBtn, fontSize: '12px', backgroundColor: showCalibration ? 'rgba(246, 59, 59, 0.9)' : 'rgba(15, 23, 42, 0.9)', }} onClick={() => setShowCalibration(!showCalibration)}>Calib</button>
+        </div>
 
-              <div>
-                <label style={styles.label}>Coord Scale X</label>
-                <div style={styles.controlRow}>
-                  <input type="range" min="0.0001" max="0.3" step="0.0001" style={{ flex: 1 }} value={calib.scaleX} onChange={e => updateCalib({ scaleX: parseFloat(e.target.value) })} />
-                  <input type="number" step="0.0001" style={styles.inputNumber} value={calib.scaleX} onChange={e => updateCalib({ scaleX: parseFloat(e.target.value) || 0.0001 })} />
-                </div>
-              </div>
-
-              <div>
-                <label style={styles.label}>Coord Scale Z</label>
-                <div style={styles.controlRow}>
-                  <input type="range" min="0.0001" max="0.3" step="0.0001" style={{ flex: 1 }} value={calib.scaleZ} onChange={e => updateCalib({ scaleZ: parseFloat(e.target.value) })} />
-                  <input type="number" step="0.0001" style={styles.inputNumber} value={calib.scaleZ} onChange={e => updateCalib({ scaleZ: parseFloat(e.target.value) || 0.0001 })} />
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' }}>
-                <label style={styles.checkboxRow}>
-                  <input type="checkbox" checked={calib.flipX} onChange={e => updateCalib({ flipX: e.target.checked })} />
-                  Invert X
-                </label>
-                <label style={styles.checkboxRow}>
-                  <input type="checkbox" checked={calib.flipZ} onChange={e => updateCalib({ flipZ: e.target.checked })} />
-                  Invert Z
-                </label>
-                <label style={{ ...styles.checkboxRow, gridColumn: 'span 2' }}>
-                  <input type="checkbox" checked={calib.swapXZ} onChange={e => updateCalib({ swapXZ: e.target.checked })} />
-                  Swap X/Z Axes
-                </label>
+        {/* Calibration Panel */}
+        {showCalibration && (
+          <div style={styles.calibrationPanel}>
+            <div>
+              <label style={styles.label}>Origin Offset X (%)</label>
+              <div style={styles.controlRow}>
+                <input type="range" min="0" max="100" step="0.001" style={{ flex: 1 }} value={calib.offsetX} onChange={e => updateCalib({ offsetX: parseFloat(e.target.value) })} />
+                <input type="number" step="0.001" style={styles.inputNumber} value={calib.offsetX} onChange={e => updateCalib({ offsetX: parseFloat(e.target.value) || 0 })} />
               </div>
             </div>
-          )}
 
-          <div
-            style={{ width: '100%', height: '100%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: isDragging ? 'grabbing' : 'grab' }}
-            onMouseMove={handleMouseMove}
-            onMouseDown={(e) => { if (e.button === 0) { setIsDragging(true); setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y }); } }}
-            onWheel={(e) => setZoom(prev => Math.max(0.5, Math.min(10, prev + (e.deltaY > 0 ? -0.1 : 0.1))))}
-          >
-            <div style={{
-              position: 'relative',
-              display: 'inline-block',
-              transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`,
-              transition: isDragging ? 'none' : 'transform 0.1s ease-out'
-            }}>
-              <img
-                ref={imageRef}
-                src={imageSrc}
-                onLoad={() => setIsLoading(false)}
-                style={{ display: 'block', height: '85vh', width: 'auto', userSelect: 'none', pointerEvents: 'none' }}
-              />
+            <div>
+              <label style={styles.label}>Origin Offset Z (%)</label>
+              <div style={styles.controlRow}>
+                <input type="range" min="0" max="100" step="0.001" style={{ flex: 1 }} value={calib.offsetZ} onChange={e => updateCalib({ offsetZ: parseFloat(e.target.value) })} />
+                <input type="number" step="0.001" style={styles.inputNumber} value={calib.offsetZ} onChange={e => updateCalib({ offsetZ: parseFloat(e.target.value) || 0 })} />
+              </div>
+            </div>
 
-              {/* Origin Marker and Lines */}
-              {showCalibration && (
-                <>
-                  <div style={{
-                    ...styles.origin,
-                    left: `${calib.offsetX}%`,
-                    top: `${calib.offsetZ}%`,
-                    transform: `translate(-50%, -50%) scale(${markerScale})`
-                  }} />
-                  <div style={{ ...styles.originLine, left: `${calib.offsetX}%`, top: 0, bottom: 0, width: `${1 * markerScale}px` }} />
-                  <div style={{ ...styles.originLine, top: `${calib.offsetZ}%`, left: 0, right: 0, height: `${1 * markerScale}px` }} />
-                </>
-              )}
+            <div>
+              <label style={styles.label}>Coord Scale X</label>
+              <div style={styles.controlRow}>
+                <input type="range" min="0.0001" max="0.3" step="0.0001" style={{ flex: 1 }} value={calib.scaleX} onChange={e => updateCalib({ scaleX: parseFloat(e.target.value) })} />
+                <input type="number" step="0.0001" style={styles.inputNumber} value={calib.scaleX} onChange={e => updateCalib({ scaleX: parseFloat(e.target.value) || 0.0001 })} />
+              </div>
+            </div>
 
-              {/* Extract Outlines (SVG Layer) */}
-              <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 25 }} viewBox="0 0 100 100" preserveAspectRatio="none">
-                {showExtracts && !isLoading && currentFeatures.extracts.map((ext, idx) => {
-                  if (!ext.outline || ext.outline.length === 0) return null;
+            <div>
+              <label style={styles.label}>Coord Scale Z</label>
+              <div style={styles.controlRow}>
+                <input type="range" min="0.0001" max="0.3" step="0.0001" style={{ flex: 1 }} value={calib.scaleZ} onChange={e => updateCalib({ scaleZ: parseFloat(e.target.value) })} />
+                <input type="number" step="0.0001" style={styles.inputNumber} value={calib.scaleZ} onChange={e => updateCalib({ scaleZ: parseFloat(e.target.value) || 0.0001 })} />
+              </div>
+            </div>
 
-                  const pointsStr = ext.outline.map(pt => {
-                    let finalX = pt.x;
-                    let finalVertical = pt.z;
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '4px' }}>
+              <label style={styles.checkboxRow}>
+                <input type="checkbox" checked={calib.flipX} onChange={e => updateCalib({ flipX: e.target.checked })} />
+                Invert X
+              </label>
+              <label style={styles.checkboxRow}>
+                <input type="checkbox" checked={calib.flipZ} onChange={e => updateCalib({ flipZ: e.target.checked })} />
+                Invert Z
+              </label>
+              <label style={{ ...styles.checkboxRow, gridColumn: 'span 2' }}>
+                <input type="checkbox" checked={calib.swapXZ} onChange={e => updateCalib({ swapXZ: e.target.checked })} />
+                Swap X/Z Axes
+              </label>
+            </div>
+          </div>
+        )}
 
-                    if (calib.swapXZ) {
-                      const temp = finalX;
-                      finalX = finalVertical;
-                      finalVertical = temp;
-                    }
+        <div
+          style={{ width: '100%', height: '100%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: isDragging ? 'grabbing' : 'grab' }}
+          onMouseMove={handleMouseMove}
+          onMouseDown={(e) => { if (e.button === 0) { setIsDragging(true); setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y }); } }}
+          onWheel={(e) => setZoom(prev => Math.max(0.5, Math.min(10, prev + (e.deltaY > 0 ? -0.1 : 0.1))))}
+        >
+          <div style={{
+            position: 'relative',
+            display: 'inline-block',
+            transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`,
+            transition: isDragging ? 'none' : 'transform 0.1s ease-out'
+          }}>
+            <img
+              ref={imageRef}
+              src={imageSrc}
+              onLoad={() => setIsLoading(false)}
+              style={{ display: 'block', height: '85vh', width: 'auto', userSelect: 'none', pointerEvents: 'none' }}
+            />
 
-                    const xPerc = gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX);
-                    const yPerc = gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ);
-                    return `${xPerc},${yPerc}`;
-                  }).join(' ');
+            {/* Origin Marker and Lines */}
+            {showCalibration && (
+              <>
+                <div style={{
+                  ...styles.origin,
+                  left: `${calib.offsetX}%`,
+                  top: `${calib.offsetZ}%`,
+                  transform: `translate(-50%, -50%) scale(${markerScale})`
+                }} />
+                <div style={{ ...styles.originLine, left: `${calib.offsetX}%`, top: 0, bottom: 0, width: `${1 * markerScale}px` }} />
+                <div style={{ ...styles.originLine, top: `${calib.offsetZ}%`, left: 0, right: 0, height: `${1 * markerScale}px` }} />
+              </>
+            )}
 
-                  const isPMC = ext.faction === 'pmc';
-                  const strokeColor = isPMC ? '#10b981' : '#f97316';
-                  const fillColor = isPMC ? 'rgba(16, 185, 129, 0.2)' : 'rgba(249, 115, 22, 0.2)';
-
-                  return (
-                    <polygon
-                      key={`outline-${idx}`}
-                      points={pointsStr}
-                      fill={fillColor}
-                      stroke={strokeColor}
-                      strokeWidth={0.2 * markerScale}
-                      vectorEffect="non-scaling-stroke"
-                    />
-                  );
-                })}
-              </svg>
-
-              {/* Extracts Markers (Labels) */}
+            {/* Extract Outlines (SVG Layer) */}
+            <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 25 }} viewBox="0 0 100 100" preserveAspectRatio="none">
               {showExtracts && !isLoading && currentFeatures.extracts.map((ext, idx) => {
-                let finalX = ext.position.x;
-                let finalVertical = ext.position.z;
-                if (calib.swapXZ) {
-                  const temp = finalX;
-                  finalX = finalVertical;
-                  finalVertical = temp;
-                }
+                if (!ext.outline || ext.outline.length === 0) return null;
 
-                const isPMC = ext.faction === 'pmc';
+                const pointsStr = ext.outline.map(pt => {
+                  let finalX = pt.x;
+                  let finalVertical = pt.z;
 
-                return (
-                  <div key={`ext-${idx}`} >
-                    <img
-                      src={isPMC ? `https://tarkov.dev/maps/interactive/extract_pmc.png` : `https://tarkov.dev/maps/interactive/extract_scav.png`}
-                      onLoad={() => setIsLoading(false)}
-                      title={`${ext.name} (${ext.faction})`}
-                      style={{
-                        ...styles.extractMarker,
-                        left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
-                        top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
-                        transform: `translate(-50%, -50%) scale(${markerScale})`,
-                      }}
-                    />
-                  </div>
-                );
-              })}
-
-              {/* transit Outlines (SVG Layer) */}
-              <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 25 }} viewBox="0 0 100 100" preserveAspectRatio="none">
-                {showTransits && !isLoading && currentFeatures.transits.map((ext, idx) => {
-                  if (!ext.outline || ext.outline.length === 0) return null;
-
-                  const pointsStr = ext.outline.map(pt => {
-                    let finalX = pt.x;
-                    let finalVertical = pt.z;
-
-                    if (calib.swapXZ) {
-                      const temp = finalX;
-                      finalX = finalVertical;
-                      finalVertical = temp;
-                    }
-
-                    const xPerc = gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX);
-                    const yPerc = gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ);
-                    return `${xPerc},${yPerc}`;
-                  }).join(' ');
-
-                  return (
-                    <polygon
-                      key={`outline-${idx}`}
-                      points={pointsStr}
-                      fill={'rgba(249, 22, 22, 0.2)'}
-                      stroke={'#f91616ff'}
-                      strokeWidth={0.2 * markerScale}
-                      vectorEffect="non-scaling-stroke"
-                    />
-                  );
-                })}
-              </svg>
-
-              {/* Transits */}
-              {showTransits && !isLoading && currentFeatures.transits.map((trans, idx) => {
-                let finalX = trans.position.x;
-                let finalVertical = trans.position.z;
-                if (calib.swapXZ) {
-                  const temp = finalX;
-                  finalX = finalVertical;
-                  finalVertical = temp;
-                }
-
-                return (
-                  <div key={`trans-${idx}`} >
-                    <img
-                      src={`https://tarkov.dev/maps/interactive/extract_transit.png`}
-                      onLoad={() => setIsLoading(false)}
-                      title={trans.description || 'Transit'}
-                      style={{
-                        ...styles.extractMarker,
-                        left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
-                        top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
-                        transform: `translate(-50%, -50%) scale(${markerScale})`,
-                      }}
-                    />
-                  </div>
-                );
-              })}
-
-              {/* Quest Markers */}
-              {!isLoading && trackedQuests.map(tq => {
-                const quest = quests.find(q => q.name === tq.name);
-                const isExpanded = expandedQuestName === quest.name;
-
-                return quest.objectives.map((obj) => {
-                  const points = [];
-                  const isObjOnMap = obj.maps?.some(m => m.name === currentMapName || m.name === `${currentMapName} 21+`);
-                  if (isObjOnMap) {
-                    obj.zones?.forEach(z => points.push(z.position));
-                    obj.possibleLocations?.forEach(loc => loc.positions.forEach(p => points.push(p)));
+                  if (calib.swapXZ) {
+                    const temp = finalX;
+                    finalX = finalVertical;
+                    finalVertical = temp;
                   }
 
-                  return points.map((p, idx) => {
-                    let finalX = p.x;
-                    let finalVertical = p.z !== undefined ? p.z : p.y;
+                  const xPerc = gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX);
+                  const yPerc = gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ);
+                  return `${xPerc},${yPerc}`;
+                }).join(' ');
 
-                    if (calib.swapXZ) {
-                      const temp = finalX;
-                      finalX = finalVertical;
-                      finalVertical = temp;
-                    }
+                const isPMC = ext.faction === 'pmc';
+                const strokeColor = isPMC ? '#10b981' : '#f97316';
+                const fillColor = isPMC ? 'rgba(16, 185, 129, 0.2)' : 'rgba(249, 115, 22, 0.2)';
 
-                    return (
-                      <div
-                        key={`${quest.name}-${idx}`}
-                        style={{
-                          ...styles.marker,
-                          left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
-                          top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
-                          backgroundColor: tq.color,
-                          transform: `translate(-50%, -50%) scale(${isExpanded ? markerScale * 1.8 : markerScale})`,
-                          zIndex: isExpanded ? 100 : 30,
-                        }}
-                      />
-                    );
-                  });
-                });
+                return (
+                  <polygon
+                    key={`outline-${idx}`}
+                    points={pointsStr}
+                    fill={fillColor}
+                    stroke={strokeColor}
+                    strokeWidth={0.2 * markerScale}
+                    vectorEffect="non-scaling-stroke"
+                  />
+                );
               })}
-            </div>
+            </svg>
+
+            {/* Extracts Markers (Labels) */}
+            {showExtracts && !isLoading && currentFeatures.extracts.map((ext, idx) => {
+              let finalX = ext.position.x;
+              let finalVertical = ext.position.z;
+              if (calib.swapXZ) {
+                const temp = finalX;
+                finalX = finalVertical;
+                finalVertical = temp;
+              }
+
+              const isPMC = ext.faction === 'pmc';
+
+              return (
+                <div key={`ext-${idx}`} >
+                  <img
+                    src={isPMC ? `https://tarkov.dev/maps/interactive/extract_pmc.png` : `https://tarkov.dev/maps/interactive/extract_scav.png`}
+                    onLoad={() => setIsLoading(false)}
+                    title={`${ext.name} (${ext.faction})`}
+                    style={{
+                      ...styles.extractMarker,
+                      left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
+                      top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
+                      transform: `translate(-50%, -50%) scale(${markerScale})`,
+                    }}
+                  />
+                </div>
+              );
+            })}
+
+            {/* transit Outlines (SVG Layer) */}
+            <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 25 }} viewBox="0 0 100 100" preserveAspectRatio="none">
+              {showTransits && !isLoading && currentFeatures.transits.map((ext, idx) => {
+                if (!ext.outline || ext.outline.length === 0) return null;
+
+                const pointsStr = ext.outline.map(pt => {
+                  let finalX = pt.x;
+                  let finalVertical = pt.z;
+
+                  if (calib.swapXZ) {
+                    const temp = finalX;
+                    finalX = finalVertical;
+                    finalVertical = temp;
+                  }
+
+                  const xPerc = gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX);
+                  const yPerc = gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ);
+                  return `${xPerc},${yPerc}`;
+                }).join(' ');
+
+                return (
+                  <polygon
+                    key={`outline-${idx}`}
+                    points={pointsStr}
+                    fill={'rgba(249, 22, 22, 0.2)'}
+                    stroke={'#f91616ff'}
+                    strokeWidth={0.2 * markerScale}
+                    vectorEffect="non-scaling-stroke"
+                  />
+                );
+              })}
+            </svg>
+
+            {/* Transits */}
+            {showTransits && !isLoading && currentFeatures.transits.map((trans, idx) => {
+              let finalX = trans.position.x;
+              let finalVertical = trans.position.z;
+              if (calib.swapXZ) {
+                const temp = finalX;
+                finalX = finalVertical;
+                finalVertical = temp;
+              }
+
+              return (
+                <div key={`trans-${idx}`} >
+                  <img
+                    src={`https://tarkov.dev/maps/interactive/extract_transit.png`}
+                    onLoad={() => setIsLoading(false)}
+                    title={trans.description || 'Transit'}
+                    style={{
+                      ...styles.extractMarker,
+                      left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
+                      top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
+                      transform: `translate(-50%, -50%) scale(${markerScale})`,
+                    }}
+                  />
+                </div>
+              );
+            })}
+
+            {/* Quest Markers */}
+            {!isLoading && trackedQuests.map(tq => {
+              const quest = quests.find(q => q.name === tq.name);
+              const isExpanded = expandedQuestName === quest.name;
+
+              return quest.objectives.map((obj) => {
+                const points = [];
+                const isObjOnMap = obj.maps?.some(m => m.name === currentMapName || m.name === `${currentMapName} 21+`);
+                if (isObjOnMap) {
+                  obj.zones?.forEach(z => points.push(z.position));
+                  obj.possibleLocations?.forEach(loc => loc.positions.forEach(p => points.push(p)));
+                }
+
+                return points.map((p, idx) => {
+                  let finalX = p.x;
+                  let finalVertical = p.z !== undefined ? p.z : p.y;
+
+                  if (calib.swapXZ) {
+                    const temp = finalX;
+                    finalX = finalVertical;
+                    finalVertical = temp;
+                  }
+
+                  return (
+                    <>
+                      {(checkedObjectives[getObjectiveKey(quest.id, obj.id)]) ? (
+                        <div
+                          key={`${quest.name}-${idx}`}
+                          title={`${obj.description} ✅`}
+                          style={{
+                            ...styles.marker,
+                            left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
+                            top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
+                            backgroundColor: tq.color,
+                            transform: `translate(-50%, -50%) scale(${isExpanded ? markerScale * 1.8 : markerScale})`,
+                            zIndex: isExpanded ? 100 : 30,
+                          }}
+                        />
+                      ) : (
+                        <div
+                          key={`${quest.name}-${idx}`}
+                          title={obj.description}
+                          style={{
+                            ...styles.marker,
+                            left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
+                            top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
+                            backgroundColor: tq.color,
+                            transform: `translate(-50%, -50%) scale(${isExpanded ? markerScale * 1.8 : markerScale})`,
+                            zIndex: isExpanded ? 100 : 30,
+                          }}
+                        />
+                      )}
+                    </>
+                  );
+                });
+              });
+            })}
           </div>
-        </main>
-      </div>
-    </>
+        </div>
+      </main>
+    </div>
   );
 };
 

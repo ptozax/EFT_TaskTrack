@@ -68,6 +68,13 @@ const styles = {
     border: '1px solid white',
     boxShadow: '0 0 8px rgba(0,0,0,0.8)',
     zIndex: 30,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '10px',
+    fontWeight: 'bold',
+    color: 'black',
+    cursor: 'help'
   },
   extractMarker: {
     position: 'absolute',
