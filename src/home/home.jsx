@@ -98,15 +98,15 @@ const Home = () => {
     setSearch("");
   };
 
-const removeQuest = (questId) => {
-  // ลบ quest
-  setSelectedQuests((prev) =>
-    prev.filter((q) => q.id !== questId)
-  );
+  const removeQuest = (questId) => {
+    // ลบ quest
+    setSelectedQuests((prev) =>
+      prev.filter((q) => q.id !== questId)
+    );
 
-  // ลบ objective progress ของ quest นี้
-  clearObjectiveProgress(questId);
-};
+    // ลบ objective progress ของ quest นี้
+    clearObjectiveProgress(questId);
+  };
 
 
 
@@ -144,6 +144,19 @@ const removeQuest = (questId) => {
   );
 
   /* ---------------- UI ---------------- */
+
+  const filteredQuests =
+    objectiveLocations.length === 0
+      ? selectedQuests
+      : selectedQuests.filter((quest) =>
+        quest.objectives?.some((obj) =>
+          obj.maps?.some((m) =>
+            objectiveLocations.includes(m.name)
+          )
+        )
+      );
+
+
   return (
     <div className="container py-5">
       <h1 className="text-center fw-bold text-primary mb-4">
@@ -221,7 +234,7 @@ const removeQuest = (questId) => {
               <div className="card-body">
                 <h5 className="fw-bold mb-3">📜 Selected Quests</h5>
                 <ul className="list-group">
-                  {selectedQuests.map((quest) => (
+                  {filteredQuests.map((quest) => (
                     <li
                       key={quest.name}
                       className="list-group-item d-flex justify-content-between align-items-start"
@@ -266,7 +279,7 @@ const removeQuest = (questId) => {
               <div className="card-body">
                 <h5 className="fw-bold mb-3 text-info">🎯 Objectives</h5>
 
-                {selectedQuests.map((quest) => {
+                {filteredQuests.map((quest) => {
                   const filteredObjectives = quest.objectives?.filter(
                     (obj) =>
                       objectiveLocations.length === 0 ||
