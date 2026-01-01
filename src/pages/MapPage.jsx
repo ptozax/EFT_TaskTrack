@@ -41,6 +41,7 @@ const MapPage = () => {
   const [trackedQuests, setTrackedQuests] = useState([]);
   const [expandedQuestName, setExpandedQuestName] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [questDescription, setQuestDescription] = useState(null);
 
   /* -------- LOAD LOCAL STORAGE -------- */
   useEffect(() => {
@@ -545,32 +546,38 @@ const MapPage = () => {
 
                   return (
                     <>
-                      {(checkedObjectives[getObjectiveKey(quest.id, obj.id)]) ? (
-                        <div
-                          key={`${quest.name}-${idx}`}
-                          title={`${obj.description} ✅`}
-                          style={{
-                            ...styles.marker,
-                            left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
-                            top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
-                            backgroundColor: tq.color,
-                            transform: `translate(-50%, -50%) scale(${isExpanded ? markerScale * 1.8 : markerScale})`,
-                            zIndex: isExpanded ? 100 : 30,
-                          }}
-                        />
-                      ) : (
-                        <div
-                          key={`${quest.name}-${idx}`}
-                          title={obj.description}
-                          style={{
-                            ...styles.marker,
-                            left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
-                            top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
-                            backgroundColor: tq.color,
-                            transform: `translate(-50%, -50%) scale(${isExpanded ? markerScale * 1.8 : markerScale})`,
-                            zIndex: isExpanded ? 100 : 30,
-                          }}
-                        />
+                      {!(checkedObjectives[getObjectiveKey(quest.id, obj.id)]) && (
+                        <>
+                          <div
+                            key={`${quest.name}-${idx}`}
+                            // title={obj.description}
+                            style={{
+                              ...styles.marker,
+                              left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
+                              top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
+                              backgroundColor: tq.color,
+                              transform: `translate(-50%, -50%) scale(${isExpanded ? markerScale * 1.8 : markerScale})`,
+                              zIndex: isExpanded ? 100 : 30,
+                            }}
+                            onClick={() => setQuestDescription(questDescription === obj.id ? null : obj.id)}
+                          />
+                          {questDescription === obj.id && (
+                            <div
+                              style={{
+                                ...styles.descriptionMarker,
+                                left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
+                                top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
+
+                                // transform: `translate( 0%, -50%) scale(${isExpanded ? markerScale * 1.8 : markerScale})`,
+                                transform: `translate( 0%, -50%) scale(1)`,
+                                zIndex: isExpanded ? 100 : 30,
+                              }}
+                              onClick={() => setQuestDescription(null)}
+                            >
+                              {obj.description}
+                            </div>
+                          )}
+                        </>
                       )}
                     </>
                   );
