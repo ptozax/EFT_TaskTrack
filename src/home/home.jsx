@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import quests from "../data/tasks";
+import { BiFontSize } from "react-icons/bi";
 
 const STORAGE_KEY = "eft_selected_quests";
 const OBJECTIVE_CHECK_KEY = "eft_objective_checklist";
@@ -255,7 +256,9 @@ const Home = () => {
 
 
                         <p className="text-muted small mb-0">
-                          EXP: {quest.experience} | Lv {quest.minPlayerLevel}
+                          {quest.trader.name}  | EXP: {quest.experience}
+                    
+
                         </p>
                       </div>
 
