@@ -90,13 +90,32 @@ const MapPage = () => {
   const calib = mapCalibrations[selectedMapId];
 
   const currentFeatures = mapFeatures.find(m => m.name === currentMapName) || { transits: [], extracts: [] };
+  const [isRefresh, setIsRefresh] = useState(false);
 
   useEffect(() => {
     setIsLoading(true);
     setZoom(1);
     setOffset({ x: 0, y: 0 });
-    // Remove auto-adding BP Depot since we are removing the quest
   }, [selectedMapId]);
+
+  // set localStorage of Quest
+  useEffect(() => {
+    if (isRefresh) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(selectedQuests));
+    }
+    setIsRefresh(false);
+  }, [selectedQuests, isRefresh]);
+
+  useEffect(() => {
+    if (isRefresh) {
+      localStorage.setItem(
+        OBJECTIVE_CHECK_KEY,
+        JSON.stringify(checkedObjectives)
+      );
+    }
+    setIsRefresh(false);
+  }, [checkedObjectives, isRefresh]);
+  // --------------------------------------------
 
   const updateCalib = (newVals) => {
     setMapCalibrations(prev => ({
@@ -104,21 +123,6 @@ const MapPage = () => {
       [selectedMapId]: { ...prev[selectedMapId], ...newVals }
     }));
   };
-
-  const availableQuests = useMemo(() => {
-    const uniqueQuests = [];
-    const seenNames = new Set();
-    quests.forEach(quest => {
-      const isOnMap = quest.objectives.some(obj =>
-        obj.maps?.some(m => m.name === currentMapName || m.name === `${currentMapName} 21+`)
-      );
-      if (isOnMap && !seenNames.has(quest.name)) {
-        uniqueQuests.push(quest);
-        seenNames.add(quest.name);
-      }
-    });
-    return uniqueQuests;
-  }, [currentMapName]);
 
   const gameToPerc = (val, offset, scale, flip) => {
     const direction = flip ? -1 : 1;
@@ -155,19 +159,87 @@ const MapPage = () => {
     }
   };
 
-  const addQuest = (questName) => {
-    if (trackedQuests.some(q => q.name === questName)) return;
-    setTrackedQuests([...trackedQuests, {
-      name: questName,
-      color: getRandomColor(trackedQuests.map(q => q.color))
-    }]);
-  };
+  useEffect(() => {
+    const questsToAdd = [];
 
-  const removeQuest = (e, questName) => {
+    selectedQuests.forEach(quest => {
+      const matchMap = quest.objectives.some(obj =>
+        obj.maps?.some(
+          m =>
+            m.name === currentMapName ||
+            m.name === `${currentMapName} 21+`
+        )
+      );
+
+      if (matchMap) {
+        questsToAdd.push(quest.name);
+      }
+    });
+
+    if (questsToAdd.length === 0) return;
+
+    setTrackedQuests(prev => {
+      const existingNames = new Set(prev.map(q => q.name));
+      const usedColors = prev.map(q => q.color);
+
+      const newItems = questsToAdd
+        .filter(name => !existingNames.has(name))
+        .map(name => ({
+          name,
+          color: getRandomColor(usedColors),
+        }));
+
+      return [...prev, ...newItems];
+    });
+  }, [selectedQuests, currentMapName]);
+
+  const hiddenQuest = (e, questName) => {
     e.stopPropagation();
     setTrackedQuests(trackedQuests.filter(q => q.name !== questName));
     if (expandedQuestName === questName) setExpandedQuestName(null);
+  }
+
+  const removeQuest = (e, questName) => {
+    e.stopPropagation();
+
+    hiddenQuest(e, questName);
+    const rm_Quest = selectedQuests.find(q => q.name === questName);
+
+    // ลบ quest
+    if (rm_Quest) {
+      setIsRefresh(true);
+      setSelectedQuests((prev) =>
+        prev.filter((q) => q.id !== rm_Quest.id)
+      );
+
+      // ลบ objective progress ของ quest นี้
+      setIsRefresh(true);
+      clearObjectiveProgress(rm_Quest.id);
+    }
   };
+
+  const clearObjectiveProgress = (questId) => {
+    setCheckedObjectives((prev) => {
+      const updated = { ...prev };
+
+      Object.keys(updated).forEach((key) => {
+        if (key.startsWith(`${questId}|`)) {
+          delete updated[key];
+        }
+      });
+
+      return updated;
+    });
+  };
+
+  const completeMark = (questId, objectiveId) => {
+    const key = getObjectiveKey(questId, objectiveId);
+    setCheckedObjectives((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+    setIsRefresh(true);
+  }
 
   const resetZoom = () => {
     setZoom(1);
@@ -175,19 +247,10 @@ const MapPage = () => {
   };
 
   const markerScale = 1 / zoom;
-
-  // Load saved quests on initial render
-  selectedQuests.forEach(quest => {
-    if (quest.objectives.some(obj => obj.maps?.some(m => m.name === currentMapName || m.name === `${currentMapName} 21+`)))
-      addQuest(quest.name)
-  });
   return (
     <div style={styles.container} onMouseUp={() => setIsDragging(false)}>
       <aside style={styles.sidebar}>
         <header style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* <div style={{ background: '#2563eb', padding: '8px', borderRadius: '10px' }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
-            </div> */}
           <h1 style={{ fontSize: '20px', fontWeight: '800' }}>🗺️ Interactive Quest Map</h1>
         </header>
 
@@ -225,22 +288,13 @@ const MapPage = () => {
           </div>
         </section>
 
-        {/* <section>
-            <label style={styles.label}>Add Quest</label>
-            <select style={styles.select} value="" onChange={(e) => addQuest(e.target.value)}>
-              <option value="" disabled>Select quest...</option>
-              {availableQuests.filter(aq => !trackedQuests.some(tq => tq.name === aq.name)).map(q => (
-                <option key={q.name} value={q.name}>{q.name}</option>
-              ))}
-            </select>
-          </section> */}
-
         <section style={{ flex: 1 }}>
           <label style={styles.label}>Tracked ({trackedQuests.length})</label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {trackedQuests.map((tq) => {
               const fullQuest = quests.find(qd => qd.name === tq.name);
               const isExpanded = expandedQuestName === tq.name;
+              const isTasks = fullQuest.objectives.every(obj => checkedObjectives[getObjectiveKey(fullQuest.id, obj.id)])
 
               return (
                 <div
@@ -255,12 +309,26 @@ const MapPage = () => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: tq.color }} />
                     <span style={{ fontSize: '13px', fontWeight: '700', flex: 1 }}>{tq.name}</span>
-                    {/* <button
+                    <span style={{ fontSize: '13px', flex: 1 }}>{fullQuest.trader.name}</span>
+                    {isTasks ? (
+                      <button
                         onClick={(e) => removeQuest(e, tq.name)}
                         style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '18px' }}
                       >
                         ×
-                      </button> */}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={(e) => hiddenQuest(e, tq.name)}
+                        style={{
+                          background: 'none', border: 'none', color: '#fffb00ff', cursor: 'pointer',
+                          fontSize: '18px', fontWeight: '700', textDecoration: 'underline', textDecorationColor: 'red'
+                        }}
+                      >
+                        hide
+                      </button>
+
+                    )}
                   </div>
 
                   {isExpanded && (
@@ -483,7 +551,7 @@ const MapPage = () => {
 
                 return (
                   <polygon
-                    key={`outline-${idx}`}
+                    key={`trans-outline-${idx}`}
                     points={pointsStr}
                     fill={'rgba(249, 22, 22, 0.2)'}
                     stroke={'#f91616ff'}
@@ -550,7 +618,6 @@ const MapPage = () => {
                         <>
                           <div
                             key={`${quest.name}-${idx}`}
-                            // title={obj.description}
                             style={{
                               ...styles.marker,
                               left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
@@ -567,14 +634,22 @@ const MapPage = () => {
                                 ...styles.descriptionMarker,
                                 left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
                                 top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
-
-                                // transform: `translate( 0%, -50%) scale(${isExpanded ? markerScale * 1.8 : markerScale})`,
+                                display: 'flex',
+                                flexDirection: 'column',
                                 transform: `translate( 0%, -50%) scale(1)`,
                                 zIndex: isExpanded ? 100 : 30,
+                                width: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%` > '80%' ? '20%' : 'auto'
                               }}
                               onClick={() => setQuestDescription(null)}
                             >
                               {obj.description}
+                              <div style={{
+                                width: '100%', background: '#00c40aff', border: 'none',
+                                borderRadius: "5px", color: '#ff3c00ff', cursor: 'pointer', fontSize: '12px'
+                              }}
+                                onClick={() => completeMark(quest.id, obj.id)}>
+                                DONE!!
+                              </div>
                             </div>
                           )}
                         </>
