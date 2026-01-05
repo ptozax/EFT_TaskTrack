@@ -32,3 +32,8 @@ body {
   font-size: 10px;
   line-height: 1;
 }
+
+
+.transition {
+  transition: all 0.2s ease;
+}

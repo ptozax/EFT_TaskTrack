@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import quests from "../data/tasks";
 import { BiFontSize } from "react-icons/bi";
@@ -16,6 +16,44 @@ const Home = () => {
 
 
   const [hiddenObjectives, setHiddenObjectives] = useState({});
+
+  const refs = useRef({}); // for focus to  task obj
+
+
+
+
+
+
+
+
+
+  /*------------- Click and focus to quest  -------------*/
+
+  const scrollTo = (id) => {
+    // basic  scroll
+    // refs.current[id]?.scrollIntoView({
+    //   behavior: "smooth",
+    //   block: "center",
+    // });
+
+    //  scroll to box with offet 80px
+    const el = refs.current[id];
+    if (!el) return;
+
+    const y =
+      el.getBoundingClientRect().top + window.pageYOffset - 80;
+
+    window.scrollTo({
+      top: y,
+      behavior: "smooth",
+    });
+  };
+
+
+
+
+
+
 
 
 
@@ -159,16 +197,20 @@ const Home = () => {
 
 
   return (
-    <div className="container py-5">
-      <h1 className="text-center fw-bold text-primary mb-4">
-        EFT TaskTrack
+
+ <div className="container py-5">
+
+      {/* HEADER */}
+      <h1 className="text-center fw-bold mb-4">
+        <span className="text-primary">EFT</span>{" "}
+        <span className="text-warning">TaskTrack</span>
       </h1>
 
       {/* SEARCH */}
-      <div className="row justify-content-center mb-3">
+      <div className="row justify-content-center mb-4">
         <div className="col-md-6">
           <input
-            className="form-control form-control-lg"
+            className="form-control form-control-lg rounded-pill shadow-sm px-4"
             placeholder="🔍 Search quest..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -176,31 +218,33 @@ const Home = () => {
         </div>
       </div>
 
-      {/* SEARCH RESULTS */}
+      {/* SEARCH RESULT */}
       {search && (
         <div className="row justify-content-center mb-4">
           <div className="col-md-6">
-            <ul className="list-group">
-              {searchResults.map((q) => (
-                <li
-                  key={q.name}
-                  className="list-group-item d-flex justify-content-between"
-                >
-                  {q.name}
-                  <button
-                    className="btn btn-sm btn-success"
-                    onClick={() => addQuest(q)}
+            <div className="card shadow">
+              <ul className="list-group list-group-flush">
+                {searchResults.map((q) => (
+                  <li
+                    key={q.name}
+                    className="list-group-item d-flex justify-content-between align-items-center"
                   >
-                    Add
-                  </button>
-                </li>
-              ))}
-            </ul>
+                    <span className="fw-medium">{q.name}</span>
+                    <button
+                      className="btn btn-sm btn-success rounded-pill px-3"
+                      onClick={() => addQuest(q)}
+                    >
+                      + Add
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       )}
 
-      {/* LOCATION FILTER */}
+      {/* MAP FILTER */}
       <div className="card shadow-sm mb-4">
         <div className="card-body">
           <h6 className="fw-bold mb-3">🗺️ Filter Objectives by Map</h6>
@@ -215,8 +259,11 @@ const Home = () => {
                 <button
                   key={loc}
                   onClick={() => toggleLocation(loc)}
-                  className={`btn btn-sm rounded-pill px-3 ${active ? "btn-primary" : "btn-outline-secondary"
-                    }`}
+                  className={`btn btn-sm rounded-pill px-3 transition ${
+                    active
+                      ? "btn-primary shadow"
+                      : "btn-outline-secondary"
+                  }`}
                 >
                   {loc}
                 </button>
@@ -229,43 +276,41 @@ const Home = () => {
       {/* SELECTED QUESTS */}
       {selectedQuests.length > 0 && (
         <div className="row g-4">
-          {/* LEFT */}
+
+          {/* LEFT : QUEST LIST */}
           <div className="col-md-4">
             <div className="card shadow-sm h-100">
               <div className="card-body">
                 <h5 className="fw-bold mb-3">📜 Selected Quests</h5>
+
                 <ul className="list-group">
                   {filteredQuests.map((quest) => (
                     <li
                       key={quest.name}
-                      className="list-group-item d-flex justify-content-between align-items-start"
+                      className="list-group-item list-group-item-action d-flex justify-content-between align-items-start"
+                      onClick={() => scrollTo(quest.id)}
+                      style={{ cursor: "pointer" }}
                     >
-                      {/* LEFT : QUEST INFO */}
                       <div>
-                        <a className="fw-bold text-info mb-1"
+                        <a
+                          className="fw-bold text-info"
                           href={quest.wikiLink}
                           target="_blank"
                           rel="noreferrer"
-
                         >
                           {quest.name}
                         </a>
-
-
-
-
-
                         <p className="text-muted small mb-0">
-                          {quest.trader.name}  | EXP: {quest.experience}
-                    
-
+                          {quest.trader.name} | EXP: {quest.experience}
                         </p>
                       </div>
 
-                      {/* RIGHT : REMOVE BUTTON */}
                       <button
                         className="btn btn-sm btn-outline-danger"
-                        onClick={() => removeQuest(quest.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeQuest(quest.id);
+                        }}
                       >
                         ✕
                       </button>
@@ -276,93 +321,106 @@ const Home = () => {
             </div>
           </div>
 
-          {/* RIGHT */}
+          {/* RIGHT : OBJECTIVES */}
           <div className="col-md-8">
             <div className="card shadow-sm h-100 bg-dark text-light border-secondary">
               <div className="card-body">
                 <h5 className="fw-bold mb-3 text-info">🎯 Objectives</h5>
 
                 {filteredQuests.map((quest) => {
-                  const filteredObjectives = quest.objectives?.filter(
-                    (obj) =>
-                      objectiveLocations.length === 0 ||
-                      obj.maps?.some((m) => objectiveLocations.includes(m.name))
-                  ) || [];
+                  const filteredObjectives =
+                    quest.objectives?.filter(
+                      (obj) =>
+                        objectiveLocations.length === 0 ||
+                        obj.maps?.some((m) =>
+                          objectiveLocations.includes(m.name)
+                        )
+                    ) || [];
 
-                  // 👉 ถ้าไม่มี objective หลัง filter → ซ่อน Quest
                   if (filteredObjectives.length === 0) return null;
 
                   return (
-                    <div key={quest.name} className="mb-4">
+                    <div
+                      key={quest.name}
+                      ref={(el) => (refs.current[quest.id] = el)}
+                      className="mb-4 p-3 rounded border border-secondary bg-black bg-opacity-25"
+                    >
+                      {/* QUEST HEADER */}
+                      <div className="d-flex justify-content-between align-items-center mb-2">
+                        <a
+                          className="fw-bold text-primary"
+                          href={quest.wikiLink}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {quest.name}
+                        </a>
 
+                        <button
+                          className="btn btn-sm btn-outline-danger"
+                          onClick={() => removeQuest(quest.id)}
+                        >
+                          ✕
+                        </button>
+                      </div>
 
-                      <a className="fw-bold text-primary"
-                        href={quest.wikiLink}
-                        target="_blank"
-                        rel="noreferrer"
-
-                      >
-                        {quest.name}
-                      </a>
-
-
-
-
-                      <ul className="list-unstyled">
+                      {/* OBJECTIVES */}
+                      <ul className="list-unstyled mb-0">
                         {filteredObjectives.map((obj) => {
                           const key = getObjectiveKey(quest.id, obj.id);
                           const checked = checkedObjectives[key];
                           const hidden = hiddenObjectives[key];
-
                           if (hidden) return null;
 
                           return (
                             <li
                               key={key}
-                              className={`mb-2 p-2 rounded ${checked
-                                ? "bg-success bg-opacity-10 border border-success text-success"
-                                : "bg-secondary bg-opacity-10 border border-secondary text-light"
-                                }`}
-
-                              onClick={() => toggleObjective(quest.id, obj.id)}
+                              className={`mb-2 p-3 rounded ${
+                                checked
+                                  ? "bg-success bg-opacity-10 border border-success"
+                                  : "bg-secondary bg-opacity-10 border border-secondary"
+                              }`}
+                              onClick={() =>
+                                toggleObjective(quest.id, obj.id)
+                              }
                               style={{ cursor: "pointer" }}
-
                             >
-                              {/* OBJECTIVE ROW */}
-                              <div
-                                className="d-flex justify-content-between align-items-start  rounded"
-                              // onClick={() => toggleObjective(quest.name, i)}
-                              // style={{ cursor: "pointer" }}
-                              >
-                                {/* LEFT : DESCRIPTION */}
+                              <div className="d-flex justify-content-between align-items-start">
                                 <span
-                                  className={`fw-medium ${checked ? "text-decoration-line-through text-muted" : ""
-                                    }`}
+                                  className={`fw-medium ${
+                                    checked
+                                      ? "text-decoration-line-through text-muted"
+                                      : "text-light"
+                                  }`}
                                 >
                                   {obj.description}
                                 </span>
 
-                                {/* RIGHT : HIDE BUTTON */}
                                 <button
                                   className="btn btn-sm btn-outline-warning ms-2"
                                   onClick={(e) => {
-                                    e.stopPropagation(); // ❗ กันไม่ให้ไป toggle checklist
-                                    toggleHideObjective(quest.id, obj.id);
+                                    e.stopPropagation();
+                                    toggleHideObjective(
+                                      quest.id,
+                                      obj.id
+                                    );
                                   }}
-                                  title="Hide objective"
                                 >
-                                  <i class="fa-regular fa-eye-slash"></i>
+                                  <i className="fa-regular fa-eye-slash"></i>
                                 </button>
                               </div>
 
-                              {/* MAP BADGES */}
+                              {/* MAP TAGS */}
                               {obj.maps?.length > 0 && (
-                                <div className="mt-1">
+                                <div className="mt-2">
                                   {obj.maps.map((m) => (
                                     <span
                                       key={m.name}
-                                      className={`badge me-1 ${checked ? "bg-success" : "bg-secondary"
-                                        }`}
+                                      className={`badge rounded-pill me-1 ${
+                                        checked
+                                          ? "bg-success"
+                                          : "bg-secondary"
+                                      }`}
                                     >
                                       {m.name}
                                     </span>
@@ -376,22 +434,13 @@ const Home = () => {
                     </div>
                   );
                 })}
-
-
-
-
-
-
-
-
-
               </div>
             </div>
           </div>
         </div>
       )}
     </div>
-  );
+   );
 };
 
 export default Home;
