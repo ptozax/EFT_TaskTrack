@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import quests from "../data/tasks";
 import { BiFontSize } from "react-icons/bi";
@@ -16,6 +16,44 @@ const Home = () => {
 
 
   const [hiddenObjectives, setHiddenObjectives] = useState({});
+
+  const refs = useRef({}); // for focus to  task obj
+
+
+
+
+
+
+
+
+
+  /*------------- Click and focus to quest  -------------*/
+
+  const scrollTo = (id) => {
+    // basic  scroll
+    // refs.current[id]?.scrollIntoView({
+    //   behavior: "smooth",
+    //   block: "center",
+    // });
+
+    //  scroll to box with offet 80px
+    const el = refs.current[id];
+    if (!el) return;
+
+    const y =
+      el.getBoundingClientRect().top + window.pageYOffset - 80;
+
+    window.scrollTo({
+      top: y,
+      behavior: "smooth",
+    });
+  };
+
+
+
+
+
+
 
 
 
@@ -238,6 +276,7 @@ const Home = () => {
                   {filteredQuests.map((quest) => (
                     <li
                       key={quest.name}
+                      onClick={() => scrollTo(quest.id)}
                       className="list-group-item d-flex justify-content-between align-items-start"
                     >
                       {/* LEFT : QUEST INFO */}
@@ -257,7 +296,7 @@ const Home = () => {
 
                         <p className="text-muted small mb-0">
                           {quest.trader.name}  | EXP: {quest.experience}
-                    
+
 
                         </p>
                       </div>
@@ -293,7 +332,7 @@ const Home = () => {
                   if (filteredObjectives.length === 0) return null;
 
                   return (
-                    <div key={quest.name} className="mb-4">
+                    <div key={quest.name} ref={(el) => (refs.current[quest.id] = el)} className="mb-4">
 
 
                       <a className="fw-bold text-primary"
