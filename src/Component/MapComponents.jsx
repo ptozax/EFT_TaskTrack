@@ -68,22 +68,25 @@ const styles = {
     border: '1px solid white',
     boxShadow: '0 0 8px rgba(0,0,0,0.8)',
     zIndex: 30,
+    cursor: 'default'
   },
   descriptionMarker: {
     position: 'absolute',
     borderRadius: '5px',
     border: '1px solid white',
-    boxShadow: '0 0 8px rgba(0, 0, 0, 0.8)',
+    boxShadow: '0 0 8px rgba(255, 255, 255, 0.8)',
+    width: "300px",
     padding: "2px",
     zIndex: 30,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     textAlign: 'center',
-    backgroundColor: 'white',
-    fontSize: '12px',
+    background: 'black',
+    fontSize: '15px',
     fontWeight: 'bold',
-    color: 'black',
+    color: 'white',
+    cursor: 'pointer'
   },
   extractMarker: {
     position: 'absolute',
@@ -211,7 +214,7 @@ const styles = {
     fontWeight: 'bold',
     cursor: 'pointer',
     marginTop: '4px'
-  }
+  },
 };
 
 export default styles;

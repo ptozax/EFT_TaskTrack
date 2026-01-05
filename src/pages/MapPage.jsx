@@ -187,24 +187,26 @@ const MapPage = () => {
         .map(name => ({
           name,
           color: getRandomColor(usedColors),
+          visible: true
         }));
 
       return [...prev, ...newItems];
     });
   }, [selectedQuests, currentMapName]);
 
-  const hiddenQuest = (e, questName) => {
+  const toggleQuestVisibility = (e, questName) => {
     e.stopPropagation();
-    setTrackedQuests(trackedQuests.filter(q => q.name !== questName));
-    if (expandedQuestName === questName) setExpandedQuestName(null);
-  }
+    setTrackedQuests(trackedQuests.map(q =>
+      q.name === questName ? { ...q, visible: !q.visible } : q
+    ));
+  };
 
   const removeQuest = (e, questName) => {
     e.stopPropagation();
+    setTrackedQuests(trackedQuests.filter(q => q.name !== questName));
+    if (expandedQuestName === questName) setExpandedQuestName(null);
 
-    hiddenQuest(e, questName);
     const rm_Quest = selectedQuests.find(q => q.name === questName);
-
     // ลบ quest
     if (rm_Quest) {
       setIsRefresh(true);
@@ -245,6 +247,13 @@ const MapPage = () => {
     setZoom(1);
     setOffset({ x: 0, y: 0 });
   };
+
+  const mapRange = (value, inRange, outRange) => {
+    const [inMin, inMax] = inRange;
+    const [outMin, outMax] = outRange;
+    return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
+  };
+
 
   const markerScale = 1 / zoom;
   return (
@@ -294,7 +303,6 @@ const MapPage = () => {
             {trackedQuests.map((tq) => {
               const fullQuest = quests.find(qd => qd.name === tq.name);
               const isExpanded = expandedQuestName === tq.name;
-              const isTasks = fullQuest.objectives.every(obj => checkedObjectives[getObjectiveKey(fullQuest.id, obj.id)])
 
               return (
                 <div
@@ -302,37 +310,39 @@ const MapPage = () => {
                   style={{
                     ...styles.questCard,
                     borderColor: isExpanded ? tq.color : '#334155',
-                    borderWidth: isExpanded ? '2px' : '1px'
+                    borderWidth: isExpanded ? '2px' : '1px',
+                    opacity: tq.visible ? 1 : 0.6
                   }}
                   onClick={() => setExpandedQuestName(isExpanded ? null : tq.name)}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: tq.color }} />
-                    <span style={{ fontSize: '13px', fontWeight: '700', flex: 1 }}>{tq.name}</span>
-                    <span style={{ fontSize: '13px', flex: 1 }}>{fullQuest.trader.name}</span>
-                    {isTasks ? (
-                      <button
-                        onClick={(e) => removeQuest(e, tq.name)}
-                        style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '18px' }}
-                      >
-                        ×
-                      </button>
-                    ) : (
-                      <button
-                        onClick={(e) => hiddenQuest(e, tq.name)}
-                        style={{
-                          background: 'none', border: 'none', color: '#fffb00ff', cursor: 'pointer',
-                          fontSize: '18px', fontWeight: '700', textDecoration: 'underline', textDecorationColor: 'red'
-                        }}
-                      >
-                        hide
-                      </button>
-
-                    )}
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: tq.visible ? tq.color : '#475569' }} />
+                    <span style={{ fontSize: '13px', fontWeight: '700', flex: 1, color: tq.visible ? '#f8fafc' : '#94a3b8' }}>{tq.name}</span>
+                    <span style={{ fontSize: '13px', flex: 1, color: tq.visible ? '#f8fafc' : '#94a3b8' }}>{fullQuest.trader.name}</span>
+                    <button
+                      onClick={(e) => toggleQuestVisibility(e, tq.name)}
+                      style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '0 4px', display: 'flex', alignItems: 'center' }}
+                      title={tq.visible ? "Hide markers" : "Show markers"}
+                    >
+                      {tq.visible ? (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+                      ) : (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
+                      )}
+                    </button>
+                    <button
+                      onClick={(e) => removeQuest(e, tq.name)}
+                      style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '18px' }}
+                    >
+                      ×
+                    </button>
                   </div>
 
                   {isExpanded && (
                     <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #334155', fontSize: '11px' }}>
+                      <div style={{ marginBottom: '6px', color: '#94a3b8', fontWeight: 'bold' }}>Kappa Required:
+                        <span style={{ color: fullQuest.kappaRequired ? 'red' : 'green' }}> {fullQuest.kappaRequired ? 'Yes' : 'No'}</span>
+                      </div>
                       <div style={{ marginBottom: '6px', color: '#94a3b8', fontWeight: 'bold' }}>Objectives:</div>
                       {fullQuest.objectives.map((obj, idx) => (
                         <div key={idx} style={{ marginBottom: '6px', color: '#cbd5e1', lineHeight: '1.4' }}>
@@ -591,6 +601,7 @@ const MapPage = () => {
 
             {/* Quest Markers */}
             {!isLoading && trackedQuests.map(tq => {
+              if (!tq.visible) return null;
               const quest = quests.find(q => q.name === tq.name);
               const isExpanded = expandedQuestName === quest.name;
 
@@ -605,6 +616,8 @@ const MapPage = () => {
                 return points.map((p, idx) => {
                   let finalX = p.x;
                   let finalVertical = p.z !== undefined ? p.z : p.y;
+                  let lastIndex = points.length - 1;
+                  let dynamicScale = mapRange(markerScale, [0, 1], [-40, 0]);
 
                   if (calib.swapXZ) {
                     const temp = finalX;
@@ -628,29 +641,47 @@ const MapPage = () => {
                             }}
                             onClick={() => setQuestDescription(questDescription === obj.id ? null : obj.id)}
                           />
-                          {questDescription === obj.id && (
-                            <div
-                              style={{
-                                ...styles.descriptionMarker,
-                                left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
-                                top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                transform: `translate( 0%, -50%) scale(1)`,
-                                zIndex: isExpanded ? 100 : 30,
-                                width: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%` > '80%' ? '20%' : 'auto'
-                              }}
-                              onClick={() => setQuestDescription(null)}
-                            >
+                          {questDescription === obj.id && idx === lastIndex && (
+                            <div style={{
+                              ...styles.descriptionMarker,
+                              left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
+                              top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
+                              display: 'flex',
+                              flexDirection: 'column',
+                              transform: `translate(-50%, ${dynamicScale}%) scale(${markerScale})`
+                            }}
+                              onClick={() => setQuestDescription(null)}>
                               {obj.description}
                               <div style={{
                                 width: '100%', background: '#00c40aff', border: 'none',
-                                borderRadius: "5px", color: '#ff3c00ff', cursor: 'pointer', fontSize: '12px'
+                                borderRadius: "5px", color: '#ff3c00ff', cursor: 'default', fontSize: '15px'
                               }}
                                 onClick={() => completeMark(quest.id, obj.id)}>
                                 DONE!!
                               </div>
                             </div>
+                            // <div
+                            //   style={{
+                            //     ...styles.descriptionMarker,
+                            //     left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
+                            //     top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
+                            //     display: 'flex',
+                            //     flexDirection: 'column',
+                            //     transform: `translate(-${isExpanded ? 0 : 50}%, -70%) scale(${isExpanded ? markerScale * 2 : markerScale})`,
+                            //     zIndex: isExpanded ? 100 : 30,
+                            //     maxWidth: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%` > '80%' ? '20%' : 'auto'
+                            //   }}
+                            //   onClick={() => setQuestDescription(null)}
+                            // >
+                            //   {obj.description}
+                            //   <div style={{
+                            //     width: '100%', background: '#00c40aff', border: 'none',
+                            //     borderRadius: "5px", color: '#ff3c00ff', cursor: 'pointer', fontSize: '12px'
+                            //   }}
+                            //     onClick={() => completeMark(quest.id, obj.id)}>
+                            //     DONE!!
+                            //   </div>
+                            // </div>
                           )}
                         </>
                       )}
