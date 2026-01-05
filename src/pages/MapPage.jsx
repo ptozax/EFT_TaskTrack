@@ -1,5 +1,5 @@
 // pages/MapPage.jsx
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import quests from "../data/tasks";
 import mapFeatures from "../data/maps";
 import styles from '../Component/MapComponents';
@@ -24,7 +24,7 @@ const maps = [
   { id: 10, map_name: "The Labyrinth", svg: "labyrinth", offsetX: 33.5, offsetZ: 50, scaleX: 0.825, scaleZ: 0.83, flipX: false, flipZ: false, swapXZ: true },
 ];
 
-const getRandomColor = (existingColors) => {
+const getRandomColor = () => {
   let h = Math.floor(Math.random() * 360);
   return `hsl(${h}, 90%, 65%)`;
 };
@@ -660,28 +660,6 @@ const MapPage = () => {
                                 DONE!!
                               </div>
                             </div>
-                            // <div
-                            //   style={{
-                            //     ...styles.descriptionMarker,
-                            //     left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
-                            //     top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
-                            //     display: 'flex',
-                            //     flexDirection: 'column',
-                            //     transform: `translate(-${isExpanded ? 0 : 50}%, -70%) scale(${isExpanded ? markerScale * 2 : markerScale})`,
-                            //     zIndex: isExpanded ? 100 : 30,
-                            //     maxWidth: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%` > '80%' ? '20%' : 'auto'
-                            //   }}
-                            //   onClick={() => setQuestDescription(null)}
-                            // >
-                            //   {obj.description}
-                            //   <div style={{
-                            //     width: '100%', background: '#00c40aff', border: 'none',
-                            //     borderRadius: "5px", color: '#ff3c00ff', cursor: 'pointer', fontSize: '12px'
-                            //   }}
-                            //     onClick={() => completeMark(quest.id, obj.id)}>
-                            //     DONE!!
-                            //   </div>
-                            // </div>
                           )}
                         </>
                       )}
