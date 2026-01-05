@@ -42,6 +42,12 @@ const MapPage = () => {
   const [expandedQuestName, setExpandedQuestName] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [questDescription, setQuestDescription] = useState(null);
+  const [rotation, setRotation] = useState(0);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  useEffect(() => {
+    console.log(rotation);
+  }, [rotation])
 
   /* -------- LOAD LOCAL STORAGE -------- */
   useEffect(() => {
@@ -95,6 +101,7 @@ const MapPage = () => {
   useEffect(() => {
     setIsLoading(true);
     setZoom(1);
+    setRotation(0);
     setOffset({ x: 0, y: 0 });
   }, [selectedMapId]);
 
@@ -245,23 +252,46 @@ const MapPage = () => {
 
   const resetZoom = () => {
     setZoom(1);
+    setRotation(0);
     setOffset({ x: 0, y: 0 });
   };
 
-  const mapRange = (value, inRange, outRange) => {
-    const [inMin, inMax] = inRange;
-    const [outMin, outMax] = outRange;
-    return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
+  const rotateMap = (angle) => {
+    setRotation(prev => prev + angle);
   };
-
 
   const markerScale = 1 / zoom;
   return (
     <div style={styles.container} onMouseUp={() => setIsDragging(false)}>
-      <aside style={styles.sidebar}>
-        <header style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <h1 style={{ fontSize: '20px', fontWeight: '800' }}>🗺️ Interactive Quest Map</h1>
-        </header>
+      {/* Sidebar Toggle Button */}
+      {!isSidebarOpen && (
+        <button
+          style={styles.toggleButton}
+          onClick={() => setIsSidebarOpen(true)}
+          title="Open Sidebar"
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
+        </button>
+      )}
+
+      <aside style={{
+        ...styles.sidebar,
+        width: isSidebarOpen ? '25%' : '0%',
+        padding: isSidebarOpen ? '24px' : '0',
+        opacity: isSidebarOpen ? 1 : 0
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+          <header style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <h1 style={{ fontSize: '20px', fontWeight: '800' }}>🗺️ Interactive Quest Map</h1>
+          </header>
+          <button
+            style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}
+            onClick={() => setIsSidebarOpen(false)}
+            title="Close Sidebar"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
+          </button>
+        </div>
 
         <section>
           <label style={styles.label}>Map Region</label>
@@ -317,8 +347,10 @@ const MapPage = () => {
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: tq.visible ? tq.color : '#475569' }} />
-                    <span style={{ fontSize: '13px', fontWeight: '700', flex: 1, color: tq.visible ? '#f8fafc' : '#94a3b8' }}>{tq.name}</span>
-                    <span style={{ fontSize: '13px', flex: 1, color: tq.visible ? '#f8fafc' : '#94a3b8' }}>{fullQuest.trader.name}</span>
+                    <span style={{ display: 'flex', flexDirection: 'column', flex: 1, }}>
+                      <div style={{ width: '100%', fontSize: '13px', fontWeight: '700', color: tq.visible ? '#f8fafc' : '#94a3b8' }}>{tq.name}</div>
+                      <div style={{ width: '100%', fontSize: '13px', color: tq.visible ? '#f8fafc' : '#94a3b8' }}>{fullQuest.trader.name}</div>
+                    </span>
                     <button
                       onClick={(e) => toggleQuestVisibility(e, tq.name)}
                       style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '0 4px', display: 'flex', alignItems: 'center' }}
@@ -371,7 +403,10 @@ const MapPage = () => {
         </section>
       </aside>
 
-      <main style={styles.main}>
+      <main style={{
+        ...styles.main,
+        width: isSidebarOpen ? '75%' : '100%'
+      }}>
         {isLoading && <div style={{ position: 'absolute', zIndex: 60, color: '#3b82f6' }}>SYNCING...</div>}
 
         <div style={styles.coordBox}>
@@ -382,6 +417,8 @@ const MapPage = () => {
         </div>
 
         <div style={styles.zoomControls}>
+          <button style={styles.zoomBtn} onClick={() => rotateMap(-90)} title="Rotate Left">⟲</button>
+          <button style={styles.zoomBtn} onClick={() => rotateMap(90)} title="Rotate Right">⟳</button>
           <button style={styles.zoomBtn} onClick={() => setZoom(z => Math.min(10, z + 0.5))}>+</button>
           <button style={styles.zoomBtn} onClick={() => setZoom(z => Math.max(0.5, z - 0.5))}>-</button>
           <button style={{ ...styles.zoomBtn, fontSize: '12px' }} onClick={resetZoom}>RST</button>
@@ -449,8 +486,9 @@ const MapPage = () => {
           <div style={{
             position: 'relative',
             display: 'inline-block',
-            transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`,
-            transition: isDragging ? 'none' : 'transform 0.1s ease-out'
+            transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom}) rotate(${rotation}deg)`,
+            transition: isDragging ? 'none' : 'transform 0.1s ease-out',
+            transformOrigin: 'center'
           }}>
             <img
               ref={imageRef}
@@ -532,7 +570,7 @@ const MapPage = () => {
                       ...styles.extractMarker,
                       left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
                       top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
-                      transform: `translate(-50%, -50%) scale(${markerScale})`,
+                      transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg)`,
                     }}
                   />
                 </div>
@@ -592,7 +630,7 @@ const MapPage = () => {
                       ...styles.extractMarker,
                       left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
                       top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
-                      transform: `translate(-50%, -50%) scale(${markerScale})`,
+                      transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg)`,
                     }}
                   />
                 </div>
@@ -617,7 +655,6 @@ const MapPage = () => {
                   let finalX = p.x;
                   let finalVertical = p.z !== undefined ? p.z : p.y;
                   let lastIndex = points.length - 1;
-                  let dynamicScale = mapRange(markerScale, [0, 1], [-40, 0]);
 
                   if (calib.swapXZ) {
                     const temp = finalX;
@@ -636,7 +673,7 @@ const MapPage = () => {
                               left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
                               top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
                               backgroundColor: tq.color,
-                              transform: `translate(-50%, -50%) scale(${isExpanded ? markerScale * 1.8 : markerScale})`,
+                              transform: `translate(-50%, -50%) scale(${isExpanded ? markerScale * 1.8 : markerScale}) rotate(${rotation}deg)`,
                               zIndex: isExpanded ? 100 : 30,
                             }}
                             onClick={() => setQuestDescription(questDescription === obj.id ? null : obj.id)}
@@ -648,7 +685,7 @@ const MapPage = () => {
                               top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
                               display: 'flex',
                               flexDirection: 'column',
-                              transform: `translate(-50%, ${dynamicScale}%) scale(${markerScale})`
+                              transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg)`
                             }}
                               onClick={() => setQuestDescription(null)}>
                               {obj.description}
