@@ -198,7 +198,7 @@ const Home = () => {
 
   return (
 
- <div className="container py-5">
+    <div className="container py-5">
 
       {/* HEADER */}
       <h1 className="text-center fw-bold mb-4">
@@ -259,11 +259,10 @@ const Home = () => {
                 <button
                   key={loc}
                   onClick={() => toggleLocation(loc)}
-                  className={`btn btn-sm rounded-pill px-3 transition ${
-                    active
-                      ? "btn-primary shadow"
-                      : "btn-outline-secondary"
-                  }`}
+                  className={`btn btn-sm rounded-pill px-3 transition ${active
+                    ? "btn-primary shadow"
+                    : "btn-outline-secondary"
+                    }`}
                 >
                   {loc}
                 </button>
@@ -302,6 +301,12 @@ const Home = () => {
                         </a>
                         <p className="text-muted small mb-0">
                           {quest.trader.name} | EXP: {quest.experience}
+
+
+                          {quest.kappaRequired && (<span className={`badge rounded-pill m-1 bg-success `} >Kappa</span>)}
+                          {quest.lightkeeperRequired && (<span className={`badge rounded-pill m-1  bg-info `} >LightKeeper</span>)}
+
+
                         </p>
                       </div>
 
@@ -375,11 +380,10 @@ const Home = () => {
                           return (
                             <li
                               key={key}
-                              className={`mb-2 p-3 rounded ${
-                                checked
-                                  ? "bg-success bg-opacity-10 border border-success"
-                                  : "bg-secondary bg-opacity-10 border border-secondary"
-                              }`}
+                              className={`mb-2 p-3 rounded ${checked
+                                ? "bg-success bg-opacity-10 border border-success"
+                                : "bg-secondary bg-opacity-10 border border-secondary"
+                                }`}
                               onClick={() =>
                                 toggleObjective(quest.id, obj.id)
                               }
@@ -387,11 +391,10 @@ const Home = () => {
                             >
                               <div className="d-flex justify-content-between align-items-start">
                                 <span
-                                  className={`fw-medium ${
-                                    checked
-                                      ? "text-decoration-line-through text-muted"
-                                      : "text-light"
-                                  }`}
+                                  className={`fw-medium ${checked
+                                    ? "text-decoration-line-through text-muted"
+                                    : "text-light"
+                                    }`}
                                 >
                                   {obj.description}
                                 </span>
@@ -416,11 +419,10 @@ const Home = () => {
                                   {obj.maps.map((m) => (
                                     <span
                                       key={m.name}
-                                      className={`badge rounded-pill me-1 ${
-                                        checked
-                                          ? "bg-success"
-                                          : "bg-secondary"
-                                      }`}
+                                      className={`badge rounded-pill me-1 ${checked
+                                        ? "bg-success"
+                                        : "bg-secondary"
+                                        }`}
                                     >
                                       {m.name}
                                     </span>
@@ -440,7 +442,7 @@ const Home = () => {
         </div>
       )}
     </div>
-   );
+  );
 };
 
 export default Home;
