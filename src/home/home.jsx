@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import quests from "../data/tasks";
 import { BiFontSize } from "react-icons/bi";
+import { div } from "framer-motion/client";
 
 const STORAGE_KEY = "eft_selected_quests";
 const OBJECTIVE_CHECK_KEY = "eft_objective_checklist";
@@ -223,256 +224,294 @@ const Home = () => {
 
   return (
 
-    <div className="container py-5">
+    <div className="container-fluid">
+      <div className="row justify-content-md-center">
+        <div className="col-md-11 ">
 
-      {/* HEADER */}
-      <h1 className="text-center fw-bold mb-4">
-        <span className="text-primary">EFT</span>{" "}
-        <span className="text-warning">TaskTrack</span>
-      </h1>
+          {/* HEADER */}
+          <h1 className="text-center fw-bold mb-4">
+            <span className="text-primary">EFT</span>{" "}
+            <span className="text-warning">TaskTrack</span>
+          </h1>
 
-      {/* SEARCH */}
-      <div className="row justify-content-center mb-4">
-        <div className="col-md-6">
-          <input
-            className="form-control form-control-lg rounded-pill shadow-sm px-4"
-            placeholder="🔍 Search quest..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-      </div>
-
-      {/* SEARCH RESULT */}
-      {search && (
-        <div className="row justify-content-center mb-4">
-          <div className="col-md-6">
-            <div className="card shadow">
-              <ul className="list-group list-group-flush">
-                {searchResults.map((q) => (
-                  <li
-                    key={`${q.id}-${q.name}`}
-                    className="list-group-item d-flex justify-content-between align-items-center"
-                  >
-                    <span className="fw-medium">{q.name}</span>
-                    <button
-                      className="btn btn-sm btn-success rounded-pill px-3"
-                      onClick={() => addQuest(q)}
-                    >
-                      + Add
-                    </button>
-                  </li>
-                ))}
-              </ul>
+          {/* SEARCH */}
+          <div className="row justify-content-center mb-4">
+            <div className="col-md-6">
+              <input
+                className="form-control form-control-lg rounded-pill shadow-sm px-4"
+                placeholder="🔍 Search quest..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
             </div>
           </div>
-        </div>
-      )}
 
-      {/* MAP FILTER */}
-      <div className="card shadow-sm mb-4">
-        <div className="card-body">
-          <h6 className="fw-bold mb-3">🗺️ Filter Objectives by Map</h6>
-          <div className="d-flex flex-wrap gap-2">
-            {allLocations.map((loc) => {
-              const active =
-                loc === "Any"
-                  ? objectiveLocations.length === 0
-                  : objectiveLocations.includes(loc);
-
-              return (
-                <button
-                  key={loc}
-                  onClick={() => toggleLocation(loc)}
-                  className={`btn btn-sm rounded-pill px-3 transition ${active
-                    ? "btn-primary shadow"
-                    : "btn-outline-secondary"
-                    }`}
-                >
-                  {loc}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* SELECTED QUESTS */}
-      {selectedQuests.length > 0 && (
-        <div className="row g-4">
-
-          {/* LEFT : QUEST LIST */}
-          <div className="col-md-4">
-            <div className="card shadow-sm h-100">
-              <div className="card-body">
-                <h5 className="fw-bold mb-3">📜 Selected Quests</h5>
-
-                <ul className="list-group">
-                  {filteredQuests.map((quest) => (
-                    <li
-                      key={quest.name}
-                      className="list-group-item list-group-item-action d-flex justify-content-between align-items-start"
-                      onClick={() => scrollTo(quest.id)}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <div>
-                        <a
-                          className="fw-bold text-info"
-                          href={quest.wikiLink}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          {quest.name}
-                        </a>
-                        <p className="text-muted small mb-0">
-                          {quest.trader.name} | EXP: {quest.experience}
-
-
-                          {quest.kappaRequired && (<span className={`badge rounded-pill m-1 bg-success `} >Kappa</span>)}
-                          {quest.lightkeeperRequired && (<span className={`badge rounded-pill m-1  bg-info `} >LightKeeper</span>)}
-
-
-                        </p>
-                      </div>
-
-                      <button
-                        className="btn btn-sm btn-outline-danger"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeQuest(quest.id);
-                        }}
+          {/* SEARCH RESULT */}
+          {search && (
+            <div className="row justify-content-center mb-4">
+              <div className="col-md-6">
+                <div className="card shadow">
+                  <ul className="list-group list-group-flush">
+                    {searchResults.map((q) => (
+                      <li
+                        key={`${q.id}-${q.name}`}
+                        className="list-group-item d-flex justify-content-between align-items-center"
                       >
-                        ✕
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                        <span className="fw-medium">{q.name}</span>
+                        <button
+                          className="btn btn-sm btn-success rounded-pill px-3"
+                          onClick={() => addQuest(q)}
+                        >
+                          + Add
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          {/* RIGHT : OBJECTIVES */}
-          <div className="col-md-8">
-            <div className="card shadow-sm h-100 bg-dark text-light border-secondary">
-              <div className="card-body">
-                <h5 className="fw-bold mb-3 text-info">🎯 Objectives</h5>
-
-                {filteredQuests.map((quest) => {
-                  const filteredObjectives =
-                    quest.objectives?.filter(
-                      (obj) =>
-                        objectiveLocations.length === 0 ||
-                        obj.maps?.some((m) =>
-                          objectiveLocations.includes(m.name)
-                        )
-                    ) || [];
-
-                  if (filteredObjectives.length === 0) return null;
+          {/* MAP FILTER */}
+          <div className="card shadow-sm mb-4">
+            <div className="card-body">
+              <h6 className="fw-bold mb-3">🗺️ Filter Objectives by Map</h6>
+              <div className="d-flex flex-wrap gap-2">
+                {allLocations.map((loc) => {
+                  const active =
+                    loc === "Any"
+                      ? objectiveLocations.length === 0
+                      : objectiveLocations.includes(loc);
 
                   return (
-                    <div
-                      key={quest.name}
-                      ref={(el) => (refs.current[quest.id] = el)}
-                      className="mb-4 p-3 rounded border border-secondary bg-black bg-opacity-25"
+                    <button
+                      key={loc}
+                      onClick={() => toggleLocation(loc)}
+                      className={`btn btn-sm rounded-pill px-3 transition ${active
+                        ? "btn-primary shadow"
+                        : "btn-outline-secondary"
+                        }`}
                     >
-                      {/* QUEST HEADER */}
-                      <div className="d-flex justify-content-between align-items-center mb-2">
-                        <a
-                          className="fw-bold text-primary"
-                          href={quest.wikiLink}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          {quest.name}
-                        </a>
-                        <div>
-                          <button
-                            className="btn btn-sm btn-outline-success me-2"
-                            onClick={() => nextQuest(quest.id)}
-                          >
-                            ✓
-                          </button>
-                          <button
-                            className="btn btn-sm btn-outline-danger"
-                            onClick={() => removeQuest(quest.id)}
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* OBJECTIVES */}
-                      <ul className="list-unstyled mb-0">
-                        {filteredObjectives.map((obj) => {
-                          const key = getObjectiveKey(quest.id, obj.id);
-                          const checked = checkedObjectives[key];
-                          const hidden = hiddenObjectives[key];
-                          if (hidden) return null;
-
-                          return (
-                            <li
-                              key={key}
-                              className={`mb-2 p-3 rounded ${checked
-                                ? "bg-success bg-opacity-10 border border-success"
-                                : "bg-secondary bg-opacity-10 border border-secondary"
-                                }`}
-                              onClick={() =>
-                                toggleObjective(quest.id, obj.id)
-                              }
-                              style={{ cursor: "pointer" }}
-                            >
-                              <div className="d-flex justify-content-between align-items-start">
-                                <span
-                                  className={`fw-medium ${checked
-                                    ? "text-decoration-line-through text-muted"
-                                    : "text-light"
-                                    }`}
-                                >
-                                  {obj.description}
-                                </span>
-
-                                <button
-                                  className="btn btn-sm btn-outline-warning ms-2"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    toggleHideObjective(
-                                      quest.id,
-                                      obj.id
-                                    );
-                                  }}
-                                >
-                                  <i className="fa-regular fa-eye-slash"></i>
-                                </button>
-                              </div>
-
-                              {/* MAP TAGS */}
-                              {obj.maps?.length > 0 && (
-                                <div className="mt-2">
-                                  {obj.maps.map((m) => (
-                                    <span
-                                      key={m.name}
-                                      className={`badge rounded-pill me-1 ${checked
-                                        ? "bg-success"
-                                        : "bg-secondary"
-                                        }`}
-                                    >
-                                      {m.name}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </div>
+                      {loc}
+                    </button>
                   );
                 })}
               </div>
             </div>
           </div>
+
+          {/* SELECTED QUESTS */}
+          {selectedQuests.length > 0 && (
+            <div className="row g-4">
+
+              {/* LEFT : QUEST LIST */}
+              <div className="col-md-4">
+                <div className="card shadow-sm h-100">
+                  <div className="card-body">
+                    <h5 className="fw-bold mb-3">📜 Selected Quests</h5>
+
+                    <ul className="list-group">
+                      {filteredQuests.map((quest) => (
+
+
+                        <li
+                          key={quest.id}
+                          className="list-group-item list-group-item-action"
+                          onClick={() => scrollTo(quest.id)}
+                          style={{ cursor: "pointer" }}
+                        >
+                          <div className="d-flex justify-content-between align-items-center gap-3">
+
+                            {/* LEFT : QUEST INFO */}
+                            <div className="flex-grow-1">
+                              <a
+                                className="fw-bold text-info text-decoration-none"
+                                href={quest.wikiLink}
+                                target="_blank"
+                                rel="noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {quest.name}
+                              </a>
+
+                              <div className="text-muted small mt-1">
+                                {quest.trader.name} | EXP: {quest.experience}
+
+                                {quest.kappaRequired && (
+                                  <span className="badge rounded-pill bg-success ms-2">
+                                    Kappa
+                                  </span>
+                                )}
+
+                                {quest.lightkeeperRequired && (
+                                  <span className="badge rounded-pill bg-info ms-1">
+                                    LightKeeper
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* RIGHT : ACTION BUTTONS */}
+                            <div className="d-flex align-items-center flex-shrink-0">
+                              <button
+                                className="btn btn-sm btn-outline-success me-2"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  nextQuest(quest.id);
+                                }}
+                                title="Complete"
+                              >
+                                ✓
+                              </button>
+
+                              <button
+                                className="btn btn-sm btn-outline-danger"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeQuest(quest.id);
+                                }}
+                                title="Remove"
+                              >
+                                ✕
+                              </button>
+                            </div>
+
+                          </div>
+                        </li>
+
+
+
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* RIGHT : OBJECTIVES */}
+              <div className="col-md-8">
+                <div className="card shadow-sm h-100 bg-dark text-light border-secondary">
+                  <div className="card-body">
+
+                    <h5 className="fw-bold mb-3 text-info">🎯 Objectives</h5>
+
+                    {filteredQuests.map((quest) => {
+                      const filteredObjectives =
+                        quest.objectives?.filter(
+                          (obj) =>
+                            objectiveLocations.length === 0 ||
+                            obj.maps?.some((m) =>
+                              objectiveLocations.includes(m.name)
+                            )
+                        ) || [];
+
+                      if (filteredObjectives.length === 0) return null;
+
+                      return (
+                        <div
+                          key={quest.name}
+                          ref={(el) => (refs.current[quest.id] = el)}
+                          className="mb-4 p-3 rounded border border-secondary bg-black bg-opacity-25"
+                        >
+                          {/* QUEST HEADER */}
+                          <div className="d-flex justify-content-between align-items-center mb-2">
+                            <a
+                              className="fw-bold text-primary"
+                              href={quest.wikiLink}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {quest.name}
+                            </a>
+                            <div>
+                              <button
+                                className="btn btn-sm btn-outline-success me-2"
+                                onClick={() => nextQuest(quest.id)}
+                              >
+                                ✓
+                              </button>
+                              <button
+                                className="btn btn-sm btn-outline-danger"
+                                onClick={() => removeQuest(quest.id)}
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* OBJECTIVES */}
+                          <ul className="list-unstyled mb-0">
+                            {filteredObjectives.map((obj) => {
+                              const key = getObjectiveKey(quest.id, obj.id);
+                              const checked = checkedObjectives[key];
+                              const hidden = hiddenObjectives[key];
+                              if (hidden) return null;
+
+                              return (
+                                <li
+                                  key={key}
+                                  className={`mb-2 p-3 rounded ${checked
+                                    ? "bg-success bg-opacity-10 border border-success"
+                                    : "bg-secondary bg-opacity-10 border border-secondary"
+                                    }`}
+                                  onClick={() =>
+                                    toggleObjective(quest.id, obj.id)
+                                  }
+                                  style={{ cursor: "pointer" }}
+                                >
+                                  <div className="d-flex justify-content-between align-items-start">
+                                    <span
+                                      className={`fw-medium ${checked
+                                        ? "text-decoration-line-through text-muted"
+                                        : "text-light"
+                                        }`}
+                                    >
+                                      {obj.description}
+                                    </span>
+
+                                    <button
+                                      className="btn btn-sm btn-outline-warning ms-2"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleHideObjective(
+                                          quest.id,
+                                          obj.id
+                                        );
+                                      }}
+                                    >
+                                      <i className="fa-regular fa-eye-slash"></i>
+                                    </button>
+                                  </div>
+
+                                  {/* MAP TAGS */}
+                                  {obj.maps?.length > 0 && (
+                                    <div className="mt-2">
+                                      {obj.maps.map((m) => (
+                                        <span
+                                          key={m.name}
+                                          className={`badge rounded-pill me-1 ${checked
+                                            ? "bg-success"
+                                            : "bg-secondary"
+                                            }`}
+                                        >
+                                          {m.name}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };
