@@ -11,10 +11,12 @@ import Home from './home/home.jsx';
 import AddQuest from "./pages/AddQuest.jsx";  
 import MapPage from "./pages/MapPage.jsx";
 import AppNavbar from './Component/AppNavbar.jsx';
+import QuestTree from'./pages/QuestTree.jsx'
 
 const pageComponents = {
   Map : < MapPage/>,
   AddQuest: <AddQuest/>,
+  QuestTree:<QuestTree/>,
   Default: <Home/>,
 };
 
