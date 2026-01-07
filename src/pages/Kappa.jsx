@@ -62,7 +62,7 @@ const TraderSection = ({ traderName, quests, completedIds, onToggle }) => {
                         return (
                             <div key={quest.id} style={{ ...styles.rowStyle, backgroundColor: isDone ? 'rgba(31, 41, 55, 0.5)' : 'transparent', }}>
                                 <button
-                                    onClick={() => onToggle(quest.id)}
+                                    // onClick={() => onToggle(quest.id)}
                                     style={{
                                         ...styles.checkboxStyle, border: isDone ? `1px solid ${COLORS.success}` : '1px solid #6b7280',
                                         backgroundColor: isDone ? COLORS.success : COLORS.bgHeader,
