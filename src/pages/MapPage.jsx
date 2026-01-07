@@ -8,6 +8,7 @@ import styles from '../Component/MapComponents';
 const OBJECTIVE_CHECK_KEY = "eft_objective_checklist";
 const STORAGE_KEY = "eft_selected_quests";
 const MAP_KEY = "eft_selected_map";
+const COMPLETE_KEY = "eft_completed_quests";
 
 /* ---------------- MAP CONFIG ---------------- */
 const maps = [
@@ -36,6 +37,7 @@ const getObjectiveKey = (questId, objectiveId) =>
 const MapPage = () => {
   const [selectedQuests, setSelectedQuests] = useState([]);
   const [checkedObjectives, setCheckedObjectives] = useState({});
+  const [completedQuests, setCompletedQuests] = useState([]);
 
   const [selectedMapId, setSelectedMapId] = useState(1);
   const [trackedQuests, setTrackedQuests] = useState([]);
@@ -45,19 +47,17 @@ const MapPage = () => {
   const [rotation, setRotation] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  useEffect(() => {
-    console.log(rotation);
-  }, [rotation])
-
   /* -------- LOAD LOCAL STORAGE -------- */
   useEffect(() => {
     const savedQuests = localStorage.getItem(STORAGE_KEY);
     const savedChecks = localStorage.getItem(OBJECTIVE_CHECK_KEY);
     const savemMap = localStorage.getItem(MAP_KEY);
+    const saveComplete = localStorage.getItem(COMPLETE_KEY);
 
     if (savedQuests) setSelectedQuests(JSON.parse(savedQuests));
     if (savedChecks) setCheckedObjectives(JSON.parse(savedChecks));
     if (savemMap) setSelectedMapId(JSON.parse(savemMap));
+    if (saveComplete) setCompletedQuests(JSON.parse(saveComplete));
   }, []);
 
   // Toggles for Map Features
@@ -98,6 +98,7 @@ const MapPage = () => {
   const currentFeatures = mapFeatures.find(m => m.name === currentMapName) || { transits: [], extracts: [] };
   const [isRefresh, setIsRefresh] = useState(false);
 
+  // ----------- on START -----------
   useEffect(() => {
     setIsLoading(true);
     setZoom(1);
@@ -105,7 +106,44 @@ const MapPage = () => {
     setOffset({ x: 0, y: 0 });
   }, [selectedMapId]);
 
-  // set localStorage of Quest
+  useEffect(() => {
+    const questsToAdd = [];
+
+    selectedQuests.forEach(quest => {
+      const matchMap = quest.objectives.some(obj =>
+        obj.maps?.some(
+          m =>
+            m.name === currentMapName ||
+            m.name === `${currentMapName} 21+`
+        )
+      );
+
+      if (matchMap) {
+        questsToAdd.push(quest.name);
+      }
+    });
+
+    if (questsToAdd.length === 0) return;
+
+    setTrackedQuests(prev => {
+      const existingNames = new Set(prev.map(q => q.name));
+      const usedColors = prev.map(q => q.color);
+
+      const newItems = questsToAdd
+        .filter(name => !existingNames.has(name))
+        .map(name => ({
+          name,
+          color: getRandomColor(usedColors),
+          visible: true
+        }));
+
+      return [...prev, ...newItems];
+    });
+  }, [selectedQuests, currentMapName]);
+  // ----------- END on START -----------
+
+  // --------- set localStorage of Quest ---------
+  // selected quests
   useEffect(() => {
     if (isRefresh) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(selectedQuests));
@@ -113,6 +151,7 @@ const MapPage = () => {
     setIsRefresh(false);
   }, [selectedQuests, isRefresh]);
 
+  // objective checklist
   useEffect(() => {
     if (isRefresh) {
       localStorage.setItem(
@@ -122,8 +161,35 @@ const MapPage = () => {
     }
     setIsRefresh(false);
   }, [checkedObjectives, isRefresh]);
-  // --------------------------------------------
 
+  // completed quests
+  useEffect(() => {
+    if (isRefresh) {
+      console.log("asddas", completedQuests);
+
+      localStorage.setItem(COMPLETE_KEY, JSON.stringify(completedQuests));
+
+      // next quest
+      const filters = quests.filter(q =>
+        q.taskRequirements.find(t => completedQuests.includes(t.task.id))
+      );
+      console.log(filters);
+
+      let nextQuestList = [];
+      if (filters.length > 0) {
+        filters.forEach(filter => {
+          if (!selectedQuests.includes(filter) && !completedQuests.includes(filter.id)) nextQuestList.push(filter);
+        })
+        console.log("next", nextQuestList);
+
+        setIsRefresh(true);
+        setSelectedQuests(prev => [...prev, ...nextQuestList]);
+      }
+    }
+  }, [completedQuests, isRefresh]);
+  // --------- END set localStorage of Quest ---------
+
+  // HELPER FUNCTIONS
   const updateCalib = (newVals) => {
     setMapCalibrations(prev => ({
       ...prev,
@@ -166,41 +232,6 @@ const MapPage = () => {
     }
   };
 
-  useEffect(() => {
-    const questsToAdd = [];
-
-    selectedQuests.forEach(quest => {
-      const matchMap = quest.objectives.some(obj =>
-        obj.maps?.some(
-          m =>
-            m.name === currentMapName ||
-            m.name === `${currentMapName} 21+`
-        )
-      );
-
-      if (matchMap) {
-        questsToAdd.push(quest.name);
-      }
-    });
-
-    if (questsToAdd.length === 0) return;
-
-    setTrackedQuests(prev => {
-      const existingNames = new Set(prev.map(q => q.name));
-      const usedColors = prev.map(q => q.color);
-
-      const newItems = questsToAdd
-        .filter(name => !existingNames.has(name))
-        .map(name => ({
-          name,
-          color: getRandomColor(usedColors),
-          visible: true
-        }));
-
-      return [...prev, ...newItems];
-    });
-  }, [selectedQuests, currentMapName]);
-
   const toggleQuestVisibility = (e, questName) => {
     e.stopPropagation();
     setTrackedQuests(trackedQuests.map(q =>
@@ -208,6 +239,19 @@ const MapPage = () => {
     ));
   };
 
+  const resetZoom = () => {
+    setZoom(1);
+    setRotation(0);
+    setOffset({ x: 0, y: 0 });
+  };
+
+  const rotateMap = (angle) => {
+    setRotation(prev => prev + angle);
+  };
+
+  const markerScale = 1 / zoom;
+
+  // ----------- QUEST ACTIONS -----------
   const removeQuest = (e, questName) => {
     e.stopPropagation();
     setTrackedQuests(trackedQuests.filter(q => q.name !== questName));
@@ -250,17 +294,13 @@ const MapPage = () => {
     setIsRefresh(true);
   }
 
-  const resetZoom = () => {
-    setZoom(1);
-    setRotation(0);
-    setOffset({ x: 0, y: 0 });
-  };
+  const nextQuest = (e, questName) => {
+    removeQuest(e, questName);
+    const quest = quests.find(q => q.name === questName);
+    setIsRefresh(true);
+    setCompletedQuests(prev => [...prev, quest.id]);
+  }
 
-  const rotateMap = (angle) => {
-    setRotation(prev => prev + angle);
-  };
-
-  const markerScale = 1 / zoom;
   return (
     <div style={styles.container} onMouseUp={() => setIsDragging(false)}>
       {/* Sidebar Toggle Button */}
@@ -349,7 +389,11 @@ const MapPage = () => {
                     <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: tq.visible ? tq.color : '#475569' }} />
                     <span style={{ display: 'flex', flexDirection: 'column', flex: 1, }}>
                       <div style={{ width: '100%', fontSize: '13px', fontWeight: '700', color: tq.visible ? '#f8fafc' : '#94a3b8' }}>{tq.name}</div>
-                      <div style={{ width: '100%', fontSize: '13px', color: tq.visible ? '#f8fafc' : '#94a3b8' }}>{fullQuest.trader.name}</div>
+                      <div>
+                        <span style={{ width: '100%', fontSize: '13px', color: tq.visible ? '#f8fafc' : '#94a3b8' }}>{fullQuest.trader.name}</span>
+                        {fullQuest.kappaRequired && (<span className={`badge rounded-pill m-1 bg-success `} >Kappa</span>)}
+                        {fullQuest.lightkeeperRequired && (<span className={`badge rounded-pill m-1  bg-info `} >LightKeeper</span>)}
+                      </div>
                     </span>
                     <button
                       onClick={(e) => toggleQuestVisibility(e, tq.name)}
@@ -372,8 +416,13 @@ const MapPage = () => {
 
                   {isExpanded && (
                     <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #334155', fontSize: '11px' }}>
-                      <div style={{ marginBottom: '6px', color: '#94a3b8', fontWeight: 'bold' }}>Kappa Required:
-                        <span style={{ color: fullQuest.kappaRequired ? 'red' : 'green' }}> {fullQuest.kappaRequired ? 'Yes' : 'No'}</span>
+                      <div>
+                        <button
+                          style={{
+                            width: '100%', background: '#00c40aff', border: 'none',
+                            borderRadius: "5px", color: '#ffffffff', cursor: 'default', fontSize: '15px', fontWeight: 'bold'
+                          }}
+                          onClick={(e) => nextQuest(e, tq.name)}>Complete</button>
                       </div>
                       <div style={{ marginBottom: '6px', color: '#94a3b8', fontWeight: 'bold' }}>Objectives:</div>
                       {fullQuest.objectives.map((obj, idx) => (

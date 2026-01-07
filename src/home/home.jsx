@@ -5,6 +5,7 @@ import { BiFontSize } from "react-icons/bi";
 
 const STORAGE_KEY = "eft_selected_quests";
 const OBJECTIVE_CHECK_KEY = "eft_objective_checklist";
+const COMPLETE_KEY = "eft_completed_quests";
 
 const Home = () => {
   /* ---------------- STATE ---------------- */
@@ -12,6 +13,7 @@ const Home = () => {
   const [selectedQuests, setSelectedQuests] = useState([]);
   const [objectiveLocations, setObjectiveLocations] = useState([]);
   const [checkedObjectives, setCheckedObjectives] = useState({});
+  const [completedQuests, setCompletedQuests] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
 
@@ -105,9 +107,11 @@ const Home = () => {
     try {
       const savedQuests = localStorage.getItem(STORAGE_KEY);
       const savedChecklist = localStorage.getItem(OBJECTIVE_CHECK_KEY);
+      const savedCompleted = localStorage.getItem(COMPLETE_KEY);
 
       if (savedQuests) setSelectedQuests(JSON.parse(savedQuests));
       if (savedChecklist) setCheckedObjectives(JSON.parse(savedChecklist));
+      if (savedCompleted) setCompletedQuests(JSON.parse(savedCompleted));
     } catch (err) {
       console.error(err);
     }
@@ -131,6 +135,25 @@ const Home = () => {
     }
   }, [checkedObjectives, isLoaded]);
 
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem(COMPLETE_KEY, JSON.stringify(completedQuests));
+
+      const filters = quests.filter(q =>
+        q.taskRequirements.find(t => completedQuests.includes(t.task.id))
+      );
+      console.log(filters);
+
+      let nextQuestList = [];
+      if (filters.length > 0) {
+        filters.forEach(filter => {
+          if (!selectedQuests.includes(filter) && !completedQuests.includes(filter.id)) nextQuestList.push(filter);
+        })
+        setSelectedQuests(prev => [...prev, ...nextQuestList]);
+      }
+    }
+  }, [completedQuests, isLoaded]);
+
   /* ---------------- QUEST ACTIONS ---------------- */
   const addQuest = (quest) => {
     setSelectedQuests((prev) => [...prev, quest]);
@@ -147,10 +170,6 @@ const Home = () => {
     clearObjectiveProgress(questId);
   };
 
-
-
-
-
   const clearObjectiveProgress = (questId) => {
     setCheckedObjectives((prev) => {
       const updated = { ...prev };
@@ -165,8 +184,6 @@ const Home = () => {
     });
   };
 
-
-
   const toggleObjective = (questId, objectiveId) => {
     const key = getObjectiveKey(questId, objectiveId);
     setCheckedObjectives((prev) => ({
@@ -174,6 +191,11 @@ const Home = () => {
       [key]: !prev[key],
     }));
   };
+
+  const nextQuest = (questId) => {
+    removeQuest(questId);
+    setCompletedQuests(prev => [...prev, questId]);
+  }
 
   /* ---------------- SEARCH ---------------- */
   const searchResults = quests.filter(
@@ -360,13 +382,20 @@ const Home = () => {
                         >
                           {quest.name}
                         </a>
-
-                        <button
-                          className="btn btn-sm btn-outline-danger"
-                          onClick={() => removeQuest(quest.id)}
-                        >
-                          ✕
-                        </button>
+                        <div>
+                          <button
+                            className="btn btn-sm btn-outline-success me-2"
+                            onClick={() => nextQuest(quest.id)}
+                          >
+                            ✓
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => removeQuest(quest.id)}
+                          >
+                            ✕
+                          </button>
+                        </div>
                       </div>
 
                       {/* OBJECTIVES */}

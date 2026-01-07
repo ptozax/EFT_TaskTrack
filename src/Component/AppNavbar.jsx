@@ -8,8 +8,8 @@ import Badge from 'react-bootstrap/Badge';
 import { NavLink } from 'react-router-dom';
 
 
-import { GiDiamondRing, GiBroadsword } from 'react-icons/gi';
-import { FaGem, FaUsers, FaArchive, FaTools, FaQrcode, FaBook, FaCog, FaDatabase } from 'react-icons/fa';
+import { GiPc, GiTreeGrowth, GiTrophy } from 'react-icons/gi';
+import { FaGem, FaMap, FaQrcode } from 'react-icons/fa';
 
 
 function AppNavbar() {
@@ -18,7 +18,9 @@ function AppNavbar() {
     const mainNavLinks = [
         { key: "#/", href: "/", icon: FaGem, text: "Home" },
           { key: "#/AddQuest", href: "/AddQuest", icon: FaQrcode, text: "Add Quest" },
-           { key: "#/Map", href: "/Map", icon: FaQrcode, text: "Map" },
+           { key: "#/Map", href: "/Map", icon: FaMap, text: "Map" },
+            { key: "#/Kappa", href: "/Kappa", icon: GiTrophy, text: "Kappa" },
+            { key: "#/QuestTree", href: "/QuestTree", icon: GiTreeGrowth, text: "Quest Tree" },
     
     ];
 
@@ -49,7 +51,7 @@ function AppNavbar() {
         <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark" sticky="top" >
             <Container fluid>
                 <Navbar.Brand as={NavLink} to="/">
-                    <GiDiamondRing size="1.5em" className="me-2" />
+                    <GiPc size="1.5em" className="me-2" />
                    EFT TaskTrack
                 </Navbar.Brand>
                 <Navbar.Toggle aria-controls="responsive-navbar-nav" />

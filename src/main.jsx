@@ -10,9 +10,13 @@ import './index.css';
 import Home from './home/home.jsx';
 import AddQuest from "./pages/AddQuest.jsx";  
 import MapPage from "./pages/MapPage.jsx";
+import Kappa from "./pages/Kappa.jsx";
+import QuestTree from "./pages/QuestTree.jsx";
 import AppNavbar from './Component/AppNavbar.jsx';
 
 const pageComponents = {
+  QuestTree: <QuestTree/>,
+  Kappa: <Kappa/>,
   Map : < MapPage/>,
   AddQuest: <AddQuest/>,
   Default: <Home/>,
