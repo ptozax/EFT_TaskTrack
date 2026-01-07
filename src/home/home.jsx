@@ -108,6 +108,7 @@ const Home = () => {
       const savedQuests = localStorage.getItem(STORAGE_KEY);
       const savedChecklist = localStorage.getItem(OBJECTIVE_CHECK_KEY);
       const savedCompleted = localStorage.getItem(COMPLETE_KEY);
+      console.log(savedCompleted);
 
       if (savedQuests) setSelectedQuests(JSON.parse(savedQuests));
       if (savedChecklist) setCheckedObjectives(JSON.parse(savedChecklist));
@@ -139,18 +140,20 @@ const Home = () => {
     if (isLoaded) {
       localStorage.setItem(COMPLETE_KEY, JSON.stringify(completedQuests));
 
-      const filters = quests.filter(q =>
-        q.taskRequirements.find(t => completedQuests.includes(t.task.id))
+      // 1. Find quests where at least one requirement is met in completedQuests
+      const availableQuests = quests.filter(q =>
+        q.taskRequirements.some(t => completedQuests.includes(t.task.id))
       );
-      console.log(filters);
 
-      let nextQuestList = [];
-      if (filters.length > 0) {
-        filters.forEach(filter => {
-          if (!selectedQuests.includes(filter) && !completedQuests.includes(filter.id)) nextQuestList.push(filter);
-        })
-        setSelectedQuests(prev => [...prev, ...nextQuestList]);
-      }
+      // 2. Filter out quests that are already completed
+      const nextQuestList = availableQuests.filter(q => !completedQuests.includes(q.id));
+
+      setSelectedQuests(prev => {
+        // Use a Map or Set to ensure IDs are unique
+        const allQuests = [...prev, ...nextQuestList];
+        const uniqueMap = new Map(allQuests.map(q => [q.id, q]));
+        return Array.from(uniqueMap.values());
+      });
     }
   }, [completedQuests, isLoaded]);
 
@@ -248,7 +251,7 @@ const Home = () => {
               <ul className="list-group list-group-flush">
                 {searchResults.map((q) => (
                   <li
-                    key={q.name}
+                    key={`${q.id}-${q.name}`}
                     className="list-group-item d-flex justify-content-between align-items-center"
                   >
                     <span className="fw-medium">{q.name}</span>
