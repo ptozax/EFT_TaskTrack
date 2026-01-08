@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import quests from "../data/tasks";
-import { BiFontSize } from "react-icons/bi";
-import { div } from "framer-motion/client";
+import * as QuestComponent from '../Component/QuestComponent';
 
 const STORAGE_KEY = "eft_selected_quests";
 const OBJECTIVE_CHECK_KEY = "eft_objective_checklist";
@@ -21,14 +20,6 @@ const Home = () => {
   const [hiddenObjectives, setHiddenObjectives] = useState({});
 
   const refs = useRef({}); // for focus to  task obj
-
-
-
-
-
-
-
-
 
   /*------------- Click and focus to quest  -------------*/
 
@@ -52,15 +43,7 @@ const Home = () => {
     });
   };
 
-
-
-
-
-
-
-
-
-
+  /* ---------------- UTILS ---------------- */
   const toggleHideObjective = (questId, objectiveId) => {
     const key = getObjectiveKey(questId, objectiveId);
     setHiddenObjectives((prev) => ({
@@ -74,7 +57,6 @@ const Home = () => {
     `${questId}|${objectiveId}`;
 
 
-  /* ---------------- UTILS ---------------- */
   const getAllObjectiveLocations = (quests) => {
     const locations = new Set();
 
@@ -109,7 +91,6 @@ const Home = () => {
       const savedQuests = localStorage.getItem(STORAGE_KEY);
       const savedChecklist = localStorage.getItem(OBJECTIVE_CHECK_KEY);
       const savedCompleted = localStorage.getItem(COMPLETE_KEY);
-      console.log(savedCompleted);
 
       if (savedQuests) setSelectedQuests(JSON.parse(savedQuests));
       if (savedChecklist) setCheckedObjectives(JSON.parse(savedChecklist));
@@ -141,13 +122,7 @@ const Home = () => {
     if (isLoaded) {
       localStorage.setItem(COMPLETE_KEY, JSON.stringify(completedQuests));
 
-      // 1. Find quests where at least one requirement is met in completedQuests
-      const availableQuests = quests.filter(q =>
-        q.taskRequirements.some(t => completedQuests.includes(t.task.id))
-      );
-
-      // 2. Filter out quests that are already completed
-      const nextQuestList = availableQuests.filter(q => !completedQuests.includes(q.id));
+      const nextQuestList = QuestComponent.getNextQuestsList(completedQuests);
 
       setSelectedQuests(prev => {
         // Use a Map or Set to ensure IDs are unique
@@ -198,7 +173,13 @@ const Home = () => {
 
   const nextQuest = (questId) => {
     removeQuest(questId);
-    setCompletedQuests(prev => [...prev, questId]);
+
+    const newCompleted = QuestComponent.getPreviousQuestsList(questId, completedQuests);
+    // Update state using a Set to ensure no duplicates
+    setCompletedQuests(prev => {
+      const uniqueSet = new Set([...prev, ...newCompleted]);
+      return Array.from(uniqueSet);
+    });
   }
 
   /* ---------------- SEARCH ---------------- */
@@ -349,6 +330,9 @@ const Home = () => {
                                   </span>
                                 )}
                               </div>
+                              <div className="text-muted small">
+                                Start at LV: {quest.minPlayerLevel}
+                              </div>
                             </div>
 
                             {/* RIGHT : ACTION BUTTONS */}
@@ -414,14 +398,19 @@ const Home = () => {
                         >
                           {/* QUEST HEADER */}
                           <div className="d-flex justify-content-between align-items-center mb-2">
-                            <a
-                              className="fw-bold text-primary"
-                              href={quest.wikiLink}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              {quest.name}
-                            </a>
+                            <div>
+                              <a
+                                className="fw-bold text-primary"
+                                href={quest.wikiLink}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {quest.name}
+                              </a>
+                              <span className="p-2">
+                                Start at LV: {quest.minPlayerLevel}
+                              </span>
+                            </div>
                             <div>
                               <button
                                 className="btn btn-sm btn-outline-success me-2"

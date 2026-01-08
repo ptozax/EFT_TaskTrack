@@ -1,8 +1,9 @@
 // pages/MapPage.jsx
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, Fragment } from 'react';
 import quests from "../data/tasks";
 import mapFeatures from "../data/maps";
 import styles from '../Component/MapComponents';
+import * as QuestComponent from '../Component/QuestComponent';
 
 /* ---------------- STORAGE KEYS ---------------- */
 const OBJECTIVE_CHECK_KEY = "eft_objective_checklist";
@@ -47,19 +48,6 @@ const MapPage = () => {
   const [rotation, setRotation] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  /* -------- LOAD LOCAL STORAGE -------- */
-  useEffect(() => {
-    const savedQuests = localStorage.getItem(STORAGE_KEY);
-    const savedChecks = localStorage.getItem(OBJECTIVE_CHECK_KEY);
-    const savemMap = localStorage.getItem(MAP_KEY);
-    const saveComplete = localStorage.getItem(COMPLETE_KEY);
-
-    if (savedQuests) setSelectedQuests(JSON.parse(savedQuests));
-    if (savedChecks) setCheckedObjectives(JSON.parse(savedChecks));
-    if (savemMap) setSelectedMapId(JSON.parse(savemMap));
-    if (saveComplete) setCompletedQuests(JSON.parse(saveComplete));
-  }, []);
-
   // Toggles for Map Features
   const [showExtracts, setShowExtracts] = useState(true);
   const [showTransits, setShowTransits] = useState(true);
@@ -98,12 +86,30 @@ const MapPage = () => {
   const currentFeatures = mapFeatures.find(m => m.name === currentMapName) || { transits: [], extracts: [] };
   const [isRefresh, setIsRefresh] = useState(false);
 
+  /* -------- LOAD LOCAL STORAGE -------- */
+  useEffect(() => {
+    try {
+      const savedQuests = localStorage.getItem(STORAGE_KEY);
+      const savedChecks = localStorage.getItem(OBJECTIVE_CHECK_KEY);
+      const savemMap = localStorage.getItem(MAP_KEY);
+      const saveComplete = localStorage.getItem(COMPLETE_KEY);
+
+      if (savedQuests) setSelectedQuests(JSON.parse(savedQuests));
+      if (savedChecks) setCheckedObjectives(JSON.parse(savedChecks));
+      if (savemMap) setSelectedMapId(JSON.parse(savemMap));
+      if (saveComplete) setCompletedQuests(JSON.parse(saveComplete));
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
   // ----------- on START -----------
   useEffect(() => {
     setIsLoading(true);
     setZoom(1);
     setRotation(0);
     setOffset({ x: 0, y: 0 });
+    setIsRefresh(true);
   }, [selectedMapId]);
 
   useEffect(() => {
@@ -148,43 +154,28 @@ const MapPage = () => {
     if (isRefresh) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(selectedQuests));
     }
-    setIsRefresh(false);
   }, [selectedQuests, isRefresh]);
 
   // objective checklist
   useEffect(() => {
     if (isRefresh) {
-      localStorage.setItem(
-        OBJECTIVE_CHECK_KEY,
-        JSON.stringify(checkedObjectives)
-      );
+      localStorage.setItem(OBJECTIVE_CHECK_KEY, JSON.stringify(checkedObjectives));
     }
-    setIsRefresh(false);
   }, [checkedObjectives, isRefresh]);
 
   // completed quests
   useEffect(() => {
     if (isRefresh) {
-      console.log("asddas", completedQuests);
-
       localStorage.setItem(COMPLETE_KEY, JSON.stringify(completedQuests));
 
-      // next quest
-      const filters = quests.filter(q =>
-        q.taskRequirements.find(t => completedQuests.includes(t.task.id))
-      );
-      console.log(filters);
+      const nextQuestList = QuestComponent.getNextQuestsList(completedQuests);
 
-      let nextQuestList = [];
-      if (filters.length > 0) {
-        filters.forEach(filter => {
-          if (!selectedQuests.includes(filter) && !completedQuests.includes(filter.id)) nextQuestList.push(filter);
-        })
-        console.log("next", nextQuestList);
-
-        setIsRefresh(true);
-        setSelectedQuests(prev => [...prev, ...nextQuestList]);
-      }
+      setSelectedQuests(prev => {
+        // Use a Map or Set to ensure IDs are unique
+        const allQuests = [...prev, ...nextQuestList];
+        const uniqueMap = new Map(allQuests.map(q => [q.id, q]));
+        return Array.from(uniqueMap.values());
+      });
     }
   }, [completedQuests, isRefresh]);
   // --------- END set localStorage of Quest ---------
@@ -260,13 +251,10 @@ const MapPage = () => {
     const rm_Quest = selectedQuests.find(q => q.name === questName);
     // ลบ quest
     if (rm_Quest) {
-      setIsRefresh(true);
       setSelectedQuests((prev) =>
         prev.filter((q) => q.id !== rm_Quest.id)
       );
-
       // ลบ objective progress ของ quest นี้
-      setIsRefresh(true);
       clearObjectiveProgress(rm_Quest.id);
     }
   };
@@ -291,14 +279,18 @@ const MapPage = () => {
       ...prev,
       [key]: !prev[key],
     }));
-    setIsRefresh(true);
   }
 
   const nextQuest = (e, questName) => {
     removeQuest(e, questName);
     const quest = quests.find(q => q.name === questName);
-    setIsRefresh(true);
-    setCompletedQuests(prev => [...prev, quest.id]);
+
+    const newCompleted = QuestComponent.getPreviousQuestsList(quest.id, completedQuests);
+    // Update state using a Set to ensure no duplicates
+    setCompletedQuests(prev => {
+      const uniqueSet = new Set([...prev, ...newCompleted]);
+      return Array.from(uniqueSet);
+    });
   }
 
   return (
@@ -692,7 +684,7 @@ const MapPage = () => {
               const quest = quests.find(q => q.name === tq.name);
               const isExpanded = expandedQuestName === quest.name;
 
-              return quest.objectives.map((obj) => {
+              return quest.objectives.map((obj, objIdx) => {
                 const points = [];
                 const isObjOnMap = obj.maps?.some(m => m.name === currentMapName || m.name === `${currentMapName} 21+`);
                 if (isObjOnMap) {
@@ -711,12 +703,13 @@ const MapPage = () => {
                     finalVertical = temp;
                   }
 
+                  // --- FIX APPLIED BELOW ---
+                  // Used React.Fragment with a key instead of shorthand <>
                   return (
-                    <>
+                    <Fragment key={`${quest.name}-${objIdx}-${idx}`}>
                       {!(checkedObjectives[getObjectiveKey(quest.id, obj.id)]) && (
                         <>
                           <div
-                            key={`${quest.name}-${idx}`}
                             style={{
                               ...styles.marker,
                               left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
@@ -749,7 +742,7 @@ const MapPage = () => {
                           )}
                         </>
                       )}
-                    </>
+                    </Fragment>
                   );
                 });
               });
