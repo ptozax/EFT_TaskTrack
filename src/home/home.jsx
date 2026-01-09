@@ -122,7 +122,7 @@ const Home = () => {
     if (isLoaded) {
       localStorage.setItem(COMPLETE_KEY, JSON.stringify(completedQuests));
 
-      const nextQuestList = QuestComponent.getNextQuestsList(completedQuests);
+      const nextQuestList = QuestComponent.getNextQuestLists(completedQuests);
 
       setSelectedQuests(prev => {
         // Use a Map or Set to ensure IDs are unique

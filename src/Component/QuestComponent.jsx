@@ -16,7 +16,7 @@ export const getPreviousQuestsList = (questId, completedQuests) => {
     return previousQuests.filter(id => !completedQuests.includes(id));
 };
 
-export const getNextQuestsList = (completedQuests) => {
+export const getNextQuestLists = (completedQuests) => {
     // 1. Find quests where at least one requirement is met in completedQuests
     const availableQuests = quests.filter(q =>
         q.taskRequirements.length > 0 && // Must have at least 1 requirement

@@ -4,6 +4,7 @@ import quests from "../data/tasks";
 import mapFeatures from "../data/maps";
 import styles from '../Component/MapComponents';
 import * as QuestComponent from '../Component/QuestComponent';
+import { ChevronUpIcon, ChevronDownIcon } from '../Component/KappaComponent';
 
 /* ---------------- STORAGE KEYS ---------------- */
 const OBJECTIVE_CHECK_KEY = "eft_objective_checklist";
@@ -43,6 +44,9 @@ const MapPage = () => {
   const [selectedMapId, setSelectedMapId] = useState(1);
   const [trackedQuests, setTrackedQuests] = useState([]);
   const [expandedQuestName, setExpandedQuestName] = useState(null);
+  const [questKeys, setQuestKeys] = useState([]);
+  const [showQuestKey, setShowQuestKey] = useState(true);
+  const [copiedKeyIndex, setCopiedKeyIndex] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [questDescription, setQuestDescription] = useState(null);
   const [rotation, setRotation] = useState(0);
@@ -168,7 +172,7 @@ const MapPage = () => {
     if (isRefresh) {
       localStorage.setItem(COMPLETE_KEY, JSON.stringify(completedQuests));
 
-      const nextQuestList = QuestComponent.getNextQuestsList(completedQuests);
+      const nextQuestList = QuestComponent.getNextQuestLists(completedQuests);
 
       setSelectedQuests(prev => {
         // Use a Map or Set to ensure IDs are unique
@@ -179,6 +183,37 @@ const MapPage = () => {
     }
   }, [completedQuests, isRefresh]);
   // --------- END set localStorage of Quest ---------
+  useEffect(() => {
+    const accumulatedKeys = [];
+
+    trackedQuests.forEach((tq) => {
+      const fullQuest = quests.find(qd => qd.name === tq.name);
+
+      // Safety check: skip if quest data isn't found
+      if (!fullQuest || !fullQuest.neededKeys) return;
+
+      fullQuest.neededKeys.forEach((keyGroup) => {
+        // Check if the key is for the current map
+        if (keyGroup.map?.name === currentMapName) {
+
+          keyGroup.keys.forEach((subkey) => {
+            // Push to the main array
+            accumulatedKeys.push({
+              questName: tq.name, // Useful to know WHICH quest needs this key
+              keyName: subkey.name,
+              image: subkey.baseImageLink,
+              id: subkey.id, // specific ID if available, good for react keys
+              backgroundColor: subkey.backgroundColor
+            });
+          });
+
+        }
+      });
+    });
+
+    // 3. Update state with the final array
+    setQuestKeys(accumulatedKeys);
+  }, [trackedQuests, currentMapName]);
 
   // HELPER FUNCTIONS
   const updateCalib = (newVals) => {
@@ -241,6 +276,15 @@ const MapPage = () => {
   };
 
   const markerScale = 1 / zoom;
+
+  const handleCopyName = (name, index) => {
+    navigator.clipboard.writeText(name).then(() => {
+      // Set the specific index as "copied"
+      setCopiedKeyIndex(index);
+      // Reset back to normal after 1.5 seconds
+      setTimeout(() => setCopiedKeyIndex(null), 500);
+    });
+  };
 
   // ----------- QUEST ACTIONS -----------
   const removeQuest = (e, questName) => {
@@ -358,6 +402,66 @@ const MapPage = () => {
             </label>
           </div>
         </section>
+
+        {questKeys.length > 0 && (
+          <section>
+            <div style={{ ...styles.label, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', cursor: 'pointer', }}
+              onClick={() => setShowQuestKey(!showQuestKey)}>
+              Key Lists ({questKeys.length})
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexGrow: 1, justifyContent: 'flex-end', minWidth: '100px', color: 'white' }}>
+                {showQuestKey ? <ChevronUpIcon size={20} /> : <ChevronDownIcon size={20} />}
+              </div>
+            </div>
+            {showQuestKey && (
+              <div style={{
+                display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px', fontWeight: '700',
+                overflowY: questKeys.length > 5 ? 'scroll' : 'none',
+                maxHeight: '400px'
+              }}>
+                {questKeys.map((keyItem, index) => {
+                  const isJustCopied = copiedKeyIndex === index
+                  return (
+                    <div key={`${keyItem.questName}-${keyItem.keyName}-${index}`}
+                      style={{
+                        display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', borderRadius: '6px',
+                        backgroundColor: isJustCopied ? '#166534' : '#1e293b', // Green if copied, Dark Blue normal
+                        border: isJustCopied ? '1px solid #22c55e' : '1px solid #334155',
+                        transition: 'all 0.2s ease',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isJustCopied) e.currentTarget.style.backgroundColor = '#334155';
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isJustCopied) e.currentTarget.style.backgroundColor = '#1e293b';
+                      }}
+                      onClick={() => handleCopyName(keyItem.keyName, index)}>
+                      <div style={{ minWidth: '310px' }}>
+                        {keyItem.questName} : {keyItem.keyName}
+                        <img src={keyItem.image} alt={keyItem.keyName} />
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'flex-end', }} title='Copy name key'>
+                        {isJustCopied ? (
+                          /* Checkmark Icon (Success) */
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                          </svg>
+                        ) : (
+                          /* Clipboard Icon (Normal) */
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })
+                }
+              </div>
+            )}
+          </section>
+
+        )}
 
         <section style={{ flex: 1 }}>
           <label style={styles.label}>Tracked ({trackedQuests.length})</label>
