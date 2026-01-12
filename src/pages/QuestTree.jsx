@@ -71,12 +71,12 @@ const QuestTree = () => {
     useEffect(() => {
         const savedCompleted = localStorage.getItem(COMPLETE_KEY);
         let completedQuests = JSON.parse(savedCompleted) || [];
-
+        let completedQuestsIds = completedQuests.map(q => q.id);
 
         const curentQuest = (JSON.parse(localStorage.getItem(STORAGE_KEY)) || []).map(q => q.id);
         let passQuest = getCompletedQuests(tasks, curentQuest)
         // [] + []  ไม่ซ้ำ
-        const result = [...new Set([...completedQuests, ...passQuest])];
+        const result = [...new Set([...completedQuestsIds, ...passQuest])];
         setCompletedQuests(result);
 
     }, []);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import quests from "../data/tasks";
-import { CheckIcon, ExternalLinkIcon, FilterIcon, SearchIcon, TrophyIcon, RotateCcwIcon, ChevronUpIcon, ChevronDownIcon, COLORS, styles } from '../Component/KappaComponent';
+import { CheckIcon, ExternalLinkIcon, FilterIcon, SearchIcon, TrophyIcon, RotateCcwIcon, ChevronUpIcon, ChevronDownIcon, COLORS, styles, CrossIcon } from '../Component/KappaComponent';
 
 // --- Components ---
 const ProgressBar = ({ current, total, color = COLORS.accent }) => {
@@ -17,7 +17,7 @@ const TraderSection = ({ traderName, quests, completedIds, onToggle }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
     const total = quests.length;
-    const completedCount = quests.filter(q => completedIds.includes(q.id)).length;
+    const completedCount = quests.filter(quest => completedIds.find(q => q.id === quest.id)).length;
     const isAllComplete = total > 0 && total === completedCount;
 
     return (
@@ -57,19 +57,21 @@ const TraderSection = ({ traderName, quests, completedIds, onToggle }) => {
             {isExpanded && (
                 <div>
                     {quests.map((quest) => {
-                        const isDone = completedIds.includes(quest.id);
-
+                        const isDone = completedIds.find(q => q.id === quest.id);
+                        const isComplete = isDone && isDone.status === 'complete'
+                        
                         return (
                             <div key={quest.id} style={{ ...styles.rowStyle, backgroundColor: isDone ? 'rgba(31, 41, 55, 0.5)' : 'transparent', }}>
                                 <button
                                     // onClick={() => onToggle(quest.id)}
                                     style={{
-                                        ...styles.checkboxStyle, border: isDone ? `1px solid ${COLORS.success}` : '1px solid #6b7280',
-                                        backgroundColor: isDone ? COLORS.success : COLORS.bgHeader,
+                                        ...styles.checkboxStyle, border: isDone ? `1px solid ${ isComplete ? COLORS.success : COLORS.danger}` : '1px solid #6b7280',
+                                        backgroundColor: isDone ? (isComplete ? COLORS.success : COLORS.danger) : COLORS.bgHeader,
                                         color: isDone ? '#ffffff' : 'transparent',
                                     }}
                                 >
-                                    <CheckIcon size={16} />
+                                    {/* <CheckIcon size={16} />  */}
+                                    { isDone && isComplete ? <CheckIcon size={16} /> : < CrossIcon size={16}/>}
                                 </button>
 
                                 <div style={{ flexGrow: 1 }}>
@@ -127,21 +129,10 @@ const Kappa = () => {
     // --- State Management ---
     const [completedIds, setCompletedIds] = useState(() => {
         try {
-            const saved = localStorage.getItem('eft_kappa_progress');
             const savedCompleted = localStorage.getItem('eft_completed_quests');
-            let new_ids = [];
-            let save_ids = JSON.parse(saved) || [];
             if (savedCompleted) {
-                JSON.parse(savedCompleted).forEach(id => {
-                    if (!save_ids.includes(id) && quests.find(q => q.id === id && q.kappaRequired)) {
-                        new_ids.push(id);
-                    }
-                });
+                return JSON.parse(savedCompleted);
             }
-            if (new_ids.length > 0) {
-                new_ids.forEach(id => save_ids.push(id));
-            }
-            return save_ids;
         } catch (e) {
             console.error("Failed to load progress", e);
             return [];
@@ -151,19 +142,15 @@ const Kappa = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [showCompleted, setShowCompleted] = useState(true);
 
-    useEffect(() => {
-        localStorage.setItem('eft_kappa_progress', JSON.stringify(completedIds));
-    }, [completedIds]);
-
-    // --- Helpers ---
     const toggleQuest = (id) => {
         setCompletedIds(prev =>
             prev.includes(id)
-                ? prev.filter(qId => qId !== id)
-                : [...prev, id]
+            ? prev.filter(qId => qId !== id)
+            : [...prev, id]
         );
     };
-
+    
+    // --- Helpers ---
     const resetProgress = () => {
         if (window.confirm("Are you sure you want to reset all progress?")) {
             setCompletedIds([]);
@@ -175,7 +162,7 @@ const Kappa = () => {
         return quests.filter(quest => {
             if (!quest.kappaRequired) return false;
             if (searchTerm && !quest.name.toLowerCase().includes(searchTerm.toLowerCase())) return false;
-            if (!showCompleted && completedIds.includes(quest.id)) return false;
+            if (!showCompleted && completedIds.find(q => q.id === quest.id)) return false;
             return true;
         });
     }, [searchTerm, showCompleted, completedIds]);

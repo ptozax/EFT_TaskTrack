@@ -436,6 +436,7 @@ const MapPage = () => {
                         backgroundColor: isJustCopied ? '#166534' : '#1e293b', // Green if copied, Dark Blue normal
                         border: isJustCopied ? '1px solid #22c55e' : '1px solid #334155',
                         transition: 'all 0.2s ease',
+                        width: '100%',
                       }}
                       onMouseEnter={(e) => {
                         if (!isJustCopied) e.currentTarget.style.backgroundColor = '#334155';
@@ -444,11 +445,14 @@ const MapPage = () => {
                         if (!isJustCopied) e.currentTarget.style.backgroundColor = '#1e293b';
                       }}
                       onClick={() => handleCopyName(keyItem.keyName, index)}>
-                      <div style={{ minWidth: '310px' }}>
-                        {keyItem.questName} : {keyItem.keyName}
-                        <img src={keyItem.image} alt={keyItem.keyName} />
+                      <div style={{ width: '60%' }}>
+                        <div style={{ width: '100%' }}>
+                          {keyItem.questName} :
+                        </div>
+                        {keyItem.keyName}
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'flex-end', }} title='Copy name key'>
+                      <img src={keyItem.image} alt={keyItem.keyName} />
+                      <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'flex-end', width: '10%' }} title='Copy name key'>
                         {isJustCopied ? (
                           /* Checkmark Icon (Success) */
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -499,6 +503,7 @@ const MapPage = () => {
                         {fullQuest.kappaRequired && (<span className={`badge rounded-pill m-1 bg-success `} >Kappa</span>)}
                         {fullQuest.lightkeeperRequired && (<span className={`badge rounded-pill m-1  bg-info `} >LightKeeper</span>)}
                       </div>
+                      <span style={{ width: '100%', fontSize: '13px', color: tq.visible ? '#f8fafc' : '#94a3b8' }}>Start at LV: {fullQuest.minPlayerLevel}</span>
                     </span>
                     <button
                       onClick={(e) => toggleQuestVisibility(e, tq.name)}

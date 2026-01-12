@@ -9,6 +9,7 @@ export const COLORS = {
     border: '#374151',    // gray-700
     accent: '#eab308',    // yellow-500
     success: '#16a34a',   // green-600
+    danger: '#ff0000',    // red
     blue: '#3b82f6',      // blue-500
     hoverBg: '#374151',   // lighter gray for hover
 };
@@ -158,6 +159,23 @@ export const CheckIcon = ({ size = 24, className = "" }) => (
         className={className}
     >
         <polyline points="20 6 9 17 5 12"></polyline>
+    </svg>
+);
+
+export const CrossIcon = ({ size = 24, className = "" }) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+    >
+        <path d="M18 6L6 18M6 6L18 18"/>
     </svg>
 );
 
