@@ -53,13 +53,13 @@ body {
 
 .edge-path {
   fill: none;
-  stroke: #334155;
+  stroke: #00f7ff;
   stroke-width: 2px;
   transition: all 0.3s;
 }
 
 .edge-path:hover {
-  stroke: #94a3b8;
+  stroke: #f30b0b;
   stroke-width: 3px;
 }
 

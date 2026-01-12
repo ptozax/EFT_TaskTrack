@@ -3,18 +3,21 @@ import tasks from "../data/tasks";
 import * as d3 from 'd3';
 import dagre from 'dagre';
 
+
+const COMPLETE_KEY = "eft_completed_quests";
+
 const TRADER_THEMES = {
-"Prapor":      { bg: "#7b1fa2", border: "#e1bee7", text: "#ffffff" }, // ม่วงสด
-    "Therapist":   { bg: "#0288d1", border: "#81d4fa", text: "#ffffff" }, // ฟ้าสด
-    "Skier":       { bg: "#f57c00", border: "#ffe0b2", text: "#ffffff" }, // ส้มสด
+    "Prapor": { bg: "#7b1fa2", border: "#e1bee7", text: "#ffffff" }, // ม่วงสด
+    "Therapist": { bg: "#0288d1", border: "#81d4fa", text: "#ffffff" }, // ฟ้าสด
+    "Skier": { bg: "#f57c00", border: "#ffe0b2", text: "#ffffff" }, // ส้มสด
     "Peacekeeper": { bg: "#2e7d32", border: "#a5d6a7", text: "#ffffff" }, // เขียวเข้มทหาร
-    "Mechanic":    { bg: "#D34E4E", border: "#ffcdd2", text: "#ffffff" }, // แดงชมพู (ตามที่คุณชอบแต่สดขึ้น)
-    "Ragman":      { bg: "#c2185b", border: "#f8bbd0", text: "#ffffff" }, // ชมพูบานเย็น
-    "Jaeger":      { bg: "#689f38", border: "#dcedc8", text: "#ffffff" }, // เขียวสว่าง
-    "Fence":       { bg: "#5d4037", border: "#d7ccc8", text: "#ffffff" }, // น้ำตาลเข้ม
-    "Lightkeeper": { bg: "#ffea00", border: "#f57f17", text: "#000000" }, // เหลืองทองสว่าง (Text ดำ)
-    "BTR Driver":  { bg: "#ffeb3b", border: "#212121", text: "#000000" }, // เหลือง Taxi/Hazard (เด่นที่สุด)
-    "Ref":         { bg: "#d32f2f", border: "#ffcdd2", text: "#ffffff" }, // แดงสด Arena
+    "Mechanic": { bg: "#D34E4E", border: "#ffcdd2", text: "#ffffff" }, // แดงชมพู (ตามที่คุณชอบแต่สดขึ้น)
+    "Ragman": { bg: "#c2185b", border: "#f8bbd0", text: "#ffffff" }, // ชมพูบานเย็น
+    "Jaeger": { bg: "#689f38", border: "#dcedc8", text: "#ffffff" }, // เขียวสว่าง
+    "Fence": { bg: "#5d4037", border: "#d7ccc8", text: "#ffffff" }, // น้ำตาลเข้ม
+    "Lightkeeper": { bg: "#ffea00ff", border: "#f57f17", text: "#000000" }, // เหลืองทองสว่าง (Text ดำ)
+    "BTR Driver": { bg: "#ffeb3b", border: "#212121", text: "#000000" }, // เหลือง Taxi/Hazard (เด่นที่สุด)
+    "Ref": { bg: "#d32f2f", border: "#ffcdd2", text: "#ffffff" }, // แดงสด Arena
 };
 
 const QuestTree = () => {
@@ -22,6 +25,24 @@ const QuestTree = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const svgRef = useRef(null);
     const gRef = useRef(null);
+
+
+    const [completedQuests, setCompletedQuests] = useState([]);
+
+
+
+useEffect(() => {
+     const savedCompleted = localStorage.getItem(COMPLETE_KEY);
+     setCompletedQuests(JSON.parse(savedCompleted) || []);
+  }, []);
+
+
+
+
+
+
+
+
 
     // ตรรกะการประมวลผลกราฟ
     const { nodes, edges, layout } = useMemo(() => {
@@ -210,13 +231,9 @@ const QuestTree = () => {
             {/* UI Header */}
             <header style={styles.header}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={styles.logoBox}>T</div>
-                    <div>
-                        <h1 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: 'white', lineHeight: 1.25 }}>Quest Explorer</h1>
-                        <p style={{ fontSize: '10px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                            {nodes.length} เควสที่แสดง
-                        </p>
-                    </div>
+
+                    <h1 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: 'white' }}>Quest Explorer</h1>
+
                 </div>
 
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
@@ -288,7 +305,7 @@ const QuestTree = () => {
                                             width="240"
                                             height="70"
                                             rx="12"
-                                            fill={theme.bg}
+                                            fill={completedQuests.includes(node.id) ? { bg: "#1e293b", border: "#334155", text: "#f8fafc" } : theme.bg}
                                             stroke={isHighlight ? "#fbbf24" : (isSelectedTraderNode ? "#fff" : theme.border)}
                                             strokeWidth={isHighlight ? "4" : (isSelectedTraderNode ? "2.5" : "1")}
                                             className="node-rect"
@@ -320,7 +337,7 @@ const QuestTree = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
                     {Object.entries(TRADER_THEMES).map(([name, theme]) => (
                         <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: theme.border }}></div>
+                            <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: theme.bg }}></div>
                             <span style={{ fontSize: '10px', fontWeight: 600, color: '#cbd5e1' }}>{name}</span>
                         </div>
                     ))}
