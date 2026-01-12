@@ -40,6 +40,7 @@ const MapPage = () => {
   const [selectedQuests, setSelectedQuests] = useState([]);
   const [checkedObjectives, setCheckedObjectives] = useState({});
   const [completedQuests, setCompletedQuests] = useState([]);
+  const [currentQuestId, setCurrentQuestId] = useState(null);
 
   const [selectedMapId, setSelectedMapId] = useState(1);
   const [trackedQuests, setTrackedQuests] = useState([]);
@@ -172,16 +173,18 @@ const MapPage = () => {
     if (isRefresh) {
       localStorage.setItem(COMPLETE_KEY, JSON.stringify(completedQuests));
 
-      const nextQuestList = QuestComponent.getNextQuestLists(completedQuests);
+      if (currentQuestId) {
 
-      setSelectedQuests(prev => {
-        // Use a Map or Set to ensure IDs are unique
-        const allQuests = [...prev, ...nextQuestList];
-        const uniqueMap = new Map(allQuests.map(q => [q.id, q]));
-        return Array.from(uniqueMap.values());
-      });
+        const nextQuestList = QuestComponent.getNextQuestLists(completedQuests, currentQuestId);
+        setSelectedQuests(prev => {
+          // Use a Map or Set to ensure IDs are unique
+          const allQuests = [...prev, ...nextQuestList];
+          const uniqueMap = new Map(allQuests.map(q => [q.id, q]));
+          return Array.from(uniqueMap.values());
+        });
+      }
     }
-  }, [completedQuests, isRefresh]);
+  }, [completedQuests, currentQuestId, isRefresh]);
   // --------- END set localStorage of Quest ---------
   useEffect(() => {
     const accumulatedKeys = [];
@@ -326,10 +329,16 @@ const MapPage = () => {
   }
 
   const nextQuest = (e, questName) => {
-    removeQuest(e, questName);
     const quest = quests.find(q => q.name === questName);
 
     const newCompleted = QuestComponent.getPreviousQuestsList(quest.id, completedQuests);
+    const idsToRemove = new Set(newCompleted.map(u => u.id));
+    idsToRemove.add(quest.id);
+    idsToRemove.forEach(id => {
+      removeQuest(id);
+    })
+
+    setCurrentQuestId(quest.id);
     // Update state using a Set to ensure no duplicates
     setCompletedQuests(prev => {
       const uniqueSet = new Set([...prev, ...newCompleted]);

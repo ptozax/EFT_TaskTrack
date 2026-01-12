@@ -14,6 +14,7 @@ const Home = () => {
   const [objectiveLocations, setObjectiveLocations] = useState([]);
   const [checkedObjectives, setCheckedObjectives] = useState({});
   const [completedQuests, setCompletedQuests] = useState([]);
+  const [currentQuestId, setCurrentQuestId] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
 
@@ -122,16 +123,18 @@ const Home = () => {
     if (isLoaded) {
       localStorage.setItem(COMPLETE_KEY, JSON.stringify(completedQuests));
 
-      const nextQuestList = QuestComponent.getNextQuestLists(completedQuests);
+      if (currentQuestId) {
 
-      setSelectedQuests(prev => {
-        // Use a Map or Set to ensure IDs are unique
-        const allQuests = [...prev, ...nextQuestList];
-        const uniqueMap = new Map(allQuests.map(q => [q.id, q]));
-        return Array.from(uniqueMap.values());
-      });
+        const nextQuestList = QuestComponent.getNextQuestLists(completedQuests, currentQuestId);
+        setSelectedQuests(prev => {
+          // Use a Map or Set to ensure IDs are unique
+          const allQuests = [...prev, ...nextQuestList];
+          const uniqueMap = new Map(allQuests.map(q => [q.id, q]));
+          return Array.from(uniqueMap.values());
+        });
+      }
     }
-  }, [completedQuests, isLoaded]);
+  }, [completedQuests, currentQuestId, isLoaded]);
 
   /* ---------------- QUEST ACTIONS ---------------- */
   const addQuest = (quest) => {
@@ -172,9 +175,15 @@ const Home = () => {
   };
 
   const nextQuest = (questId) => {
-    removeQuest(questId);
 
     const newCompleted = QuestComponent.getPreviousQuestsList(questId, completedQuests);
+    const idsToRemove = new Set(newCompleted.map(u => u.id));
+    idsToRemove.add(questId);
+    idsToRemove.forEach(id => {
+      removeQuest(id);
+    })
+
+    setCurrentQuestId(questId);
     // Update state using a Set to ensure no duplicates
     setCompletedQuests(prev => {
       const uniqueSet = new Set([...prev, ...newCompleted]);
