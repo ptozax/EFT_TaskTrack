@@ -5,6 +5,7 @@ import dagre from 'dagre';
 
 
 const COMPLETE_KEY = "eft_completed_quests";
+const STORAGE_KEY = "eft_selected_quests";
 
 const TRADER_THEMES = {
     "Prapor": { bg: "#7b1fa2", border: "#e1bee7", text: "#ffffff" }, // ม่วงสด
@@ -31,10 +32,54 @@ const QuestTree = () => {
 
 
 
-useEffect(() => {
-     const savedCompleted = localStorage.getItem(COMPLETE_KEY);
-     setCompletedQuests(JSON.parse(savedCompleted) || []);
-  }, []);
+
+
+
+
+
+
+
+
+
+
+    function getCompletedQuests(quests, currentQuests) {
+        const questMap = Object.fromEntries(
+            quests.map(q => [q.id, q])
+        );
+
+        const completed = new Set();
+
+        function dfs(id) {
+            const quest = questMap[id];
+            if (!quest) return;
+
+            for (const req of quest.taskRequirements) {
+                if (!completed.has(req.task.id)) {
+                    completed.add(req.task.id);
+                    dfs(req.task.id);
+                }
+            }
+        }
+
+        currentQuests.forEach(dfs);
+        return [...completed];
+    }
+
+
+
+
+    useEffect(() => {
+        const savedCompleted = localStorage.getItem(COMPLETE_KEY);
+        let completedQuests = JSON.parse(savedCompleted) || [];
+
+
+        const curentQuest = (JSON.parse(localStorage.getItem(STORAGE_KEY)) || []).map(q => q.id);
+        let passQuest = getCompletedQuests(tasks, curentQuest)
+        // [] + []  ไม่ซ้ำ
+        const result = [...new Set([...completedQuests, ...passQuest])];
+        setCompletedQuests(result);
+
+    }, []);
 
 
 
