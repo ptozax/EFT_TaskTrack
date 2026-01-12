@@ -4,15 +4,17 @@ import * as d3 from 'd3';
 import dagre from 'dagre';
 
 const TRADER_THEMES = {
-    "Prapor": { bg: "#4a148c", border: "#9c27b0", text: "#f3e5f5" },
-    "Therapist": { bg: "#01579b", border: "#03a9f4", text: "#e1f5fe" },
-    "Skier": { bg: "#e65100", border: "#ff9800", text: "#fff3e0" },
-    "Peacekeeper": { bg: "#1b5e20", border: "#4caf50", text: "#e8f5e9" },
-    "Mechanic": { bg: "#263238", border: "#607d8b", text: "#eceff1" },
-    "Ragman": { bg: "#880e4f", border: "#e91e63", text: "#fce4ec" },
-    "Jaeger": { bg: "#33691e", border: "#8bc34a", text: "#f1f8e9" },
-    "Fence": { bg: "#3e2723", border: "#795548", text: "#efebe9" },
-    "Lightkeeper": { bg: "#f57f17", border: "#fbc02d", text: "#fffde7" }
+"Prapor":      { bg: "#7b1fa2", border: "#e1bee7", text: "#ffffff" }, // ม่วงสด
+    "Therapist":   { bg: "#0288d1", border: "#81d4fa", text: "#ffffff" }, // ฟ้าสด
+    "Skier":       { bg: "#f57c00", border: "#ffe0b2", text: "#ffffff" }, // ส้มสด
+    "Peacekeeper": { bg: "#2e7d32", border: "#a5d6a7", text: "#ffffff" }, // เขียวเข้มทหาร
+    "Mechanic":    { bg: "#D34E4E", border: "#ffcdd2", text: "#ffffff" }, // แดงชมพู (ตามที่คุณชอบแต่สดขึ้น)
+    "Ragman":      { bg: "#c2185b", border: "#f8bbd0", text: "#ffffff" }, // ชมพูบานเย็น
+    "Jaeger":      { bg: "#689f38", border: "#dcedc8", text: "#ffffff" }, // เขียวสว่าง
+    "Fence":       { bg: "#5d4037", border: "#d7ccc8", text: "#ffffff" }, // น้ำตาลเข้ม
+    "Lightkeeper": { bg: "#ffea00", border: "#f57f17", text: "#000000" }, // เหลืองทองสว่าง (Text ดำ)
+    "BTR Driver":  { bg: "#ffeb3b", border: "#212121", text: "#000000" }, // เหลือง Taxi/Hazard (เด่นที่สุด)
+    "Ref":         { bg: "#d32f2f", border: "#ffcdd2", text: "#ffffff" }, // แดงสด Arena
 };
 
 const QuestTree = () => {
