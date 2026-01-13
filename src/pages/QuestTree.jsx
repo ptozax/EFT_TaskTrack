@@ -34,6 +34,7 @@ const QuestTree = () => {
     const [completedQuests, setCompletedQuests] = useState([]);
 
 
+    const zoomRef = useRef(null);
 
 
 
@@ -161,8 +162,9 @@ const QuestTree = () => {
             });
 
         svg.call(zoom);
+        zoomRef.current = zoom; // 👈 เก็บไว้ใช้ตอน search
 
-        // ปรับหน้าจอให้พอดี (Fit View)
+        // Fit view ตอนโหลด
         if (layout) {
             const padding = 50;
             const fullWidth = svgRef.current.clientWidth;
@@ -171,16 +173,59 @@ const QuestTree = () => {
             const scale = Math.min(
                 (fullWidth - padding) / layout.width,
                 (fullHeight - padding) / layout.height,
-                0.8 // Max scale
+                0.8
             );
 
             const transform = d3.zoomIdentity
-                .translate(fullWidth / 2 - (layout.width / 2) * scale, fullHeight / 2 - (layout.height / 2) * scale)
+                .translate(
+                    fullWidth / 2 - (layout.width / 2) * scale,
+                    fullHeight / 2 - (layout.height / 2) * scale
+                )
                 .scale(scale);
 
             svg.transition().duration(750).call(zoom.transform, transform);
         }
     }, [nodes, layout]);
+
+
+
+
+
+
+useEffect(() => {
+    if (!searchTerm || !nodes.length || !svgRef.current) return;
+
+    const match = nodes.find(n =>
+        n.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    if (!match) return;
+
+    const svg = d3.select(svgRef.current);
+    const width = svgRef.current.clientWidth;
+    const height = svgRef.current.clientHeight;
+
+    const scale = 1.2; // ระดับ zoom (ปรับได้)
+    const transform = d3.zoomIdentity
+        .translate(
+            width / 2 - match.x * scale,
+            height / 2 - match.y * scale
+        )
+        .scale(scale);
+
+    svg
+        .transition()
+        .duration(750)
+        .call(zoomRef.current.transform, transform);
+}, [searchTerm, nodes]);
+
+
+
+
+
+
+
+
 
     const traders = ["All", ...new Set(tasks.map(t => t.trader.name))];
 
@@ -421,7 +466,7 @@ const QuestTree = () => {
                             <ul>
                                 {selectedQuest.objectives.map((obj, index) => (
                                     <li key={index}>
-                                       <span>{obj.description}</span>  {["giveItem","TaskObjectiveShoot","shoot","kill"].includes(obj.type)  && <> <span className='text-info'>x {obj.count}</span> </>}
+                                        <span>{obj.description}</span>  {["giveItem", "TaskObjectiveShoot", "shoot", "kill"].includes(obj.type) && <> <span className='text-info'>x {obj.count}</span> </>}
                                     </li>
                                 ))}
                             </ul>
