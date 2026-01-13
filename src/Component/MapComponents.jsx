@@ -120,6 +120,21 @@ const styles = {
     color: 'black',
     cursor: 'help'
   },
+  keysMarker: {
+    position: 'absolute',
+    width: '7%',
+    height: '7%',
+    boxShadow: '0 0 8px rgba(0,0,0,0.8)',
+    borderRadius: '20%',
+    zIndex: 28,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '10px',
+    fontWeight: 'bold',
+    color: 'black',
+    cursor: 'help'
+  },
   origin: {
     position: 'absolute',
     width: '20px',

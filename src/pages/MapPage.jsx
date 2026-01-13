@@ -50,12 +50,14 @@ const MapPage = () => {
   const [copiedKeyIndex, setCopiedKeyIndex] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [questDescription, setQuestDescription] = useState(null);
+  const [keyDescription, setKeyDescription] = useState(null);
   const [rotation, setRotation] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // Toggles for Map Features
   const [showExtracts, setShowExtracts] = useState(true);
   const [showTransits, setShowTransits] = useState(true);
+  const [showKeys, setShowKeys] = useState(false);
   const [showCalibration, setShowCalibration] = useState(false);
 
   const [mapCalibrations, setMapCalibrations] = useState(
@@ -363,7 +365,7 @@ const MapPage = () => {
         ...styles.sidebar,
         width: isSidebarOpen ? '25%' : '0%',
         padding: isSidebarOpen ? '24px' : '0',
-        opacity: isSidebarOpen ? 1 : 0
+        opacity: isSidebarOpen ? 1 : 0,
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
           <header style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -408,6 +410,10 @@ const MapPage = () => {
             <label style={styles.checkboxRow}>
               <input type="checkbox" checked={showTransits} onChange={e => setShowTransits(e.target.checked)} />
               Transits
+            </label>
+            <label style={styles.checkboxRow}>
+              <input type="checkbox" checked={showKeys} onChange={e => setShowKeys(e.target.checked)} />
+              Keys
             </label>
           </div>
         </section>
@@ -796,6 +802,49 @@ const MapPage = () => {
               );
             })}
 
+            {/* Keys */}
+            {showKeys && !isLoading && currentFeatures.locks.map((keys, idx) => {
+              let finalX = keys.position.x;
+              let finalVertical = keys.position.z;
+              if (calib.swapXZ) {
+                const temp = finalX;
+                finalX = finalVertical;
+                finalVertical = temp;
+              }
+
+              return (
+                <div key={`keys-${idx}`} >
+                  <img
+                    src={`https://tarkov.dev/maps/interactive/lock.png`}
+                    onLoad={() => setIsLoading(false)}
+                    title={keys.key.name || 'key'}
+                    style={{
+                      ...styles.extractMarker,
+                      left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
+                      top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
+                      transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg)`,
+                    }}
+                    onClick={() => setKeyDescription(keyDescription === idx ? null : idx)}
+                  />
+                  {keyDescription === idx && (
+                    <div style={{
+                      ...styles.descriptionMarker,
+                      width: '120px',
+                      left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
+                      top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg)`
+                    }}
+                      onClick={() => setKeyDescription(null)}>
+                      {keys.key.name}
+                      <img src={`${keys.key.imageLink}`} alt="" style={{ width: '50%', height: '50%',}}/>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
             {/* Quest Markers */}
             {!isLoading && trackedQuests.map(tq => {
               if (!tq.visible) return null;
@@ -836,7 +885,7 @@ const MapPage = () => {
                               transform: `translate(-50%, -50%) scale(${isExpanded ? markerScale * 1.8 : markerScale}) rotate(${rotation}deg)`,
                               zIndex: isExpanded ? 100 : 30,
                             }}
-                            onClick={() => setQuestDescription(questDescription === obj.id ? null : obj.id)}
+                            onClick={() => {setQuestDescription(questDescription === obj.id ? null : obj.id); setExpandedQuestName(isExpanded ? null : tq.name);}}
                           />
                           {questDescription === obj.id && idx === lastIndex && (
                             <div style={{
@@ -845,9 +894,10 @@ const MapPage = () => {
                               top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
                               display: 'flex',
                               flexDirection: 'column',
-                              transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg)`
+                              transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg)`,
+                              zIndex: isExpanded ? 101 : 30,
                             }}
-                              onClick={() => setQuestDescription(null)}>
+                              onClick={() => {setQuestDescription(null); setExpandedQuestName(isExpanded ? null : tq.name);}}>
                               {obj.description}
                               <div style={{
                                 width: '100%', background: '#00c40aff', border: 'none',
