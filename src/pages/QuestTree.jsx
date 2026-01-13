@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import tasks from "../data/tasks";
 import * as d3 from 'd3';
 import dagre from 'dagre';
-
+import { div, li } from 'framer-motion/client';
+import styles2 from '../Component/MapComponents';
 
 const COMPLETE_KEY = "eft_completed_quests";
 const STORAGE_KEY = "eft_selected_quests";
@@ -27,16 +28,10 @@ const QuestTree = () => {
     const svgRef = useRef(null);
     const gRef = useRef(null);
 
+    const [selectedQuest, SetSelectedQuest] = useState(null);
+
 
     const [completedQuests, setCompletedQuests] = useState([]);
-
-
-
-
-
-
-
-
 
 
 
@@ -80,11 +75,6 @@ const QuestTree = () => {
         setCompletedQuests(result);
 
     }, []);
-
-
-
-
-
 
 
 
@@ -269,6 +259,12 @@ const QuestTree = () => {
             maxWidth: '200px',
             zIndex: 20,
         }
+
+
+
+
+
+
     };
 
     return (
@@ -358,6 +354,10 @@ const QuestTree = () => {
                                                 filter: isHighlight ? 'drop-shadow(0 0 12px rgba(251, 191, 36, 0.4))' : 'none',
                                                 opacity: (selectedTrader === "All" || isSelectedTraderNode || isHighlight || nodes.some(n => n.id === node.id)) ? 1 : 0.4
                                             }}
+
+
+                                            onClick={() => SetSelectedQuest(node)}
+
                                         />
                                         <text x="16" y="28" fill={theme.text} className="font-bold text-[13px] tracking-tight">
                                             {node.name.length > 28 ? node.name.substring(0, 26) + '...' : node.name}
@@ -376,8 +376,84 @@ const QuestTree = () => {
                 )}
             </div>
 
+
+
+
+
+
+
+
+
+
+
+
+            <aside style={{
+                ...styles2.sidebar,
+                width: selectedQuest ? '25%' : '0%',
+                padding: selectedQuest ? '24px' : '0',
+                opacity: selectedQuest ? 1 : 0,
+                marginTop: '70px',
+                height: "86%",
+                position: 'absolute'
+            }}>
+
+                {selectedQuest && (<>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                        <header style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <h1 style={{ fontSize: '20px', fontWeight: '800' }}>🗺️ Quest Detail</h1>
+                        </header>
+                        <button
+                            style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}
+                            onClick={() => SetSelectedQuest(null)}
+                            title="Close Sidebar"
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
+                        </button>
+                    </div>
+
+
+
+                    <div className="card  border-primary" style={{}}>
+                        <img src={selectedQuest.taskImageLink} alt="" />
+                        <div className="card-body">
+                            <h5 className="card-title">{selectedQuest.name}</h5>
+                            <ul>
+                                {selectedQuest.objectives.map((obj, index) => (
+                                    <li key={index}>
+                                       <span>{obj.description}</span>  {["giveItem","TaskObjectiveShoot","shoot","kill"].includes(obj.type)  && <> <span className='text-info'>x {obj.count}</span> </>}
+                                    </li>
+                                ))}
+                            </ul>
+                            {/* <a href="#" className="btn btn-primary">Go somewhere</a> */}
+                        </div>
+                    </div>
+
+
+
+
+                </>
+
+                )}
+
+
+
+
+
+            </aside>
+
+
+
+
+
+
+
+
+
+
+
             {/* Legend Panel */}
-            <div style={styles.legend}>
+            {/* <div style={styles.legend}>
                 <h4 style={{ fontSize: '10px', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', marginBottom: '12px', letterSpacing: '0.2em' }}>Trader Guide</h4>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
                     {Object.entries(TRADER_THEMES).map(([name, theme]) => (
@@ -387,7 +463,7 @@ const QuestTree = () => {
                         </div>
                     ))}
                 </div>
-            </div>
+            </div> */}
         </div>
     );
 };
