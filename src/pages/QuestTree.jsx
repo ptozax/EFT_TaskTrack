@@ -4,6 +4,9 @@ import * as d3 from 'd3';
 import dagre from 'dagre';
 import { div, li } from 'framer-motion/client';
 import styles2 from '../Component/MapComponents';
+import * as QuestComponent from '../Component/QuestComponent';
+
+import Button from 'react-bootstrap/Button';
 
 const COMPLETE_KEY = "eft_completed_quests";
 const STORAGE_KEY = "eft_selected_quests";
@@ -61,7 +64,11 @@ const QuestTree = () => {
         return [...completed];
     }
 
+    const onQuetsSccess = (successQuest) => {
+      let passQuest=  QuestComponent.getPreviousQuestsList(successQuest.id,JSON.parse(localStorage.getItem(COMPLETE_KEY)))
+      console.log(passQuest)
 
+    }
 
 
     useEffect(() => {
@@ -192,32 +199,32 @@ const QuestTree = () => {
 
 
 
-useEffect(() => {
-    if (!searchTerm || !nodes.length || !svgRef.current) return;
+    useEffect(() => {
+        if (!searchTerm || !nodes.length || !svgRef.current) return;
 
-    const match = nodes.find(n =>
-        n.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+        const match = nodes.find(n =>
+            n.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
 
-    if (!match) return;
+        if (!match) return;
 
-    const svg = d3.select(svgRef.current);
-    const width = svgRef.current.clientWidth;
-    const height = svgRef.current.clientHeight;
+        const svg = d3.select(svgRef.current);
+        const width = svgRef.current.clientWidth;
+        const height = svgRef.current.clientHeight;
 
-    const scale = 1.2; // ระดับ zoom (ปรับได้)
-    const transform = d3.zoomIdentity
-        .translate(
-            width / 2 - match.x * scale,
-            height / 2 - match.y * scale
-        )
-        .scale(scale);
+        const scale = 1.2; // ระดับ zoom (ปรับได้)
+        const transform = d3.zoomIdentity
+            .translate(
+                width / 2 - match.x * scale,
+                height / 2 - match.y * scale
+            )
+            .scale(scale);
 
-    svg
-        .transition()
-        .duration(750)
-        .call(zoomRef.current.transform, transform);
-}, [searchTerm, nodes]);
+        svg
+            .transition()
+            .duration(750)
+            .call(zoomRef.current.transform, transform);
+    }, [searchTerm, nodes]);
 
 
 
@@ -463,6 +470,24 @@ useEffect(() => {
                         <img src={selectedQuest.taskImageLink} alt="" />
                         <div className="card-body">
                             <h5 className="card-title">{selectedQuest.name}</h5>
+                            <Button variant="success" className='col-12' onClick={() => { onQuetsSccess(selectedQuest) }}>Complete</Button>
+                            <div className="text-muted small mt-3 ">
+                                {selectedQuest.trader.name} | EXP : {selectedQuest.experience}
+
+                                {selectedQuest.kappaRequired && (
+                                    <span className="badge rounded-pill bg-success ms-2">
+                                        Kappa
+                                    </span>
+                                )}
+
+                                {selectedQuest.lightkeeperRequired && (
+                                    <span className="badge rounded-pill bg-info ms-1 ">
+                                        LightKeeper
+                                    </span>
+                                )}
+                            </div>
+
+
                             <ul>
                                 {selectedQuest.objectives.map((obj, index) => (
                                     <li key={index}>
@@ -470,7 +495,7 @@ useEffect(() => {
                                     </li>
                                 ))}
                             </ul>
-                            {/* <a href="#" className="btn btn-primary">Go somewhere</a> */}
+
                         </div>
                     </div>
 
