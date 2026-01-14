@@ -35,6 +35,11 @@ const QuestTree = () => {
 
 
     const [completedQuests, setCompletedQuests] = useState([]);
+    const [saveCompleteQuest, setsaveCompleteQuest] = useState([]);
+    const [isLoad, setIsLoad] = useState(false);
+
+
+
 
 
     const zoomRef = useRef(null);
@@ -65,8 +70,8 @@ const QuestTree = () => {
     }
 
     const onQuetsSccess = (successQuest) => {
-      let passQuest=  QuestComponent.getPreviousQuestsList(successQuest.id,JSON.parse(localStorage.getItem(COMPLETE_KEY)))
-      console.log(passQuest)
+        let passQuest = QuestComponent.getPreviousQuestsList(successQuest.id, JSON.parse(localStorage.getItem(COMPLETE_KEY)))
+        setsaveCompleteQuest([...new Set([...saveCompleteQuest, ...passQuest])])
 
     }
 
@@ -81,10 +86,15 @@ const QuestTree = () => {
         // [] + []  ไม่ซ้ำ
         const result = [...new Set([...completedQuestsIds, ...passQuest])];
         setCompletedQuests(result);
-
+        setsaveCompleteQuest(completedQuests);
+        setIsLoad(true);
     }, []);
 
-
+    useEffect(() => {
+        if (isLoad) {
+            localStorage.setItem(COMPLETE_KEY, JSON.stringify(saveCompleteQuest));
+        }
+    }, [saveCompleteQuest, isLoad])
 
 
     // ตรรกะการประมวลผลกราฟ
