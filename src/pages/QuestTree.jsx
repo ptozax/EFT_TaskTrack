@@ -31,11 +31,12 @@ const QuestTree = () => {
     const svgRef = useRef(null);
     const gRef = useRef(null);
 
-    const [selectedQuest, SetSelectedQuest] = useState(null);
+    const [selectedQuest, setSelectedQuest] = useState(null);
 
 
-    const [completedQuests, setCompletedQuests] = useState([]);
-    const [saveCompleteQuest, setsaveCompleteQuest] = useState([]);
+    const [passedQuest, setPassedQuest] = useState([]);
+    const [completeQuest, setCompleteQuest] = useState([]);
+    const [curentQuest,setCurentQuest]=useState([]);
     const [isLoad, setIsLoad] = useState(false);
 
 
@@ -71,31 +72,43 @@ const QuestTree = () => {
 
     const onQuetsSccess = (successQuest) => {
         let passQuest = QuestComponent.getPreviousQuestsList(successQuest.id, JSON.parse(localStorage.getItem(COMPLETE_KEY)))
-        setsaveCompleteQuest([...new Set([...saveCompleteQuest, ...passQuest])])
+        setCompleteQuest([...new Set([...completeQuest, ...passQuest])])
+        setCurentQuest(prev => prev.filter(q => q.id !== successQuest.id) );
 
     }
 
 
     useEffect(() => {
-        const savedCompleted = localStorage.getItem(COMPLETE_KEY);
-        let completedQuests = JSON.parse(savedCompleted) || [];
+        const completedQuests = JSON.parse(localStorage.getItem(COMPLETE_KEY)) || [];
         let completedQuestsIds = completedQuests.map(q => q.id);
 
-        const curentQuest = (JSON.parse(localStorage.getItem(STORAGE_KEY)) || []).map(q => q.id);
-        let passQuest = getCompletedQuests(tasks, curentQuest)
+        const curentQuests = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []
+        let curentQuestIds =curentQuests.map(q => q.id);
+
+        let passQuest = getCompletedQuests(tasks, curentQuestIds)
+
         // [] + []  ไม่ซ้ำ
         const result = [...new Set([...completedQuestsIds, ...passQuest])];
-        setCompletedQuests(result);
-        setsaveCompleteQuest(completedQuests);
+        setPassedQuest(result);
+        setCompleteQuest(completedQuests);
+        setCurentQuest(curentQuests)
         setIsLoad(true);
     }, []);
 
     useEffect(() => {
         if (isLoad) {
-            localStorage.setItem(COMPLETE_KEY, JSON.stringify(saveCompleteQuest));
+            localStorage.setItem(COMPLETE_KEY, JSON.stringify(completeQuest));
         }
-    }, [saveCompleteQuest, isLoad])
+    }, [completeQuest])
 
+
+
+
+    useEffect(() => {
+        if (isLoad) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(curentQuest));
+        }
+    }, [curentQuest])
 
     // ตรรกะการประมวลผลกราฟ
     const { nodes, edges, layout } = useMemo(() => {
@@ -408,7 +421,7 @@ const QuestTree = () => {
                                             width="240"
                                             height="70"
                                             rx="12"
-                                            fill={completedQuests.includes(node.id) ? { bg: "#1e293b", border: "#334155", text: "#f8fafc" } : theme.bg}
+                                            fill={passedQuest.includes(node.id) ? { bg: "#1e293b", border: "#334155", text: "#f8fafc" } : theme.bg}
                                             stroke={isHighlight ? "#fbbf24" : (isSelectedTraderNode ? "#fff" : theme.border)}
                                             strokeWidth={isHighlight ? "4" : (isSelectedTraderNode ? "2.5" : "1")}
                                             className="node-rect"
@@ -418,7 +431,7 @@ const QuestTree = () => {
                                             }}
 
 
-                                            onClick={() => SetSelectedQuest(node)}
+                                            onClick={() => setSelectedQuest(node)}
 
                                         />
                                         <text x="16" y="28" fill={theme.text} className="font-bold text-[13px] tracking-tight">
@@ -442,13 +455,6 @@ const QuestTree = () => {
 
 
 
-
-
-
-
-
-
-
             <aside style={{
                 ...styles2.sidebar,
                 width: selectedQuest ? '25%' : '0%',
@@ -467,7 +473,7 @@ const QuestTree = () => {
                         </header>
                         <button
                             style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}
-                            onClick={() => SetSelectedQuest(null)}
+                            onClick={() => setSelectedQuest(null)}
                             title="Close Sidebar"
                         >
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
