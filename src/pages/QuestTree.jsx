@@ -36,7 +36,7 @@ const QuestTree = () => {
 
     const [passedQuest, setPassedQuest] = useState([]);
     const [completeQuest, setCompleteQuest] = useState([]);
-    const [curentQuest,setCurentQuest]=useState([]);
+    const [curentQuest, setCurentQuest] = useState([]);
     const [isLoad, setIsLoad] = useState(false);
 
 
@@ -73,23 +73,23 @@ const QuestTree = () => {
     const onQuetsSccess = (successQuest) => {
         let passQuest = QuestComponent.getPreviousQuestsList(successQuest.id, JSON.parse(localStorage.getItem(COMPLETE_KEY)))
         setCompleteQuest([...new Set([...completeQuest, ...passQuest])])
-        setCurentQuest(prev => prev.filter(q => q.id !== successQuest.id) );
+        setCurentQuest(prev => prev.filter(q => q.id !== successQuest.id));
 
     }
 
 
     useEffect(() => {
         const completedQuests = JSON.parse(localStorage.getItem(COMPLETE_KEY)) || [];
-        let completedQuestsIds = completedQuests.map(q => q.id);
+        // let completedQuestsIds = completedQuests.map(q => q.id);
 
         const curentQuests = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []
-        let curentQuestIds =curentQuests.map(q => q.id);
+        // let curentQuestIds =curentQuests.map(q => q.id);
 
-        let passQuest = getCompletedQuests(tasks, curentQuestIds)
+        // let passQuest = getCompletedQuests(tasks, curentQuestIds)
 
         // [] + []  ไม่ซ้ำ
-        const result = [...new Set([...completedQuestsIds, ...passQuest])];
-        setPassedQuest(result);
+        // const result = [...new Set([...completedQuestsIds, ...passQuest])];
+        // setPassedQuest(result);
         setCompleteQuest(completedQuests);
         setCurentQuest(curentQuests)
         setIsLoad(true);
@@ -98,6 +98,19 @@ const QuestTree = () => {
     useEffect(() => {
         if (isLoad) {
             localStorage.setItem(COMPLETE_KEY, JSON.stringify(completeQuest));
+
+
+
+            let completedQuestsIds = completeQuest.map(q => q.id);
+            let curentQuestIds =curentQuest.map(q => q.id);
+            let passQuest = getCompletedQuests(tasks, curentQuestIds)
+            // [] + []  ไม่ซ้ำ
+            const result = [...new Set([...completedQuestsIds, ...passQuest])];
+            setPassedQuest(result);
+
+
+
+            
         }
     }, [completeQuest])
 
@@ -176,7 +189,7 @@ const QuestTree = () => {
         });
 
         return { nodes: positionedNodes, edges: edgeData, layout: g.graph() };
-    }, [tasks, selectedTrader, searchTerm]);
+    }, [tasks, selectedTrader, searchTerm,passedQuest]);
 
     // D3 Zoom & Pan
     useEffect(() => {
