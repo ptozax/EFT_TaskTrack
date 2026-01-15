@@ -11,6 +11,7 @@ const OBJECTIVE_CHECK_KEY = "eft_objective_checklist";
 const STORAGE_KEY = "eft_selected_quests";
 const MAP_KEY = "eft_selected_map";
 const COMPLETE_KEY = "eft_completed_quests";
+const HIDDEN_KEY = "eft_select_quest_hidden";
 
 /* ---------------- MAP CONFIG ---------------- */
 const maps = [
@@ -37,16 +38,34 @@ const getObjectiveKey = (questId, objectiveId) =>
 
 /* ---------------- COMPONENT ---------------- */
 const MapPage = () => {
-  const [selectedQuests, setSelectedQuests] = useState([]);
-  const [checkedObjectives, setCheckedObjectives] = useState({});
-  const [completedQuests, setCompletedQuests] = useState([]);
-  const [currentQuestId, setCurrentQuestId] = useState(null);
+  /* ------------------ STATE SAVE ----------------------- */
+  const [selectedQuests, setSelectedQuests] = useState(() => {
+    const savedQuests = localStorage.getItem(STORAGE_KEY);
+    return savedQuests ? JSON.parse(savedQuests) : []
+  });
+  const [checkedObjectives, setCheckedObjectives] = useState(() => {
+    const savedChecklist = localStorage.getItem(OBJECTIVE_CHECK_KEY);
+    return savedChecklist ? JSON.parse(savedChecklist) : {}
+  });
+  const [completedQuests, setCompletedQuests] = useState(() => {
+    const savedCompleted = localStorage.getItem(COMPLETE_KEY);
+    return savedCompleted ? JSON.parse(savedCompleted) : []
+  });
+  const [selectedMapId, setSelectedMapId] = useState(() => {
+    const saveMap = localStorage.getItem(MAP_KEY);
+    return saveMap ? JSON.parse(saveMap) : 1
+  });
+  const [hiddenQuests, setHiddenQuest] = useState(() => {
+    const saveHidden = localStorage.getItem(HIDDEN_KEY);
+    return saveHidden ? JSON.parse(saveHidden) : []
+  })
 
-  const [selectedMapId, setSelectedMapId] = useState(1);
+  /* ------------------ STATE  ----------------------- */
+  const [currentQuestId, setCurrentQuestId] = useState(null);
   const [trackedQuests, setTrackedQuests] = useState([]);
   const [expandedQuestName, setExpandedQuestName] = useState(null);
   const [questKeys, setQuestKeys] = useState([]);
-  const [showQuestKey, setShowQuestKey] = useState(true);
+  const [showQuestKey, setShowQuestKey] = useState(false);
   const [copiedKeyIndex, setCopiedKeyIndex] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [questDescription, setQuestDescription] = useState(null);
@@ -95,19 +114,26 @@ const MapPage = () => {
 
   /* -------- LOAD LOCAL STORAGE -------- */
   useEffect(() => {
-    try {
-      const savedQuests = localStorage.getItem(STORAGE_KEY);
-      const savedChecks = localStorage.getItem(OBJECTIVE_CHECK_KEY);
-      const savemMap = localStorage.getItem(MAP_KEY);
-      const saveComplete = localStorage.getItem(COMPLETE_KEY);
+    const handleStorageChange = () => {
+      try {
+        console.log("Storage changed detected! at MAP");
 
-      if (savedQuests) setSelectedQuests(JSON.parse(savedQuests));
-      if (savedChecks) setCheckedObjectives(JSON.parse(savedChecks));
-      if (savemMap) setSelectedMapId(JSON.parse(savemMap));
-      if (saveComplete) setCompletedQuests(JSON.parse(saveComplete));
-    } catch (err) {
-      console.error(err);
-    }
+        const savedQuests = localStorage.getItem(STORAGE_KEY);
+        const savedChecklist = localStorage.getItem(OBJECTIVE_CHECK_KEY);
+        const savedCompleted = localStorage.getItem(COMPLETE_KEY);
+        const saveHidden = localStorage.getItem(HIDDEN_KEY);
+
+        setSelectedQuests(savedQuests ? JSON.parse(savedQuests) : []);
+        setCheckedObjectives(savedChecklist ? JSON.parse(savedChecklist) : {});
+        setCompletedQuests(savedCompleted ? JSON.parse(savedCompleted) : []);
+        setHiddenQuest(saveHidden ? JSON.parse(saveHidden) : []);
+        setTrackedQuests([]);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    QuestComponent.callbackStorageChange(handleStorageChange);
   }, []);
 
   // ----------- on START -----------
@@ -132,42 +158,46 @@ const MapPage = () => {
       );
 
       if (matchMap) {
-        questsToAdd.push(quest.name);
+        // Push directly to array
+        questsToAdd.push({ id: quest.id, name: quest.name });
       }
     });
 
+    // 2. Check length on the array
     if (questsToAdd.length === 0) return;
 
     setTrackedQuests(prev => {
-      const existingNames = new Set(prev.map(q => q.name));
+      // Create a Set of existing IDs (better than names for uniqueness)
+      const existingIds = new Set(prev.map(q => q.id));
       const usedColors = prev.map(q => q.color);
 
       const newItems = questsToAdd
-        .filter(name => !existingNames.has(name))
-        .map(name => ({
-          name,
+        // 3. Filter using the array we created
+        .filter(q => !existingIds.has(q.id))
+        .map(q => ({
+          ...q, // 4. SPREAD the quest properties (id, name) so it's not nested
           color: getRandomColor(usedColors),
-          visible: true
+          visible: !hiddenQuests.includes(q.id) // Simplified boolean logic
         }));
+
+      // If all items were duplicates, return prev to avoid unnecessary re-render
+      if (newItems.length === 0) return prev;
 
       return [...prev, ...newItems];
     });
   }, [selectedQuests, currentMapName]);
   // ----------- END on START -----------
 
+
   // --------- set localStorage of Quest ---------
   // selected quests
   useEffect(() => {
-    if (isRefresh) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(selectedQuests));
-    }
+    if (isRefresh) localStorage.setItem(STORAGE_KEY, JSON.stringify(selectedQuests));
   }, [selectedQuests, isRefresh]);
 
   // objective checklist
   useEffect(() => {
-    if (isRefresh) {
-      localStorage.setItem(OBJECTIVE_CHECK_KEY, JSON.stringify(checkedObjectives));
-    }
+    if (isRefresh) localStorage.setItem(OBJECTIVE_CHECK_KEY, JSON.stringify(checkedObjectives));
   }, [checkedObjectives, isRefresh]);
 
   // completed quests
@@ -187,6 +217,11 @@ const MapPage = () => {
       }
     }
   }, [completedQuests, currentQuestId, isRefresh]);
+
+  // hidden quest
+  useEffect(() => {
+    if (isRefresh) localStorage.setItem(HIDDEN_KEY, JSON.stringify(hiddenQuests));
+  }, [hiddenQuests, isRefresh]);
   // --------- END set localStorage of Quest ---------
   useEffect(() => {
     const accumulatedKeys = [];
@@ -263,11 +298,24 @@ const MapPage = () => {
     }
   };
 
-  const toggleQuestVisibility = (e, questName) => {
+  const toggleQuestVisibility = (e, questId) => {
     e.stopPropagation();
-    setTrackedQuests(trackedQuests.map(q =>
-      q.name === questName ? { ...q, visible: !q.visible } : q
+
+    // 1. Update the UI (Visual Toggle)
+    setTrackedQuests(prev => prev.map(q =>
+      q.id === questId ? { ...q, visible: !q.visible } : q
     ));
+
+    // 2. Update the Hidden List (Storage/Logic)
+    setHiddenQuest(prev => {
+      if (prev.includes(questId)) {
+        // If currently hidden, REMOVE from list (Make Visible)
+        return prev.filter(id => id !== questId);
+      } else {
+        // If currently visible, ADD to list (Make Hidden)
+        return [...prev, questId];
+      }
+    });
   };
 
   const resetZoom = () => {
@@ -330,7 +378,7 @@ const MapPage = () => {
     }));
   }
 
-  const nextQuest = (e, questName) => {
+  const nextQuest = (questName) => {
     const quest = quests.find(q => q.name === questName);
 
     const newCompleted = QuestComponent.getPreviousQuestsList(quest.id, completedQuests);
@@ -512,7 +560,7 @@ const MapPage = () => {
                       <span style={{ width: '100%', fontSize: '13px', color: tq.visible ? '#f8fafc' : '#94a3b8' }}>Start at LV: {fullQuest.minPlayerLevel}</span>
                     </span>
                     <button
-                      onClick={(e) => toggleQuestVisibility(e, tq.name)}
+                      onClick={(e) => toggleQuestVisibility(e, tq.id)}
                       style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '0 4px', display: 'flex', alignItems: 'center' }}
                       title={tq.visible ? "Hide markers" : "Show markers"}
                     >
@@ -538,7 +586,7 @@ const MapPage = () => {
                             width: '100%', background: '#00c40aff', border: 'none',
                             borderRadius: "5px", color: '#ffffffff', cursor: 'default', fontSize: '15px', fontWeight: 'bold'
                           }}
-                          onClick={(e) => nextQuest(e, tq.name)}>Complete</button>
+                          onClick={() => nextQuest(tq.name)}>Complete</button>
                       </div>
                       <div style={{ marginBottom: '6px', color: '#94a3b8', fontWeight: 'bold' }}>Objectives:</div>
                       {fullQuest.objectives.map((obj, idx) => (
@@ -838,7 +886,7 @@ const MapPage = () => {
                     }}
                       onClick={() => setKeyDescription(null)}>
                       {keys.key.name}
-                      <img src={`${keys.key.imageLink}`} alt="" style={{ width: '50%', height: '50%',}}/>
+                      <img src={`${keys.key.imageLink}`} alt="" style={{ width: '50%', height: '50%', }} />
                     </div>
                   )}
                 </div>
@@ -885,7 +933,7 @@ const MapPage = () => {
                               transform: `translate(-50%, -50%) scale(${isExpanded ? markerScale * 1.8 : markerScale}) rotate(${rotation}deg)`,
                               zIndex: isExpanded ? 100 : 30,
                             }}
-                            onClick={() => {setQuestDescription(questDescription === obj.id ? null : obj.id); setExpandedQuestName(isExpanded ? null : tq.name);}}
+                            onClick={() => { setQuestDescription(questDescription === obj.id ? null : obj.id); setExpandedQuestName(isExpanded ? null : tq.name); }}
                           />
                           {questDescription === obj.id && idx === lastIndex && (
                             <div style={{
@@ -897,7 +945,7 @@ const MapPage = () => {
                               transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg)`,
                               zIndex: isExpanded ? 101 : 30,
                             }}
-                              onClick={() => {setQuestDescription(null); setExpandedQuestName(isExpanded ? null : tq.name);}}>
+                              onClick={() => { setQuestDescription(null); setExpandedQuestName(isExpanded ? null : tq.name); }}>
                               {obj.description}
                               <div style={{
                                 width: '100%', background: '#00c40aff', border: 'none',

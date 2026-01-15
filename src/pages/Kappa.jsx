@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import quests from "../data/tasks";
 import { CheckIcon, ExternalLinkIcon, FilterIcon, SearchIcon, TrophyIcon, RotateCcwIcon, ChevronUpIcon, ChevronDownIcon, COLORS, styles, CrossIcon } from '../Component/KappaComponent';
-
+import * as QuestComponent from '../Component/QuestComponent';
 // --- Components ---
 const ProgressBar = ({ current, total, color = COLORS.accent }) => {
     const percentage = total === 0 ? 0 : Math.round((current / total) * 100);
@@ -59,19 +59,19 @@ const TraderSection = ({ traderName, quests, completedIds, onToggle }) => {
                     {quests.map((quest) => {
                         const isDone = completedIds.find(q => q.id === quest.id);
                         const isComplete = isDone && isDone.status === 'complete'
-                        
+
                         return (
                             <div key={quest.id} style={{ ...styles.rowStyle, backgroundColor: isDone ? 'rgba(31, 41, 55, 0.5)' : 'transparent', }}>
                                 <button
-                                    // onClick={() => onToggle(quest.id)}
+                                    onClick={() => onToggle(quest.id)}
                                     style={{
-                                        ...styles.checkboxStyle, border: isDone ? `1px solid ${ isComplete ? COLORS.success : COLORS.danger}` : '1px solid #6b7280',
+                                        ...styles.checkboxStyle, border: isDone ? `1px solid ${isComplete ? COLORS.success : COLORS.danger}` : '1px solid #6b7280',
                                         backgroundColor: isDone ? (isComplete ? COLORS.success : COLORS.danger) : COLORS.bgHeader,
                                         color: isDone ? '#ffffff' : 'transparent',
                                     }}
                                 >
                                     {/* <CheckIcon size={16} />  */}
-                                    { isDone && isComplete ? <CheckIcon size={16} /> : < CrossIcon size={16}/>}
+                                    {isDone && isComplete ? <CheckIcon size={16} /> : < CrossIcon size={16} />}
                                 </button>
 
                                 <div style={{ flexGrow: 1 }}>
@@ -128,32 +128,53 @@ const TraderSection = ({ traderName, quests, completedIds, onToggle }) => {
 const Kappa = () => {
     // --- State Management ---
     const [completedIds, setCompletedIds] = useState(() => {
-        try {
-            const savedCompleted = localStorage.getItem('eft_completed_quests');
-            if (savedCompleted) {
-                return JSON.parse(savedCompleted);
-            }
-        } catch (e) {
-            console.error("Failed to load progress", e);
-            return [];
-        }
+        const savedCompleted = localStorage.getItem('eft_completed_quests');
+        return savedCompleted ? JSON.parse(savedCompleted) : []
     });
 
+    const [isRefresh, setIsRefresh] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const [showCompleted, setShowCompleted] = useState(true);
 
+    useEffect(() => {
+        const handleStorageChange = () => {
+            try {
+                console.log("Storage changed detected! at Kappa");
+
+                const savedCompleted = localStorage.getItem('eft_completed_quests');
+                setCompletedIds(savedCompleted ? JSON.parse(savedCompleted) : []);
+            } catch (err) {
+                console.error(err);
+            }
+        }
+        setIsRefresh(true);
+        // Add listener
+        window.addEventListener("storage", handleStorageChange);
+
+        // Cleanup listener on unmount
+        return () => {
+            window.removeEventListener("storage", handleStorageChange);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (isRefresh) localStorage.setItem('eft_completed_quests', JSON.stringify(completedIds));
+    }, [completedIds, isRefresh]);
+
     const toggleQuest = (id) => {
-        setCompletedIds(prev =>
-            prev.includes(id)
-            ? prev.filter(qId => qId !== id)
-            : [...prev, id]
-        );
-    };
-    
-    // --- Helpers ---
-    const resetProgress = () => {
-        if (window.confirm("Are you sure you want to reset all progress?")) {
-            setCompletedIds([]);
+        const newCompleted = QuestComponent.getPreviousQuestsList(id, completedIds);
+
+        const nextQuestList = QuestComponent.getNextQuestLists(completedIds, id);
+        // console.log(newCompleted, nextQuestList);
+
+        if (newCompleted.length > 0) {
+            setCompletedIds(prev => {
+                const uniqueSet = new Set([...prev, ...newCompleted]);
+                return Array.from(uniqueSet);
+            });
+        }
+        if (newCompleted.length === 0 && nextQuestList.length > 0) {
+            setCompletedIds(prev => prev.filter(q => q.id !== id));
         }
     };
 
@@ -251,14 +272,6 @@ const Kappa = () => {
                     >
                         <FilterIcon size={18} />
                         <span>{showCompleted ? 'Hide Completed' : 'Show Completed'}</span>
-                    </button>
-
-                    <button
-                        onClick={resetProgress}
-                        style={styles.resetButtonStyle}
-                        title="Reset Progress"
-                    >
-                        <RotateCcwIcon size={18} />
                     </button>
                 </div>
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import quests from "../data/tasks";
 import * as QuestComponent from '../Component/QuestComponent';
@@ -7,13 +7,38 @@ const STORAGE_KEY = "eft_selected_quests";
 const OBJECTIVE_CHECK_KEY = "eft_objective_checklist";
 const COMPLETE_KEY = "eft_completed_quests";
 
+const TRADER_THEMES = {
+  "Prapor": { bg: "#7b1fa2", border: "#e1bee7", text: "#ffffff" }, // ม่วงสด
+  "Therapist": { bg: "#0288d1", border: "#81d4fa", text: "#ffffff" }, // ฟ้าสด
+  "Skier": { bg: "#f57c00", border: "#794f11", text: "#ffffff" }, // ส้มสด
+  "Peacekeeper": { bg: "#2e7d32", border: "#a5d6a7", text: "#ffffff" }, // เขียวเข้มทหาร
+  "Mechanic": { bg: "#D34E4E", border: "#ffcdd2", text: "#ffffff" }, // แดงชมพู (ตามที่คุณชอบแต่สดขึ้น)
+  "Ragman": { bg: "#c2185b", border: "#f8bbd0", text: "#ffffff" }, // ชมพูบานเย็น
+  "Jaeger": { bg: "#689f38", border: "#dcedc8", text: "#ffffff" }, // เขียวสว่าง
+  "Fence": { bg: "#5d4037", border: "#d7ccc8", text: "#ffffff" }, // น้ำตาลเข้ม
+  "Lightkeeper": { bg: "#ffea00ff", border: "#f57f17", text: "#000000" }, // เหลืองทองสว่าง (Text ดำ)
+  "BTR Driver": { bg: "#ffeb3b", border: "#212121", text: "#000000" }, // เหลือง Taxi/Hazard (เด่นที่สุด)
+  "Ref": { bg: "#d32f2f", border: "#ffcdd2", text: "#ffffff" }, // แดงสด Arena
+};
+
 const Home = () => {
+  /* ---------------- SAVE STATE ---------------- */
+  const [selectedQuests, setSelectedQuests] = useState(() => {
+    const savedQuests = localStorage.getItem(STORAGE_KEY);
+    return savedQuests ? JSON.parse(savedQuests) : []
+  });
+  const [checkedObjectives, setCheckedObjectives] = useState(() => {
+    const savedChecklist = localStorage.getItem(OBJECTIVE_CHECK_KEY);
+    return savedChecklist ? JSON.parse(savedChecklist) : {}
+  });
+  const [completedQuests, setCompletedQuests] = useState(() => {
+    const savedCompleted = localStorage.getItem(COMPLETE_KEY);
+    return savedCompleted ? JSON.parse(savedCompleted) : []
+  });
+
   /* ---------------- STATE ---------------- */
   const [search, setSearch] = useState("");
-  const [selectedQuests, setSelectedQuests] = useState([]);
   const [objectiveLocations, setObjectiveLocations] = useState([]);
-  const [checkedObjectives, setCheckedObjectives] = useState({});
-  const [completedQuests, setCompletedQuests] = useState([]);
   const [currentQuestId, setCurrentQuestId] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -88,35 +113,41 @@ const Home = () => {
 
   /* ---------------- LOAD ---------------- */
   useEffect(() => {
-    try {
-      const savedQuests = localStorage.getItem(STORAGE_KEY);
-      const savedChecklist = localStorage.getItem(OBJECTIVE_CHECK_KEY);
-      const savedCompleted = localStorage.getItem(COMPLETE_KEY);
 
-      if (savedQuests) setSelectedQuests(JSON.parse(savedQuests));
-      if (savedChecklist) setCheckedObjectives(JSON.parse(savedChecklist));
-      if (savedCompleted) setCompletedQuests(JSON.parse(savedCompleted));
-    } catch (err) {
-      console.error(err);
-    }
+    const handleStorageChange = () => {
+      try {
+        console.log("Storage changed detected! at HOME");
 
+        const savedQuests = localStorage.getItem(STORAGE_KEY);
+        const savedChecklist = localStorage.getItem(OBJECTIVE_CHECK_KEY);
+        const savedCompleted = localStorage.getItem(COMPLETE_KEY);
+
+        setSelectedQuests(savedQuests ? JSON.parse(savedQuests) : []);
+        setCheckedObjectives(savedChecklist ? JSON.parse(savedChecklist) : {});
+        setCompletedQuests(savedCompleted ? JSON.parse(savedCompleted) : []);
+      } catch (err) {
+        console.error(err);
+      }
+    };
     setIsLoaded(true);
+
+    // Add listener
+    window.addEventListener("storage", handleStorageChange);
+
+    // Cleanup listener on unmount
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+
   }, []);
 
   /* ---------------- SAVE ---------------- */
   useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(selectedQuests));
-    }
+    if (isLoaded) localStorage.setItem(STORAGE_KEY, JSON.stringify(selectedQuests));
   }, [selectedQuests, isLoaded]);
 
   useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem(
-        OBJECTIVE_CHECK_KEY,
-        JSON.stringify(checkedObjectives)
-      );
-    }
+    if (isLoaded) localStorage.setItem(OBJECTIVE_CHECK_KEY, JSON.stringify(checkedObjectives));
   }, [checkedObjectives, isLoaded]);
 
   useEffect(() => {
@@ -135,6 +166,31 @@ const Home = () => {
       }
     }
   }, [completedQuests, currentQuestId, isLoaded]);
+
+  /* ---------------- TRADER ---------------- */
+  const traderOptions = useMemo(() => {
+    return [
+      ...new Set(
+        selectedQuests
+          .map((q) => q.trader?.name)
+          .filter(Boolean)
+      ),
+    ];
+  }, [selectedQuests]); // Only recalculate if selectedQuests changes
+
+  const [selectedTraders, setSelectedTraders] = useState(traderOptions);
+
+  useEffect(() => {
+    setSelectedTraders(traderOptions);
+  }, [traderOptions]);
+
+  const toggleTrader = (trader) => {
+    setSelectedTraders((prev) =>
+      prev.includes(trader)
+        ? prev.filter((t) => t !== trader)
+        : [...prev, trader]
+    );
+  };
 
   /* ---------------- QUEST ACTIONS ---------------- */
   const addQuest = (quest) => {
@@ -211,6 +267,11 @@ const Home = () => {
         )
       );
 
+  const resetQuest = () => {
+    setSelectedQuests([]);
+    setCheckedObjectives({});
+    setCompletedQuests([]);
+  }
 
   return (
 
@@ -261,7 +322,15 @@ const Home = () => {
               </div>
             </div>
           )}
-
+          <div className="text-end">
+            {selectedQuests.length > 0 && (
+              <button
+                className="right btn btn-sm btn-link mt-2 text-danger"
+                onClick={() => resetQuest()}>
+                Clear Quest
+              </button>
+            )}
+          </div>
           {/* MAP FILTER */}
           <div className="card shadow-sm mb-4">
             <div className="card-body">
@@ -288,6 +357,40 @@ const Home = () => {
                 })}
               </div>
             </div>
+            {/* 🧑‍💼 TRADER FILTER */}
+            {traderOptions.length > 0 && (
+              <div className="card-body">
+                <h6 className="fw-bold mb-2">
+                  🧑‍💼 Filter by Trader
+                </h6>
+
+                <div className="d-flex flex-wrap gap-2">
+                  {traderOptions.map((trader) => {
+                    const theme = selectedTraders.includes(trader) ? TRADER_THEMES[trader] : { bg: "#1e293b", border: "#334155", text: "#f8fafc" };
+
+                    return (
+                      <button
+                        key={trader}
+                        className={'btn btn-sm'}
+                        style={{ background: theme.bg, border: `1px solid ${theme.border}`, color: theme.text }}
+                        onClick={() => toggleTrader(trader)}
+                      >
+                        {trader}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {/* {selectedTraders.length > 0 && ( */}
+                <button
+                  className="btn btn-sm btn-link mt-2 text-danger"
+                  onClick={() => setSelectedTraders(traderOptions)}
+                >
+                  Clear Trader Filter
+                </button>
+                {/* )} */}
+              </div>
+            )}
           </div>
 
           {/* SELECTED QUESTS */}
@@ -302,78 +405,77 @@ const Home = () => {
 
                     <ul className="list-group">
                       {filteredQuests.map((quest) => (
+                        selectedTraders.includes(quest.trader.name) && (
 
 
-                        <li
-                          key={quest.id}
-                          className="list-group-item list-group-item-action"
-                          onClick={() => scrollTo(quest.id)}
-                          style={{ cursor: "pointer" }}
-                        >
-                          <div className="d-flex justify-content-between align-items-center gap-3">
+                          <li
+                            key={quest.id}
+                            className="list-group-item list-group-item-action"
+                            onClick={() => scrollTo(quest.id)}
+                            style={{ cursor: "pointer" }}
+                          >
+                            <div className="d-flex justify-content-between align-items-center gap-3">
 
-                            {/* LEFT : QUEST INFO */}
-                            <div className="flex-grow-1">
-                              <a
-                                className="fw-bold text-info text-decoration-none"
-                                href={quest.wikiLink}
-                                target="_blank"
-                                rel="noreferrer"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                {quest.name}
-                              </a>
+                              {/* LEFT : QUEST INFO */}
+                              <div className="flex-grow-1">
+                                <a
+                                  className="fw-bold text-info text-decoration-none"
+                                  href={quest.wikiLink}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {quest.name}
+                                </a>
 
-                              <div className="text-muted small mt-1">
-                                {quest.trader.name} | EXP: {quest.experience}
+                                <div className="text-muted small mt-1">
+                                  {quest.trader.name} | EXP: {quest.experience}
 
-                                {quest.kappaRequired && (
-                                  <span className="badge rounded-pill bg-success ms-2">
-                                    Kappa
-                                  </span>
-                                )}
+                                  {quest.kappaRequired && (
+                                    <span className="badge rounded-pill bg-success ms-2">
+                                      Kappa
+                                    </span>
+                                  )}
 
-                                {quest.lightkeeperRequired && (
-                                  <span className="badge rounded-pill bg-info ms-1">
-                                    LightKeeper
-                                  </span>
-                                )}
+                                  {quest.lightkeeperRequired && (
+                                    <span className="badge rounded-pill bg-info ms-1">
+                                      LightKeeper
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-muted small">
+                                  Start at LV: {quest.minPlayerLevel}
+                                </div>
                               </div>
-                              <div className="text-muted small">
-                                Start at LV: {quest.minPlayerLevel}
+
+                              {/* RIGHT : ACTION BUTTONS */}
+                              <div className="d-flex align-items-center flex-shrink-0">
+                                <button
+                                  className="btn btn-sm btn-outline-success me-2"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    nextQuest(quest.id);
+                                  }}
+                                  title="Complete"
+                                >
+                                  ✓
+                                </button>
+
+                                <button
+                                  className="btn btn-sm btn-outline-danger"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeQuest(quest.id);
+                                  }}
+                                  title="Remove"
+                                >
+                                  ✕
+                                </button>
                               </div>
+
                             </div>
-
-                            {/* RIGHT : ACTION BUTTONS */}
-                            <div className="d-flex align-items-center flex-shrink-0">
-                              <button
-                                className="btn btn-sm btn-outline-success me-2"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  nextQuest(quest.id);
-                                }}
-                                title="Complete"
-                              >
-                                ✓
-                              </button>
-
-                              <button
-                                className="btn btn-sm btn-outline-danger"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  removeQuest(quest.id);
-                                }}
-                                title="Remove"
-                              >
-                                ✕
-                              </button>
-                            </div>
-
-                          </div>
-                        </li>
-
-
-
+                          </li>
+                        )
                       ))}
                     </ul>
                   </div>
@@ -397,6 +499,7 @@ const Home = () => {
                             )
                         ) || [];
 
+                      if (!selectedTraders.includes(quest.trader.name)) return null;
                       if (filteredObjectives.length === 0) return null;
 
                       return (

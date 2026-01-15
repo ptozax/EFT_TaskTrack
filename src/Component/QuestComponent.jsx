@@ -111,10 +111,10 @@ export const getNextQuestLists = (completedQuests, triggeringQuestId = null) => 
         if (triggeringQuestId) {
             // Does this quest require ANY of the IDs related to our trigger?
             // (Direct parent OR a sibling that failed because of the parent)
-            const isRelated = requirements.some(req => 
+            const isRelated = requirements.some(req =>
                 relatedTriggerIds.includes(req.task.id)
             );
-            
+
             if (!isRelated) return false;
         }
 
@@ -203,3 +203,13 @@ export const getAllRequirements = (questId, visitedIds = new Set()) => {
 
     return visitedIds;
 };
+
+export const callbackStorageChange = (handleStorageChange) => {
+    // Add listener
+    window.addEventListener("storage", handleStorageChange);
+
+    // Cleanup listener on unmount
+    return () => {
+        window.removeEventListener("storage", handleStorageChange);
+    };
+}
