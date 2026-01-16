@@ -592,7 +592,7 @@ const MapPage = () => {
                       <div style={{ marginBottom: '6px', color: '#94a3b8', fontWeight: 'bold' }}>Objectives:</div>
                       {fullQuest.objectives.map((obj, idx) => (
                         <div key={idx} style={{ marginBottom: '6px', color: '#cbd5e1', lineHeight: '1.4' }}>
-                          • {obj.description}
+                          • {obj.description}{["giveItem", "TaskObjectiveShoot", "shoot", "kill"].includes(obj.type) && <> <span className='text-info'>x {obj.count}</span> </>}
                           {(checkedObjectives[getObjectiveKey(fullQuest.id, obj.id)]) ? ' ✅' : ''}
                         </div>
                       ))}
