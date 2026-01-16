@@ -73,7 +73,11 @@ const QuestTree = () => {
     const onQuetsSccess = (successQuest) => {
         let passQuest = QuestComponent.getPreviousQuestsList(successQuest.id, JSON.parse(localStorage.getItem(COMPLETE_KEY)))
         setCompleteQuest([...new Set([...completeQuest, ...passQuest])])
-        setCurentQuest(prev => prev.filter(q => q.id !== successQuest.id));
+
+        const nextCurrentQuest = curentQuest.filter(q => q.id !== successQuest.id);
+        const nextquest = tasks.filter(q => q.taskRequirements?.some(req => req.task.id === successQuest.id) );
+
+        setCurentQuest([...new Set([...nextCurrentQuest, ...nextquest])]);
 
     }
 
@@ -102,7 +106,7 @@ const QuestTree = () => {
 
 
             let completedQuestsIds = completeQuest.map(q => q.id);
-            let curentQuestIds =curentQuest.map(q => q.id);
+            let curentQuestIds = curentQuest.map(q => q.id);
             let passQuest = getCompletedQuests(tasks, curentQuestIds)
             // [] + []  ไม่ซ้ำ
             const result = [...new Set([...completedQuestsIds, ...passQuest])];
@@ -110,7 +114,7 @@ const QuestTree = () => {
 
 
 
-            
+
         }
     }, [completeQuest])
 
@@ -189,7 +193,7 @@ const QuestTree = () => {
         });
 
         return { nodes: positionedNodes, edges: edgeData, layout: g.graph() };
-    }, [tasks, selectedTrader, searchTerm,passedQuest]);
+    }, [tasks, selectedTrader, searchTerm, passedQuest]);
 
     // D3 Zoom & Pan
     useEffect(() => {
@@ -404,6 +408,40 @@ const QuestTree = () => {
                             <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
                                 <polygon points="0 0, 8 3, 0 6" fill="#334155" />
                             </marker>
+
+                            <linearGradient
+                                id="rainbowStrokeAnimated"
+                                gradientUnits="userSpaceOnUse"
+                                x1="0"
+                                y1="0"
+                                x2="240"
+                                y2="0"
+                            >
+                                <stop offset="0%" stopColor="#ef4444" />
+                                <stop offset="20%" stopColor="#f97316" />
+                                <stop offset="40%" stopColor="#facc15" />
+                                <stop offset="60%" stopColor="#22c55e" />
+                                <stop offset="80%" stopColor="#3b82f6" />
+                                <stop offset="100%" stopColor="#a855f7" />
+
+                                {/* animation */}
+                                <animate
+                                    attributeName="x1"
+                                    from="0"
+                                    to="240"
+                                    dur="3s"
+                                    repeatCount="indefinite"
+                                />
+                                <animate
+                                    attributeName="x2"
+                                    from="240"
+                                    to="480"
+                                    dur="3s"
+                                    repeatCount="indefinite"
+                                />
+                            </linearGradient>
+
+
                         </defs>
                         <g ref={gRef}>
                             {/* วาดเส้นเชื่อม (Edges) */}
@@ -435,8 +473,8 @@ const QuestTree = () => {
                                             height="70"
                                             rx="12"
                                             fill={passedQuest.includes(node.id) ? { bg: "#1e293b", border: "#334155", text: "#f8fafc" } : theme.bg}
-                                            stroke={isHighlight ? "#fbbf24" : (isSelectedTraderNode ? "#fff" : theme.border)}
-                                            strokeWidth={isHighlight ? "4" : (isSelectedTraderNode ? "2.5" : "1")}
+                                            stroke={curentQuest.map(q => q.id).includes(node.id) ? "url(#rainbowStrokeAnimated)" : isHighlight ? "#fbbf24" : isSelectedTraderNode ? "#fff" : theme.border}
+                                            strokeWidth={curentQuest.map(q => q.id).includes(node.id) ? "10" : isHighlight ? "4" : (isSelectedTraderNode ? "2.5" : "1")}
                                             className="node-rect"
                                             style={{
                                                 filter: isHighlight ? 'drop-shadow(0 0 12px rgba(251, 191, 36, 0.4))' : 'none',
