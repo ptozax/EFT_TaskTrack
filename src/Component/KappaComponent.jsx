@@ -142,6 +142,54 @@ export const styles = {
         cursor: 'pointer',
         marginLeft: 'auto',
     },
+    // Modal Styles
+    modalOverlayStyle: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.75)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 50,
+        backdropFilter: 'blur(4px)',
+        padding: '1rem'
+    },
+    modalContentStyle: {
+        backgroundColor: COLORS.bgCard,
+        border: `1px solid ${COLORS.border}`,
+        borderRadius: '0.75rem',
+        padding: '2rem',
+        maxWidth: '400px',
+        width: '100%',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+        textAlign: 'center'
+    },
+    modalButtonsContainerStyle: {
+        display: 'flex',
+        gap: '1rem',
+        justifyContent: 'center',
+        marginTop: '1.5rem'
+    },
+    modalConfirmButtonStyle: {
+        padding: '0.75rem 1.5rem',
+        borderRadius: '0.5rem',
+        backgroundColor: '#dc2626',
+        color: 'white',
+        border: 'none',
+        fontWeight: '600',
+        cursor: 'pointer'
+    },
+    modalCancelButtonStyle: {
+        padding: '0.75rem 1.5rem',
+        borderRadius: '0.5rem',
+        backgroundColor: 'transparent',
+        color: COLORS.textPrimary,
+        border: `1px solid ${COLORS.border}`,
+        cursor: 'pointer'
+    }
 }
 
 // --- Icons (Inline SVGs) ---
@@ -175,7 +223,7 @@ export const CrossIcon = ({ size = 24, className = "" }) => (
         strokeLinejoin="round"
         className={className}
     >
-        <path d="M18 6L6 18M6 6L18 18"/>
+        <path d="M18 6L6 18M6 6L18 18" />
     </svg>
 );
 

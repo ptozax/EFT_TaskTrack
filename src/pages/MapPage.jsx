@@ -342,6 +342,7 @@ const MapPage = () => {
   // ----------- QUEST ACTIONS -----------
   const removeQuest = (e, questName) => {
     e.stopPropagation();
+
     setTrackedQuests(trackedQuests.filter(q => q.name !== questName));
     if (expandedQuestName === questName) setExpandedQuestName(null);
 
@@ -378,14 +379,14 @@ const MapPage = () => {
     }));
   }
 
-  const nextQuest = (questName) => {
+  const nextQuest = (e, questName) => {
     const quest = quests.find(q => q.name === questName);
 
     const newCompleted = QuestComponent.getPreviousQuestsList(quest.id, completedQuests);
-    const idsToRemove = new Set(newCompleted.map(u => u.id));
-    idsToRemove.add(quest.id);
-    idsToRemove.forEach(id => {
-      removeQuest(id);
+    const idsToRemove = new Set(newCompleted.map(u => u.name));
+    idsToRemove.add(quest.name);
+    idsToRemove.forEach(name => {
+      removeQuest(e, name);
     })
 
     setCurrentQuestId(quest.id);
@@ -586,7 +587,7 @@ const MapPage = () => {
                             width: '100%', background: '#00c40aff', border: 'none',
                             borderRadius: "5px", color: '#ffffffff', cursor: 'default', fontSize: '15px', fontWeight: 'bold'
                           }}
-                          onClick={() => nextQuest(tq.name)}>Complete</button>
+                          onClick={(e) => nextQuest(e, tq.name)}>Complete</button>
                       </div>
                       <div style={{ marginBottom: '6px', color: '#94a3b8', fontWeight: 'bold' }}>Objectives:</div>
                       {fullQuest.objectives.map((obj, idx) => (

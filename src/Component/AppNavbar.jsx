@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
@@ -8,10 +8,10 @@ import { NavLink } from 'react-router-dom';
 
 import { GiPc, GiTreeGrowth, GiTrophy } from 'react-icons/gi';
 import { FaGem, FaMap, FaQrcode } from 'react-icons/fa';
+import { styles, COLORS } from './KappaComponent';
 
 
 function AppNavbar() {
-
 
     const mainNavLinks = [
         { key: "#/", href: "/", icon: FaGem, text: "Home" },
@@ -26,13 +26,25 @@ function AppNavbar() {
 
     ];
 
-    const resetQuest = () => {
+    const [showResetModal, setShowResetModal] = useState(false);
+
+
+    const handleResetClick = () => {
+        setShowResetModal(true);
+    };
+
+    const cancelReset = () => {
+        setShowResetModal(false);
+    };
+
+    const confirmReset = () => {
         localStorage.removeItem('eft_selected_quests');
         localStorage.removeItem('eft_objective_checklist');
         localStorage.removeItem('eft_completed_quests');
         localStorage.removeItem('eft_select_quest_hidden');
 
         window.dispatchEvent(new Event("storage"));
+        setShowResetModal(false);
     }
 
     const activeStyle = {
@@ -86,7 +98,7 @@ function AppNavbar() {
                             </Nav.Link>
                         ))}
                         <button
-                            onClick={resetQuest}
+                            onClick={handleResetClick}
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',
@@ -105,6 +117,25 @@ function AppNavbar() {
                         </button>
                     </Nav>
                 </Navbar.Collapse>
+                {/* Custom Reset Modal */}
+                {showResetModal && (
+                    <div style={styles.modalOverlayStyle}>
+                        <div style={styles.modalContentStyle}>
+                            <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem', color: COLORS.textPrimary }}>Reset Progress?</h3>
+                            <p style={{ color: COLORS.textSecondary, lineHeight: '1.5' }}>
+                                This will uncheck all quests and clear your progress locally. This action cannot be undone.
+                            </p>
+                            <div style={styles.modalButtonsContainerStyle}>
+                                <button onClick={cancelReset} style={styles.modalCancelButtonStyle}>
+                                    Cancel
+                                </button>
+                                <button onClick={confirmReset} style={styles.modalConfirmButtonStyle}>
+                                    Yes, Reset All
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </Container>
         </Navbar>
     );
