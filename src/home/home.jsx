@@ -8,6 +8,7 @@ const OBJECTIVE_CHECK_KEY = "eft_objective_checklist";
 const COMPLETE_KEY = "eft_completed_quests";
 
 const TRADER_THEMES = {
+  "Any": { bg: "#00ccff", border: "#000000", text: "#ffffff" }, // ม่วงสด
   "Prapor": { bg: "#7b1fa2", border: "#e1bee7", text: "#ffffff" }, // ม่วงสด
   "Therapist": { bg: "#0288d1", border: "#81d4fa", text: "#ffffff" }, // ฟ้าสด
   "Skier": { bg: "#f57c00", border: "#794f11", text: "#ffffff" }, // ส้มสด
@@ -169,22 +170,23 @@ const Home = () => {
 
   /* ---------------- TRADER ---------------- */
   const traderOptions = useMemo(() => {
-    return [
+    return ["Any",
       ...new Set(
-        selectedQuests
+        quests
           .map((q) => q.trader?.name)
           .filter(Boolean)
       ),
     ];
   }, [selectedQuests]); // Only recalculate if selectedQuests changes
 
-  const [selectedTraders, setSelectedTraders] = useState(traderOptions);
-
-  useEffect(() => {
-    setSelectedTraders(traderOptions);
-  }, [traderOptions]);
+  const [selectedTraders, setSelectedTraders] = useState([]);
 
   const toggleTrader = (trader) => {
+    if (trader === "Any") {
+      setSelectedTraders([]);
+      return;
+    }
+
     setSelectedTraders((prev) =>
       prev.includes(trader)
         ? prev.filter((t) => t !== trader)
@@ -267,12 +269,6 @@ const Home = () => {
         )
       );
 
-  const resetQuest = () => {
-    setSelectedQuests([]);
-    setCheckedObjectives({});
-    setCompletedQuests([]);
-  }
-
   return (
 
     <div className="container-fluid">
@@ -322,15 +318,7 @@ const Home = () => {
               </div>
             </div>
           )}
-          <div className="text-end">
-            {selectedQuests.length > 0 && (
-              <button
-                className="right btn btn-sm btn-link mt-2 text-danger"
-                onClick={() => resetQuest()}>
-                Clear Quest
-              </button>
-            )}
-          </div>
+
           {/* MAP FILTER */}
           <div className="card shadow-sm mb-4">
             <div className="card-body">
@@ -366,7 +354,8 @@ const Home = () => {
 
                 <div className="d-flex flex-wrap gap-2">
                   {traderOptions.map((trader) => {
-                    const theme = selectedTraders.includes(trader) ? TRADER_THEMES[trader] : { bg: "#1e293b", border: "#334155", text: "#f8fafc" };
+                    const active = trader === "Any" ? selectedTraders.length === 0 : selectedTraders.includes(trader);
+                    const theme = active ? TRADER_THEMES[trader] : { bg: "#1e293b", border: "#334155", text: "#f8fafc" };
 
                     return (
                       <button
@@ -380,15 +369,6 @@ const Home = () => {
                     )
                   })}
                 </div>
-
-                {/* {selectedTraders.length > 0 && ( */}
-                <button
-                  className="btn btn-sm btn-link mt-2 text-danger"
-                  onClick={() => setSelectedTraders(traderOptions)}
-                >
-                  Clear Trader Filter
-                </button>
-                {/* )} */}
               </div>
             )}
           </div>
@@ -405,9 +385,7 @@ const Home = () => {
 
                     <ul className="list-group">
                       {filteredQuests.map((quest) => (
-                        selectedTraders.includes(quest.trader.name) && (
-
-
+                        (selectedTraders.length === 0 || selectedTraders.includes(quest.trader.name)) && (
                           <li
                             key={quest.id}
                             className="list-group-item list-group-item-action"
@@ -475,8 +453,7 @@ const Home = () => {
 
                             </div>
                           </li>
-                        )
-                      ))}
+                        )))}
                     </ul>
                   </div>
                 </div>
@@ -488,7 +465,13 @@ const Home = () => {
                   <div className="card-body">
 
                     <h5 className="fw-bold mb-3 text-info">🎯 Objectives</h5>
-
+                    {filteredQuests.length === 0 && (
+                      <div
+                        className="mb-4 p-3 rounded border border-secondary bg-black bg-opacity-25 "
+                      >
+                        หาม้ายเควสนิ
+                      </div>
+                    )}
                     {filteredQuests.map((quest) => {
                       const filteredObjectives =
                         quest.objectives?.filter(
@@ -499,7 +482,7 @@ const Home = () => {
                             )
                         ) || [];
 
-                      if (!selectedTraders.includes(quest.trader.name)) return null;
+                      if (selectedTraders.length > 0 && !selectedTraders.includes(quest.trader.name)) return null;
                       if (filteredObjectives.length === 0) return null;
 
                       return (
@@ -566,7 +549,7 @@ const Home = () => {
                                         : "text-light"
                                         }`}
                                     >
-                                      {obj.description}
+                                      {obj.description} {["giveItem", "TaskObjectiveShoot", "shoot", "kill"].includes(obj.type) && <> <span className='text-info'>x {obj.count}</span> </>}
                                     </span>
 
                                     <button
