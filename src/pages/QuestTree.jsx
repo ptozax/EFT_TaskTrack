@@ -35,13 +35,13 @@ const QuestTree = () => {
 
 
     const [passedQuest, setPassedQuest] = useState([]);
-    const [completeQuest, setCompleteQuest] = useState([]);
-    const [curentQuest, setCurentQuest] = useState([]);
+    const [completeQuest, setCompleteQuest] = useState(() => {
+        return JSON.parse(localStorage.getItem(COMPLETE_KEY)) || [];
+    });
+    const [curentQuest, setCurentQuest] = useState(() => {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    });
     const [isLoad, setIsLoad] = useState(false);
-
-
-
-
 
     const zoomRef = useRef(null);
 
@@ -72,10 +72,13 @@ const QuestTree = () => {
 
     const onQuetsSccess = (successQuest) => {
         let passQuest = QuestComponent.getPreviousQuestsList(successQuest.id, JSON.parse(localStorage.getItem(COMPLETE_KEY)))
+        const idsToRemove = new Set(passQuest.map(u => u.id));
+        idsToRemove.add(successQuest.id);
+
         setCompleteQuest([...new Set([...completeQuest, ...passQuest])])
 
-        const nextCurrentQuest = curentQuest.filter(q => q.id !== successQuest.id);
-        const nextquest = tasks.filter(q => q.taskRequirements?.some(req => req.task.id === successQuest.id) );
+        const nextCurrentQuest = curentQuest.filter(q => !Array.from(idsToRemove).includes(q.id));
+        const nextquest = QuestComponent.getNextQuestLists([...new Set([...completeQuest, ...passQuest])], successQuest.id);
 
         setCurentQuest([...new Set([...nextCurrentQuest, ...nextquest])]);
 
@@ -83,20 +86,28 @@ const QuestTree = () => {
 
 
     useEffect(() => {
-        const completedQuests = JSON.parse(localStorage.getItem(COMPLETE_KEY)) || [];
-        // let completedQuestsIds = completedQuests.map(q => q.id);
-
-        const curentQuests = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []
-        // let curentQuestIds =curentQuests.map(q => q.id);
-
-        // let passQuest = getCompletedQuests(tasks, curentQuestIds)
-
-        // [] + []  ไม่ซ้ำ
-        // const result = [...new Set([...completedQuestsIds, ...passQuest])];
-        // setPassedQuest(result);
-        setCompleteQuest(completedQuests);
-        setCurentQuest(curentQuests)
         setIsLoad(true);
+        const handleStorageChange = () => {
+            try {
+                console.log("Storage changed detected! at Quest Tree");
+                const completedQuests = JSON.parse(localStorage.getItem(COMPLETE_KEY)) || [];
+                // let completedQuestsIds = completedQuests.map(q => q.id);
+
+                const curentQuests = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []
+                // let curentQuestIds =curentQuests.map(q => q.id);
+
+                // let passQuest = getCompletedQuests(tasks, curentQuestIds)
+
+                // [] + []  ไม่ซ้ำ
+                // const result = [...new Set([...completedQuestsIds, ...passQuest])];
+                // setPassedQuest(result);
+                setCompleteQuest(completedQuests);
+                setCurentQuest(curentQuests)
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        QuestComponent.callbackStorageChange(handleStorageChange);
     }, []);
 
     useEffect(() => {
@@ -116,7 +127,7 @@ const QuestTree = () => {
 
 
         }
-    }, [completeQuest])
+    }, [completeQuest, isLoad])
 
 
 
