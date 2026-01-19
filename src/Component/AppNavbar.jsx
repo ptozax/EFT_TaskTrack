@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
@@ -6,9 +6,11 @@ import Badge from 'react-bootstrap/Badge';
 
 import { NavLink } from 'react-router-dom';
 
-import { GiPc, GiTreeGrowth, GiTrophy } from 'react-icons/gi';
+import { GiHomeGarage, GiPc, GiTreeGrowth, GiTrophy } from 'react-icons/gi';
 import { FaGem, FaMap, FaQrcode } from 'react-icons/fa';
 import { styles, COLORS } from './KappaComponent';
+import BEAR from '/BEAR_Icon.webp';
+import USEC from '/USEC_Emblem.webp';
 
 
 function AppNavbar() {
@@ -19,6 +21,7 @@ function AppNavbar() {
         { key: "#/Map", href: "/Map", icon: FaMap, text: "Map" },
         { key: "#/Kappa", href: "/Kappa", icon: GiTrophy, text: "Kappa" },
         { key: "#/QuestTree", href: "/QuestTree", icon: GiTreeGrowth, text: "Quest Tree" },
+        { key: "#/Hideout", href: "/Hideout", icon: GiHomeGarage, text: "Hideout" },
 
     ];
 
@@ -32,6 +35,19 @@ function AppNavbar() {
     const handleResetClick = () => {
         setShowResetModal(true);
     };
+
+    const [factionName, setFactionName] = useState(() => {
+        const saveFaction = localStorage.getItem('eft_faction_name');
+        return saveFaction ? JSON.parse(saveFaction) : 'BEAR'
+    });
+    const ToggleFaction = () => {
+        if (factionName === 'BEAR') setFactionName('USEC')
+        else setFactionName('BEAR');
+    };
+
+    useEffect(() => {
+        localStorage.setItem('eft_faction_name', JSON.stringify(factionName));
+    }, [factionName]);
 
     const cancelReset = () => {
         setShowResetModal(false);
@@ -97,24 +113,42 @@ function AppNavbar() {
                                 {renderNavLinkContent(item)}
                             </Nav.Link>
                         ))}
-                        <button
-                            onClick={handleResetClick}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '0.5rem',
-                                padding: '0.5rem 1rem',
-                                borderRadius: '0.5rem',
-                                border: '1px solid rgba(239, 68, 68, 0.3)',
-                                backgroundColor: 'transparent',
-                                color: '#f87171', // red-400
-                                cursor: 'pointer',
-                                marginLeft: 'auto',
-                            }}
-                            title="Reset Progress"
-                        >
-                            RESET
-                        </button>
+
+                        <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto', gap: '0.5rem' }}>
+                            <img
+                                onClick={() => ToggleFaction()}
+                                src={`${factionName === 'BEAR' ? BEAR : USEC}`}
+                                alt={`${factionName} Icon`}
+                                style={{
+                                    height: '40px', // Set a fixed height for stability
+                                    width: 'auto',  // Maintain aspect ratio
+                                    padding: '0 0.5rem',
+                                    borderRadius: '0.5rem',
+                                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                                    backgroundColor: 'white',
+                                    cursor: 'pointer',
+                                }}
+                            />
+
+                            <button
+                                onClick={handleResetClick}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    padding: '0.5rem 1rem',
+                                    borderRadius: '0.5rem',
+                                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                                    backgroundColor: 'transparent',
+                                    color: '#f87171',
+                                    cursor: 'pointer',
+                                    height: '40px',
+                                }}
+                                title="Reset Progress"
+                            >
+                                RESET
+                            </button>
+                        </div>
                     </Nav>
                 </Navbar.Collapse>
                 {/* Custom Reset Modal */}

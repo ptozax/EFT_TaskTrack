@@ -12,6 +12,7 @@ import AddQuest from "./pages/AddQuest.jsx";
 import MapPage from "./pages/MapPage.jsx";
 import Kappa from "./pages/Kappa.jsx";
 import QuestTree from "./pages/QuestTree.jsx";
+import Hideout from "./pages/Hideout.jsx";
 import AppNavbar from './Component/AppNavbar.jsx';
 
 const pageComponents = {
@@ -19,6 +20,7 @@ const pageComponents = {
   Kappa: <Kappa/>,
   Map : < MapPage/>,
   AddQuest: <AddQuest/>,
+  Hideout: <Hideout/>,
   Default: <Home/>,
 };
 

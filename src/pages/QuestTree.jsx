@@ -96,10 +96,7 @@ const QuestTree = () => {
 
     }
 
-
-    useEffect(() => {
-        setIsLoad(true);
-
+    const handleStorageChange = () => {
 
         const completedQuests = JSON.parse(localStorage.getItem(COMPLETE_KEY)) || [];
         const curentQuests = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []
@@ -111,7 +108,7 @@ const QuestTree = () => {
         // [] + []  ไม่ซ้ำ
         const result = [...new Set([...completedQuestsIds, ...passQuest])];
 
-        const completedQuestsNew =[];
+        const completedQuestsNew = [];
         result.forEach(r => {
             completedQuestsNew.push({ id: r, status: "complete" })
         })
@@ -119,9 +116,13 @@ const QuestTree = () => {
 
         setCompleteQuest(completedQuestsNew);
         setCurentQuest(curentQuests)
+    }
 
+    useEffect(() => {
+        setIsLoad(true);
+        handleStorageChange();
+        QuestComponent.callbackStorageChange(handleStorageChange);
     }, []);
-
     useEffect(() => {
         if (isLoad) {
             localStorage.setItem(COMPLETE_KEY, JSON.stringify(completeQuest));
