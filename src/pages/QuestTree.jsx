@@ -60,8 +60,19 @@ const QuestTree = () => {
 
             for (const req of quest.taskRequirements) {
                 if (!completed.has(req.task.id)) {
-                    completed.add(req.task.id);
-                    dfs(req.task.id);
+                    if (req.status.some(s => ["active",].includes(s))) {
+                        const tarketActiveTask = tasks.filter(t => t.id == req.task.id);
+                        tarketActiveTask.forEach(maintask => {
+                            maintask.taskRequirements?.forEach(require => {
+                                 completed.add(require.task.id);
+                                 dfs(require.task.id);
+                            });
+                        });
+                    }
+                    else if (req.status.some(s => ["complete", "failed"].includes(s))) {
+                        completed.add(req.task.id);
+                        dfs(req.task.id);
+                    }
                 }
             }
         }
@@ -69,6 +80,7 @@ const QuestTree = () => {
         currentQuests.forEach(dfs);
         return [...completed];
     }
+
 
     const onQuetsSccess = (successQuest) => {
         let passQuest = QuestComponent.getPreviousQuestsList(successQuest.id, JSON.parse(localStorage.getItem(COMPLETE_KEY)))
@@ -186,8 +198,19 @@ const QuestTree = () => {
         finalTasks.forEach(t => {
             t.taskRequirements?.forEach(req => {
                 if (visibleIds.has(req.task.id)) {
-                    g.setEdge(req.task.id, t.id);
-                    edgeData.push({ source: req.task.id, target: t.id });
+                    if (req.status.some(s => ["active",].includes(s))) {
+                        const tarketActiveTask = tasks.filter(t => t.id == req.task.id);
+                        tarketActiveTask.forEach(maintask => {
+                            maintask.taskRequirements?.forEach(require => {
+                                edgeData.push({ source: require.task.id, target: t.id });
+                                g.setEdge(require.task.id, t.id);
+                            });
+                        });
+                    }
+                    else if (req.status.some(s => ["complete", "failed"].includes(s))) {
+                        g.setEdge(req.task.id, t.id);
+                        edgeData.push({ source: req.task.id, target: t.id });
+                    }
                 }
             });
         });
