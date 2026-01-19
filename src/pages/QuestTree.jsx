@@ -64,8 +64,8 @@ const QuestTree = () => {
                         const tarketActiveTask = tasks.filter(t => t.id == req.task.id);
                         tarketActiveTask.forEach(maintask => {
                             maintask.taskRequirements?.forEach(require => {
-                                 completed.add(require.task.id);
-                                 dfs(require.task.id);
+                                completed.add(require.task.id);
+                                dfs(require.task.id);
                             });
                         });
                     }
@@ -506,7 +506,7 @@ const QuestTree = () => {
                                             width="240"
                                             height="70"
                                             rx="12"
-                                            fill={passedQuest.includes(node.id) ? { bg: "#1e293b", border: "#334155", text: "#f8fafc" } : theme.bg}
+                                            fill={passedQuest.includes(node.id) ? "#1e293b" : theme.bg}
                                             stroke={curentQuest.map(q => q.id).includes(node.id) ? "url(#rainbowStrokeAnimated)" : isHighlight ? "#fbbf24" : isSelectedTraderNode ? "#fff" : theme.border}
                                             strokeWidth={curentQuest.map(q => q.id).includes(node.id) ? "10" : isHighlight ? "4" : (isSelectedTraderNode ? "2.5" : "1")}
                                             className="node-rect"
@@ -519,14 +519,14 @@ const QuestTree = () => {
                                             onClick={() => setSelectedQuest(node)}
 
                                         />
-                                        <text x="16" y="28" fill={theme.text} className="font-bold text-[13px] tracking-tight">
+                                        <text x="16" y="28" fill={theme.text} className="font-bold text-[13px] tracking-tight" pointerEvents="none">
                                             {node.name.length > 28 ? node.name.substring(0, 26) + '...' : node.name}
                                         </text>
-                                        <text x="16" y="52" fill={theme.text} className="opacity-60 text-[10px] font-medium uppercase tracking-wider">
+                                        <text x="16" y="52" fill={theme.text} className="opacity-60 text-[10px] font-medium uppercase tracking-wider" pointerEvents="none">
                                             {node.trader.name} {node.minPlayerLevel > 1 ? `• LV.${node.minPlayerLevel}` : ''}
                                         </text>
                                         {node.kappaRequired && (
-                                            <circle cx="220" cy="50" r="4" fill="#fbbf24" title="Kappa Required" />
+                                            <circle cx="220" cy="50" r="4" fill="#fbbf24" title="Kappa Required" pointerEvents="none" />
                                         )}
                                     </g>
                                 );
@@ -596,6 +596,17 @@ const QuestTree = () => {
                                     </li>
                                 ))}
                             </ul>
+
+                            <div className='d-flex justify-content-end' style={{ marginTop: '10px' }}>
+                                <a
+                                    href={selectedQuest.wikiLink}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    style={{ color: '#60a5fa', textDecoration: 'none' }}
+                                >
+                                    Wiki ↗
+                                </a>
+                            </div>
 
                         </div>
                     </div>
