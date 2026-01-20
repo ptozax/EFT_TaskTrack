@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { theme, styles, Icons } from '../Component/HideoutComponent';
+import * as QuestComponent from '../Component/QuestComponent';
 import hideout from '../data/hideout.json';
 
 const Hideout = () => {
@@ -26,6 +27,18 @@ const Hideout = () => {
         return save;
     });
 
+    useEffect(() => {
+        const handleStorageChange = () => {
+            try {
+                console.log("Storage changed detected! at Hideout");
+                resetProgress();
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        QuestComponent.callbackStorageChange(handleStorageChange);
+    }, []);
     useEffect(() => {
         localStorage.setItem('eft_hideout', JSON.stringify(currentLevels));
     }, [currentLevels]);
@@ -173,9 +186,7 @@ const Hideout = () => {
     const [copiedKeyIndex, setCopiedKeyIndex] = useState(null);
     const handleCopyName = (name, index) => {
         navigator.clipboard.writeText(name).then(() => {
-            // Set the specific index as "copied"
             setCopiedKeyIndex(index);
-            // Reset back to normal after 1.5 seconds
             setTimeout(() => setCopiedKeyIndex(null), 500);
         });
     };
@@ -224,7 +235,7 @@ const Hideout = () => {
                                 {isSidebarOpen ? 'Hide List' : 'Shopping List'}
                                 <span style={styles.badge}>{shoppingList.length}</span>
                             </button>
-                            <button
+                            {/* <button
                                 onClick={resetProgress}
                                 style={{
                                     background: 'none',
@@ -236,7 +247,7 @@ const Hideout = () => {
                                 }}
                             >
                                 Reset Data
-                            </button>
+                            </button> */}
                         </div>
                     </div>
 

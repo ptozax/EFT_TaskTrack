@@ -12,6 +12,7 @@ import { styles, COLORS } from './KappaComponent';
 import BEAR from '/BEAR_Icon.webp';
 import USEC from '/USEC_Emblem.webp';
 
+const RESET = ["All", "Questline", "Hideout"];
 
 function AppNavbar() {
 
@@ -30,37 +31,64 @@ function AppNavbar() {
     ];
 
     const [showResetModal, setShowResetModal] = useState(false);
-
-
-    const handleResetClick = () => {
-        setShowResetModal(true);
-    };
+    const [selectReset, setSelectReset] = useState([]);
 
     const [factionName, setFactionName] = useState(() => {
         const saveFaction = localStorage.getItem('eft_faction_name');
         return saveFaction ? JSON.parse(saveFaction) : 'BEAR'
     });
+
     const ToggleFaction = () => {
         if (factionName === 'BEAR') setFactionName('USEC')
         else setFactionName('BEAR');
+    };
+
+    const handleResetClick = () => {
+        setShowResetModal(true);
     };
 
     useEffect(() => {
         localStorage.setItem('eft_faction_name', JSON.stringify(factionName));
     }, [factionName]);
 
+    const onChangeSelectReset = (value) => {
+        if (value === "All") {
+            setObjectiveLocations([]);
+            return;
+        }
+        setSelectReset((prev) =>
+            prev.includes(value)
+                ? prev.filter((t) => t !== value)
+                : [...prev, value]);
+    };
+
     const cancelReset = () => {
         setShowResetModal(false);
     };
 
     const confirmReset = () => {
-        localStorage.removeItem('eft_selected_quests');
-        localStorage.removeItem('eft_objective_checklist');
-        localStorage.removeItem('eft_completed_quests');
-        localStorage.removeItem('eft_select_quest_hidden');
+        if (selectReset.length === 0) {
+            localStorage.removeItem('eft_selected_quests');
+            localStorage.removeItem('eft_objective_checklist');
+            localStorage.removeItem('eft_completed_quests');
+            localStorage.removeItem('eft_select_quest_hidden');
+            localStorage.removeItem('eft_hideout');
+        } else {
+            selectReset.forEach((value) => {
+                if (value === "Questline") {
+                    localStorage.removeItem('eft_selected_quests');
+                    localStorage.removeItem('eft_objective_checklist');
+                    localStorage.removeItem('eft_completed_quests');
+                    localStorage.removeItem('eft_select_quest_hidden');
+                } else if (value === "Hideout") {
+                    localStorage.removeItem('eft_hideout');
+                }
+            });
+        }
 
         window.dispatchEvent(new Event("storage"));
         setShowResetModal(false);
+        setSelectReset([]);
     }
 
     const activeStyle = {
@@ -159,12 +187,35 @@ function AppNavbar() {
                             <p style={{ color: COLORS.textSecondary, lineHeight: '1.5' }}>
                                 This will uncheck all quests and clear your progress locally. This action cannot be undone.
                             </p>
+                            <div style={{ justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '8px', }}>
+                                {RESET.map((value) => {
+                                    const active = value === "All" ? selectReset.length === 0 : selectReset.includes(value);
+
+                                    return (
+                                        <label
+                                            key={value}
+                                            style={{
+                                                display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer',
+                                                color: '#64748b', fontSize: '14px', fontWeight: '500', padding: '4px 8px',
+                                                borderRadius: '4px', border: `1px solid #334155`, backgroundColor: 'rgba(15, 23, 42, 0.5)',
+                                            }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={active}
+                                                onChange={() => onChangeSelectReset(value)}
+                                                style={{ accentColor: '#f97316', width: '16px', height: '16px', cursor: 'pointer', }}
+                                            />
+                                            <span style={{ fontSize: '12px' }}>{value}</span>
+                                        </label>
+                                    )
+                                })}
+                            </div>
                             <div style={styles.modalButtonsContainerStyle}>
                                 <button onClick={cancelReset} style={styles.modalCancelButtonStyle}>
                                     Cancel
                                 </button>
                                 <button onClick={confirmReset} style={styles.modalConfirmButtonStyle}>
-                                    Yes, Reset All
+                                    Reset
                                 </button>
                             </div>
                         </div>
