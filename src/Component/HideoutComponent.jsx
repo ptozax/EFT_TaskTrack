@@ -12,6 +12,9 @@ export const theme = {
         success: '#22c55e',   // Green 500
         successBg: 'rgba(34, 197, 94, 0.1)',
         danger: '#ef4444',
+        fir: '#38bdf8',       // Sky 400 (Found In Raid)
+        firBg: 'rgba(56, 189, 248, 0.15)',
+        firBorder: 'rgba(56, 189, 248, 0.3)',
     },
     spacing: {
         xs: '4px',
@@ -88,7 +91,7 @@ export const styles = {
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
         gap: theme.spacing.xl,
-        // maxWidth: '1500px',
+        Width: '1800px',
         margin: '0 auto',
     },
     card: {
@@ -126,6 +129,17 @@ export const styles = {
         borderRadius: theme.rounded,
         fontSize: '12px',
         fontWeight: 'bold',
+    },
+    firBadge: {
+        fontSize: '9px',
+        borderRadius: '50px',
+        color: '#ffc400',
+        border: `1px solid #ffc400`,
+        fontWeight: 'bold',
+        textTransform: 'uppercase',
+        marginLeft: '6px',
+        display: 'inline-block',
+        verticalAlign: 'middle',
     },
     sectionTitle: {
         fontSize: '12px',
@@ -168,9 +182,9 @@ export const styles = {
     sidebar: (isOpen) => ({
         position: 'fixed',
         right: 0,
-        top: 0,
-        height: '100%',
-        width: '320px',
+        top: 60,
+        height: '93%',
+        width: '100%',
         backgroundColor: theme.colors.bgHeader,
         borderLeft: `1px solid ${theme.colors.border}`,
         transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
@@ -187,6 +201,8 @@ export const styles = {
         position: 'sticky',
         top: 0,
         backgroundColor: 'rgba(2, 6, 23, 0.95)',
+        zIndex: 10,
+        flexDirection: 'column',
     },
     checkboxWrapper: {
         display: 'flex',
@@ -239,4 +255,5 @@ export const Icons = {
     Cart: (p) => <Icon {...p}><circle cx="8" cy="21" r="1" /><circle cx="19" cy="21" r="1" /><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" /></Icon>,
     Close: (p) => <Icon {...p}><path d="M18 6 6 18" /><path d="m6 6 12 12" /></Icon>,
     Crown: (p) => <Icon {...p}><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14" /></Icon>,
+    Filter: (p) => <Icon {...p}><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" /></Icon>,
 };

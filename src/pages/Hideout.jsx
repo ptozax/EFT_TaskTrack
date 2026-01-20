@@ -21,12 +21,19 @@ const Hideout = () => {
 
     const [currentLevels, setCurrentLevels] = useState(() => {
         const initial = {};
-        Object.keys(groupedModules).forEach(key => initial[key] = 0);
-        return initial;
+        Object.keys(groupedModules).forEach(key => initial[key] = key === 'Stash' ? 1 : 0);
+        const save = JSON.parse(localStorage.getItem('eft_hideout')) || initial;
+        return save;
     });
 
+    useEffect(() => {
+        localStorage.setItem('eft_hideout', JSON.stringify(currentLevels));
+    }, [currentLevels]);
+
     const [isSidebarOpen, setSidebarOpen] = useState(false);
-    const [isEOD, setIsEOD] = useState(false);
+    const [isEOD, setIsEOD] = useState(currentLevels['Stash'] === 4 ? true : false);
+    const [showFirOnly, setShowFirOnly] = useState(false); // NEW STATE
+    const [showUseInModule, setShowUseInModule] = useState(false);
     const [inventory, setInventory] = useState({});
 
     // Toggle EOD: If ON, Stash level becomes 4 (Max). If OFF, reverts to 1.
@@ -81,25 +88,50 @@ const Hideout = () => {
         });
     }, [groupedModules, currentLevels]);
 
+    // UPDATED: Shopping list now calculates ALL future requirements (Current Level -> Max)
     const shoppingList = useMemo(() => {
         const list = {};
-        visibleModules.forEach(modName => {
-            const nextData = getNextLevelData(modName);
-            if (!nextData) return;
-            nextData.itemRequirements.forEach(req => {
-                const itemKey = req.item.id;
-                const isChecked = inventory[`${modName}-${nextData.level}-${itemKey}`];
-                if (!isChecked) {
-                    if (!list[itemKey]) {
-                        list[itemKey] = { ...req.item, total: 0, from: [] };
-                    }
-                    list[itemKey].total += req.count;
-                    list[itemKey].from.push(`${modName} Lv${nextData.level}`);
+
+        // Iterate over ALL modules (not just visible ones) to create a master list
+        Object.keys(groupedModules).forEach(modName => {
+            const currentLvl = currentLevels[modName];
+            const allLevels = groupedModules[modName];
+
+            // Check every level higher than the current one
+            allLevels.forEach(levelData => {
+                if (levelData.level > currentLvl) {
+                    levelData.itemRequirements.forEach(req => {
+                        const itemKey = req.item.id;
+                        // Check if item needs FIR
+                        const isFir = req.attributes?.some(a => a.name === "foundInRaid" && a.value === "true");
+                        const uniqueKey = `${itemKey}-${isFir ? 'fir' : 'norm'}`;
+
+                        // Check if this specific item requirement row is checked in the UI
+                        // Note: Users can only check items for the *active* level via UI, 
+                        // so future levels will naturally remain unchecked and appear in the list.
+                        const isChecked = inventory[`${modName}-${levelData.level}-${itemKey}`];
+
+                        if (!isChecked) {
+                            if (!list[uniqueKey]) {
+                                list[uniqueKey] = {
+                                    ...req.item,
+                                    total: 0,
+                                    from: [],
+                                    isFir: isFir,
+                                    uniqueKey: uniqueKey // Save for React key
+                                };
+                            }
+                            list[uniqueKey].total += req.count;
+                            // Add source info (e.g., "Vents Lv2")
+                            list[uniqueKey].from.push(`${modName} Lv${levelData.level}`);
+                        }
+                    });
                 }
             });
         });
+
         return Object.values(list).sort((a, b) => b.total - a.total);
-    }, [visibleModules, inventory, getNextLevelData]);
+    }, [groupedModules, currentLevels, inventory]);
 
     const scrollToModule = (name) => {
         const el = document.getElementById(`module-${name}`);
@@ -119,25 +151,16 @@ const Hideout = () => {
     const isItemChecked = (moduleName, level, itemId) => !!inventory[`${moduleName}-${level}-${itemId}`];
     const isModuleReqChecked = (moduleName, level, reqId) => !!inventory[`${moduleName}-${level}-mod-${reqId}`];
 
-    const canBuild = (moduleData) => {
-        if (!moduleData) return false;
-        const itemsMet = moduleData.itemRequirements.every(req => isItemChecked(moduleData.name, moduleData.level, req.item.id));
-        const modulesMet = moduleData.moduleRequirements ? moduleData.moduleRequirements.every(req => {
-            if (currentLevels.hasOwnProperty(req.name)) return currentLevels[req.name] >= req.level;
-            return isModuleReqChecked(moduleData.name, moduleData.level, req.id);
-        }) : true;
-        return itemsMet && modulesMet;
-    };
-
     const handleBuild = (moduleName) => {
         setCurrentLevels(prev => ({ ...prev, [moduleName]: prev[moduleName] + 1 }));
     };
 
     const resetProgress = () => {
         const initial = {};
-        Object.keys(groupedModules).forEach(key => initial[key] = 0);
+        Object.keys(groupedModules).forEach(key => initial[key] = key === 'Stash' ? 1 : 0);
         setCurrentLevels(initial);
         setInventory({});
+        setIsEOD(false);
     };
 
     const formatTime = (seconds) => {
@@ -145,6 +168,16 @@ const Hideout = () => {
         const h = Math.floor(seconds / 3600);
         const m = Math.floor((seconds % 3600) / 60);
         return `${h}h ${m}m`;
+    };
+
+    const [copiedKeyIndex, setCopiedKeyIndex] = useState(null);
+    const handleCopyName = (name, index) => {
+        navigator.clipboard.writeText(name).then(() => {
+            // Set the specific index as "copied"
+            setCopiedKeyIndex(index);
+            // Reset back to normal after 1.5 seconds
+            setTimeout(() => setCopiedKeyIndex(null), 500);
+        });
     };
 
     return (
@@ -175,6 +208,7 @@ const Hideout = () => {
                                 <Icons.Crown size={16} color={isEOD ? theme.colors.accent : theme.colors.textMuted} />
                                 Edge of Darkness
                             </label>
+
                             <button
                                 onClick={() => setSidebarOpen(!isSidebarOpen)}
                                 style={{
@@ -376,63 +410,71 @@ const Hideout = () => {
                                                 </div>
                                             )}
 
+                                            {/* Action Bar (Moved UP) */}
+                                            <div style={{ paddingBottom: '16px', borderBottom: `1px solid ${theme.colors.border}`, display: 'flex', justifyContent: 'flex-end' }}>
+                                                <button
+                                                    onClick={() => handleBuild(moduleName)}
+                                                    style={styles.btnPrimary(false)}
+                                                >
+                                                    <Icons.Hammer size={20} /> Construct Level {nextLvlData.level}
+                                                </button>
+                                            </div>
+
                                             {/* Item Requirements */}
                                             <div>
                                                 <h3 style={styles.sectionTitle}>
                                                     <Icons.Package size={16} /> Required Items
                                                 </h3>
                                                 <div style={{ display: 'grid', gap: '8px' }}>
-                                                    {nextLvlData.itemRequirements.map((req) => {
-                                                        const isChecked = isItemChecked(moduleName, nextLvlData.level, req.item.id);
+                                                    {/* Sort items: Unchecked first, Checked last */}
+                                                    {nextLvlData.itemRequirements
+                                                        .slice()
+                                                        .sort((a, b) => {
+                                                            const isCheckedA = isItemChecked(moduleName, nextLvlData.level, a.item.id);
+                                                            const isCheckedB = isItemChecked(moduleName, nextLvlData.level, b.item.id);
+                                                            if (isCheckedA === isCheckedB) return 0;
+                                                            return isCheckedA ? 1 : -1;
+                                                        })
+                                                        .map((req) => {
+                                                            const isChecked = isItemChecked(moduleName, nextLvlData.level, req.item.id);
+                                                            const isFir = req.attributes?.some(a => a.name === "foundInRaid" && a.value === "true");
 
-                                                        return (
-                                                            <div
-                                                                key={req.item.id}
-                                                                onClick={() => toggleItem(moduleName, nextLvlData.level, req.item.id)}
-                                                                style={styles.reqItem(isChecked)}
-                                                            >
-                                                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                                                    <div style={{ width: '24px', height: '24px', borderRadius: '4px', border: `1px solid ${isChecked ? theme.colors.accent : theme.colors.textMuted}`, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isChecked ? theme.colors.accent : 'transparent', color: '#fff' }}>
-                                                                        {isChecked && <Icons.Check size={16} />}
-                                                                    </div>
-                                                                    <div style={{ width: '40px', height: '40px', backgroundColor: theme.colors.bgMain, borderRadius: '4px', border: `1px solid ${theme.colors.border}`, padding: '2px' }}>
-                                                                        <img
-                                                                            src={req.item.inspectImageLink || req.item.image512pxLink || req.item.imageLink}
-                                                                            alt={req.item.name}
-                                                                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                                                                            onError={(e) => { e.target.style.display = 'none'; }}
-                                                                        />
-                                                                    </div>
-                                                                    <div>
-                                                                        <div style={{ fontWeight: '500', color: isChecked ? theme.colors.textMuted : '#e2e8f0', textDecoration: isChecked ? 'line-through' : 'none' }}>{req.item.name}</div>
-                                                                        <div style={{ fontSize: '12px', color: theme.colors.textMuted, fontFamily: 'monospace' }}>
-                                                                            Quantity: <span style={{ color: theme.colors.accent }}>{req.count.toLocaleString()}</span>
+                                                            return (
+                                                                <div
+                                                                    key={req.item.id}
+                                                                    onClick={() => toggleItem(moduleName, nextLvlData.level, req.item.id)}
+                                                                    style={styles.reqItem(isChecked)}
+                                                                >
+                                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                                                        <div style={{ width: '24px', height: '24px', borderRadius: '4px', border: `1px solid ${isChecked ? theme.colors.accent : theme.colors.textMuted}`, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: isChecked ? theme.colors.accent : 'transparent', color: '#fff' }}>
+                                                                            {isChecked && <Icons.Check size={16} />}
+                                                                        </div>
+                                                                        <div style={{ width: '40px', height: '40px', backgroundColor: theme.colors.bgMain, borderRadius: '4px', border: `1px solid ${theme.colors.border}`, padding: '2px' }}>
+                                                                            <img
+                                                                                src={req.item.inspectImageLink || req.item.image512pxLink || req.item.imageLink}
+                                                                                alt={req.item.name}
+                                                                                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                                                                                onError={(e) => { e.target.style.display = 'none'; }}
+                                                                            />
+                                                                        </div>
+                                                                        <div>
+                                                                            <div style={{ fontWeight: '500', color: isChecked ? theme.colors.textMuted : '#e2e8f0', textDecoration: isChecked ? 'line-through' : 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                                {req.item.name}
+                                                                                {isFir && (
+                                                                                    <span style={styles.firBadge}>
+                                                                                        <Icons.Check size={12} />
+                                                                                    </span>
+                                                                                )}
+                                                                            </div>
+                                                                            <div style={{ fontSize: '12px', color: theme.colors.textMuted, fontFamily: 'monospace' }}>
+                                                                                Quantity: <span style={{ color: theme.colors.accent }}>{req.count.toLocaleString()}</span>
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                            </div>
-                                                        );
-                                                    })}
+                                                            );
+                                                        })}
                                                 </div>
-                                            </div>
-
-                                            {/* Action Bar */}
-                                            <div style={{ paddingTop: '16px', borderTop: `1px solid ${theme.colors.border}`, display: 'flex', justifyContent: 'flex-end' }}>
-                                                <button
-                                                    onClick={() => handleBuild(moduleName)}
-                                                    disabled={!canBuild(nextLvlData)}
-                                                    style={styles.btnPrimary(!canBuild(nextLvlData))}
-                                                >
-                                                    {canBuild(nextLvlData) ? (
-                                                        <>
-                                                            <Icons.Hammer size={20} /> Construct Level {nextLvlData.level}
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Icons.Lock size={16} /> Requirements Not Met
-                                                        </>
-                                                    )}
-                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -457,49 +499,91 @@ const Hideout = () => {
 
             {/* Slide-out Sidebar - Shopping List Only */}
             <div style={styles.sidebar(isSidebarOpen)}>
-                <div style={styles.sidebarHeader}>
-                    <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <Icons.Cart size={20} color={theme.colors.accent} />
-                        Shopping List
-                    </h2>
-                    <button onClick={() => setSidebarOpen(false)} style={{ background: 'none', border: 'none', color: theme.colors.textMuted, cursor: 'pointer' }}>
-                        <Icons.Close size={24} />
-                    </button>
+                <div style={{ ...styles.sidebarHeader, flexDirection: 'column', alignItems: 'stretch', gap: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h2 style={{
+                            display: 'flex', justifyContent: 'center', width: '100%', alignItems: 'center',
+                            fontSize: '20px', fontWeight: 'bold', color: '#e2e8f0', gap: '8px', margin: 0
+                        }}>
+                            <Icons.Cart size={20} color={theme.colors.accent} />
+                            Shopping List
+                        </h2>
+                        <button onClick={() => setSidebarOpen(false)} style={{ background: 'none', border: 'none', color: theme.colors.textMuted, cursor: 'pointer' }}>
+                            <Icons.Close size={24} />
+                        </button>
+                    </div>
+                    <div style={{ justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '8px', }}>
+                        <label style={styles.checkboxWrapper}>
+                            <input
+                                type="checkbox"
+                                checked={showFirOnly}
+                                onChange={(e) => setShowFirOnly(e.target.checked)}
+                                style={styles.checkbox}
+                            />
+                            <span style={{ fontSize: '12px' }}>Show Only FIR Items</span>
+                        </label>
+                        <label style={styles.checkboxWrapper}>
+                            <input
+                                type="checkbox"
+                                checked={showUseInModule}
+                                onChange={(e) => setShowUseInModule(e.target.checked)}
+                                style={styles.checkbox}
+                            />
+                            <span style={{ fontSize: '12px' }}>Show Use In Modules</span>
+                        </label>
+                    </div>
                 </div>
 
                 <div style={{ padding: '24px' }}>
-                    {shoppingList.length === 0 ? (
+                    {shoppingList.filter(item => !showFirOnly || item.isFir).length === 0 ? (
                         <div style={{ textAlign: 'center', color: theme.colors.textMuted, padding: '32px 0', fontSize: '14px' }}>
-                            No pending items needed.
+                            {showFirOnly ? "No pending FIR items needed." : "No pending items needed."}
                             <br />
                             <span style={{ fontSize: '12px', opacity: 0.6 }}>Unlock more modules or finish building to see items here.</span>
                         </div>
                     ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                            {shoppingList.map((item) => (
-                                <div key={item.id} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', paddingBottom: '12px', borderBottom: '1px solid rgba(51, 65, 85, 0.5)' }}>
-                                    <div style={{ width: '40px', height: '40px', backgroundColor: theme.colors.bgMain, borderRadius: '4px', border: `1px solid ${theme.colors.border}`, padding: '2px', flexShrink: 0 }}>
-                                        <img
-                                            src={item.inspectImageLink || item.image512pxLink || item.imageLink}
-                                            alt={item.name}
-                                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                                        />
-                                    </div>
-                                    <div>
-                                        <div style={{ fontWeight: 'bold', fontSize: '14px', color: '#e2e8f0' }}>{item.name}</div>
-                                        <div style={{ color: theme.colors.accent, fontFamily: 'monospace', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' }}>
-                                            Need: {item.total.toLocaleString()}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
+                            {shoppingList.filter(item => !showFirOnly || item.isFir).map((item, index) => {
+                                const isJustCopied = copiedKeyIndex === index
+                                return (
+                                    <div key={item.uniqueKey}
+                                        style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', paddingBottom: '12px', borderBottom: '1px solid rgba(51, 65, 85, 0.5)' }}
+                                        onClick={() => handleCopyName(item.name, index)}>
+                                        <div style={{ width: '100px', height: '100px', backgroundColor: theme.colors.bgMain, borderRadius: '4px', border: `1px solid ${theme.colors.border}`, padding: '2px', flexShrink: 0 }}>
+                                            <img
+                                                src={item.inspectImageLink || item.image512pxLink || item.imageLink}
+                                                alt={item.name}
+                                                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                                            />
                                         </div>
-                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                                            {item.from.map((source, i) => (
-                                                <span key={i} style={{ fontSize: '10px', backgroundColor: theme.colors.bgCard, padding: '2px 6px', borderRadius: '4px', color: theme.colors.textMuted, border: `1px solid ${theme.colors.border}` }}>
-                                                    {source}
-                                                </span>
-                                            ))}
+                                        <div>
+                                            <div style={{
+                                                fontWeight: 'bold', fontSize: '14px', color: isJustCopied ? '#ffc400' : '#e2e8f0',
+                                                display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', transition: 'all 0.2s ease'
+                                            }}>
+                                                {item.name}
+                                                {item.isFir && (
+                                                    <span style={styles.firBadge}>
+                                                        <Icons.Check size={12} />
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div style={{ color: theme.colors.accent, fontFamily: 'monospace', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' }}>
+                                                Need: {item.total.toLocaleString()}
+                                            </div>
+                                            {showUseInModule && (
+                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                                                    {item.from.map((source, i) => (
+                                                        <span key={i} style={{ fontSize: '10px', backgroundColor: theme.colors.bgCard, padding: '2px 6px', borderRadius: '4px', color: theme.colors.textMuted, border: `1px solid ${theme.colors.border}` }}>
+                                                            {source}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                )
+                            })}
                         </div>
                     )}
                 </div>
