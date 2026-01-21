@@ -63,16 +63,13 @@ function AppNavbar() {
     };
 
     const cancelReset = () => {
+        setSelectReset([]);
         setShowResetModal(false);
     };
 
     const confirmReset = () => {
         if (selectReset.length === 0) {
-            localStorage.removeItem('eft_selected_quests');
-            localStorage.removeItem('eft_objective_checklist');
-            localStorage.removeItem('eft_completed_quests');
-            localStorage.removeItem('eft_select_quest_hidden');
-            localStorage.removeItem('eft_hideout');
+            localStorage.clear();
         } else {
             selectReset.forEach((value) => {
                 if (value === "Questline") {
@@ -185,7 +182,7 @@ function AppNavbar() {
                         <div style={styles.modalContentStyle}>
                             <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem', color: COLORS.textPrimary }}>Reset Progress?</h3>
                             <p style={{ color: COLORS.textSecondary, lineHeight: '1.5' }}>
-                                This will uncheck all quests and clear your progress locally. This action cannot be undone.
+                                This will clear your progress locally. This action cannot be undone.
                             </p>
                             <div style={{ justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '8px', }}>
                                 {RESET.map((value) => {

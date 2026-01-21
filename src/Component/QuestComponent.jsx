@@ -242,7 +242,6 @@ export const getNextQuestLists = (completedQuests, triggeringQuestId = null) => 
         
         if ((typeof special.trigger === 'string') ? triggeringQuestId !== special.trigger : special.trigger.every(id => id !== triggeringQuestId)) return;
         if ((typeof special.trigger === 'string') ? completedIds.has(special.trigger) : special.trigger.every(id => completedIds.has(id))) {
-            console.log(special);
             special.unlocks.forEach(unlockId => {
                 // Check 1: Is it blocked? (e.g. you already did Chem 4, so Big Customer is blocked)
                 if (blockedIds.has(unlockId)) return;

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { theme, styles, Icons } from '../Component/HideoutComponent';
 import * as QuestComponent from '../Component/QuestComponent';
 import hideout from '../data/hideout.json';
@@ -23,24 +23,26 @@ const Hideout = () => {
     const [currentLevels, setCurrentLevels] = useState(() => {
         const initial = {};
         Object.keys(groupedModules).forEach(key => initial[key] = key === 'Stash' ? 1 : 0);
-        const save = JSON.parse(localStorage.getItem('eft_hideout')) || initial;
+        const save = JSON.parse(localStorage.getItem("eft_hideout")) || initial;
         return save;
     });
 
     useEffect(() => {
-        const handleStorageChange = () => {
+        const handleStorageChange = (event) => {
             try {
-                console.log("Storage changed detected! at Hideout");
+                // console.log("Storage changed detected! at Hideout");
                 resetProgress();
             } catch (err) {
                 console.error(err);
             }
         };
 
-        QuestComponent.callbackStorageChange(handleStorageChange);
+        return QuestComponent.callbackStorageChange(handleStorageChange);
     }, []);
+
     useEffect(() => {
-        localStorage.setItem('eft_hideout', JSON.stringify(currentLevels));
+        localStorage.setItem("eft_hideout", JSON.stringify(currentLevels));
+        setIsEOD(currentLevels['Stash'] === 4 ? true : false);
     }, [currentLevels]);
 
     const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -70,21 +72,23 @@ const Hideout = () => {
 
     const visibleModules = useMemo(() => {
         const modules = Object.keys(groupedModules);
-        const filtered = modules.filter(moduleName => {
-            const currentLvl = currentLevels[moduleName];
-            const nextLvlData = getNextLevelData(moduleName);
-            if (!nextLvlData && currentLvl > 0) return true;
-            if (!nextLvlData) return false;
-            if (nextLvlData.moduleRequirements) {
-                return nextLvlData.moduleRequirements.every(req => {
-                    if (groupedModules[req.name]) {
-                        return currentLevels[req.name] >= req.level;
-                    }
-                    return true;
-                });
-            }
-            return true;
-        });
+        // const filtered = modules.filter(moduleName => {
+        //     const currentLvl = currentLevels[moduleName];
+        //     const nextLvlData = getNextLevelData(moduleName);
+        //     if (!nextLvlData && currentLvl > 0) return true;
+        //     if (!nextLvlData) return false;
+        //     if (nextLvlData.moduleRequirements) {
+        //         return nextLvlData.moduleRequirements.every(req => {
+        //             if (groupedModules[req.name]) {
+        //                 return currentLevels[req.name] >= req.level;
+        //             }
+        //             return true;
+        //         });
+        //     }
+        //     return true;
+        // });
+        const filtered = modules;
+        return filtered;
 
         return filtered.sort((a, b) => {
             const nextA = getNextLevelData(a);
@@ -171,7 +175,8 @@ const Hideout = () => {
     const resetProgress = () => {
         const initial = {};
         Object.keys(groupedModules).forEach(key => initial[key] = key === 'Stash' ? 1 : 0);
-        setCurrentLevels(initial);
+        const save = JSON.parse(localStorage.getItem("eft_hideout")) || initial;
+        setCurrentLevels(save);
         setInventory({});
         setIsEOD(false);
     };
@@ -306,26 +311,26 @@ const Hideout = () => {
                                                 />
                                             )}
                                         </div>
-                                        <div>
-                                            <h2 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0, color: theme.colors.textMain }}>{moduleName}</h2>
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-                                                <span style={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: 'bold', color: theme.colors.textMuted }}>Current Level:</span>
-                                                <span style={{
-                                                    padding: '2px 6px',
-                                                    borderRadius: '4px',
-                                                    fontSize: '10px',
-                                                    fontWeight: 'bold',
-                                                    backgroundColor: currentLvl > 0 ? theme.colors.accent : theme.colors.border,
-                                                    color: currentLvl > 0 ? theme.colors.bgHeader : theme.colors.textMuted
-                                                }}>
-                                                    {currentLvl === 0 ? "Not Constructed" : currentLvl}
-                                                </span>
-                                            </div>
-                                        </div>
+                                        <h2 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0, color: theme.colors.textMain }}>{moduleName}</h2>
+
                                     </div>
-                                    {isMaxLevel && (
+                                    {isMaxLevel ? (
                                         <div style={styles.maxBadge}>
                                             <Icons.Check size={16} /> MAX LEVEL
+                                        </div>
+                                    ) : (
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+                                            <span style={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: 'bold', color: theme.colors.textMuted }}>LV:</span>
+                                            <span style={{
+                                                padding: '2px 15px',
+                                                borderRadius: '4px',
+                                                fontSize: currentLvl === 0 ? '12px' : '25px',
+                                                fontWeight: 'bold',
+                                                backgroundColor: currentLvl > 0 ? theme.colors.accent : theme.colors.border,
+                                                color: currentLvl > 0 ? theme.colors.bgHeader : theme.colors.textMuted
+                                            }}>
+                                                {currentLvl === 0 ? "Not Constructed" : currentLvl}
+                                            </span>
                                         </div>
                                     )}
                                 </div>
@@ -349,6 +354,16 @@ const Hideout = () => {
                                                 "{nextLvlData.description}"
                                             </div>
                                         )}
+
+                                        {/* Action Bar (Moved UP) */}
+                                        <div style={{ padding: '16px', borderBottom: `1px solid ${theme.colors.border}`, display: 'flex', justifyContent: 'flex-end' }}>
+                                            <button
+                                                onClick={() => handleBuild(moduleName)}
+                                                style={styles.btnPrimary(false)}
+                                            >
+                                                <Icons.Hammer size={20} /> Construct Level {nextLvlData.level}
+                                            </button>
+                                        </div>
 
                                         {/* Requirements Container */}
                                         <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -421,16 +436,6 @@ const Hideout = () => {
                                                 </div>
                                             )}
 
-                                            {/* Action Bar (Moved UP) */}
-                                            <div style={{ paddingBottom: '16px', borderBottom: `1px solid ${theme.colors.border}`, display: 'flex', justifyContent: 'flex-end' }}>
-                                                <button
-                                                    onClick={() => handleBuild(moduleName)}
-                                                    style={styles.btnPrimary(false)}
-                                                >
-                                                    <Icons.Hammer size={20} /> Construct Level {nextLvlData.level}
-                                                </button>
-                                            </div>
-
                                             {/* Item Requirements */}
                                             <div>
                                                 <h3 style={styles.sectionTitle}>
@@ -472,9 +477,10 @@ const Hideout = () => {
                                                                             <div style={{ fontWeight: '500', color: isChecked ? theme.colors.textMuted : '#e2e8f0', textDecoration: isChecked ? 'line-through' : 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                                                 {req.item.name}
                                                                                 {isFir && (
-                                                                                    <span style={styles.firBadge}>
-                                                                                        <Icons.Check size={12} />
-                                                                                    </span>
+                                                                                    <div>
+                                                                                        <div style={styles.firBadge} />
+                                                                                        <Icons.Check size={15} color="#ffc400" />
+                                                                                    </div>
                                                                                 )}
                                                                             </div>
                                                                             <div style={{ fontSize: '12px', color: theme.colors.textMuted, fontFamily: 'monospace' }}>
@@ -574,9 +580,10 @@ const Hideout = () => {
                                             }}>
                                                 {item.name}
                                                 {item.isFir && (
-                                                    <span style={styles.firBadge}>
-                                                        <Icons.Check size={12} />
-                                                    </span>
+                                                    <div>
+                                                        <div style={styles.firBadge} />
+                                                        <Icons.Check size={15} color="#ffc400" />
+                                                    </div>
                                                 )}
                                             </div>
                                             <div style={{ color: theme.colors.accent, fontFamily: 'monospace', fontSize: '12px', fontWeight: 'bold', marginBottom: '4px' }}>
