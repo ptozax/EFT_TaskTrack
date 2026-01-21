@@ -4,6 +4,7 @@ import quests from "../data/tasks";
 const CHEMICAL_ALTERNATIVE_IDS = ['597a0f5686f774273b74f676', '597a160786f77477531d39d2', '597a171586f77405ba6887d3'];
 const ONE_LESS_LOOSE_END_ALTERNATIVE_IDS = ['669fa38fad7f1eac2607ed46', '669fa3910c828825de06d69f'];
 const COLLEAGUES_3_ALTERNATIVE = ['5edab4b1218d181e29451435', '5edac34d0bb72a50635c2bfa']
+const SUPPLY_PLANS_ALTERNETIVE = ['596a0e1686f7741ddf17dbee', '596a101f86f7741ddb481582']
 
 const WET_JOB_5_ACTIVE = {
     trigger: '5a27bc3686f7741c73584026',
@@ -20,10 +21,6 @@ const ICE_CREAM_CONES_ACTIVE = {
 const PVP = {
     trigger: '66058ccde8e4f17985230807',
     unlocks: ['66058ccf06ef1d50a60c1f48', '66058cd19f59e625462acc90', '67e993b1ac26bf29380a320b']
-}
-const SUPPLY_PLANS_ACTIVE = {
-    trigger: '5969f9e986f7741dde183a50',
-    unlocks: ['596a0e1686f7741ddf17dbee', '596a101f86f7741ddb481582']
 }
 const REVISION_RESERVE_ACTIVE = {
     trigger: '5a27b87686f77460de0252a8',
@@ -103,6 +100,7 @@ export const getPreviousQuestsList = (questId, completedQuests) => {
         CHEMICAL_ALTERNATIVE_IDS,       // [Chemical 4, Big Customer, Out of Curiosity]
         ONE_LESS_LOOSE_END_ALTERNATIVE_IDS,  // [One Less_loose_end, A Healthy Alternative]
         COLLEAGUES_3_ALTERNATIVE, // [Colleagues - Part 3, The Huntsman Path - Sadist]
+        SUPPLY_PLANS_ALTERNETIVE, // [Supply Plans, Kind of Sabotage]
     ];
 
     // 3. Handle Conflict Consequences
@@ -152,6 +150,7 @@ export const getNextQuestLists = (completedQuests, triggeringQuestId = null) => 
         CHEMICAL_ALTERNATIVE_IDS,
         ONE_LESS_LOOSE_END_ALTERNATIVE_IDS,
         COLLEAGUES_3_ALTERNATIVE,
+        SUPPLY_PLANS_ALTERNETIVE,
     ];
 
     let relatedTriggerIds = [triggeringQuestId];
@@ -230,7 +229,11 @@ export const getNextQuestLists = (completedQuests, triggeringQuestId = null) => 
             trigger: ['5edabd13218d181e29451442', '5edaba7c0c502106f869bc02', '5f04886a3937dc337a6b8238'],
             unlocks: COLLEAGUES_3_ALTERNATIVE
         },
-        WET_JOB_5_ACTIVE, TROPHY_ACTIVE, ICE_CREAM_CONES_ACTIVE, PVP, SUPPLY_PLANS_ACTIVE,
+        {
+            trigger: '5969f9e986f7741dde183a50',
+            unlocks: SUPPLY_PLANS_ALTERNETIVE
+        },
+        WET_JOB_5_ACTIVE, TROPHY_ACTIVE, ICE_CREAM_CONES_ACTIVE, PVP,
         REVISION_RESERVE_ACTIVE, SENSORY_ANALYSIS_1_ACTIVE, DISEASE_HISTORY_ACTIVE,
         HEALTH_CARE_4_ACTIVE, HLEPING_HAND_ACTIVE, INEVITABLE_RESPONSE_ACTIVE,
         MINIBUS_ACTIVE, FARMING_3_ACTIVE, THE_GOOD_TIMES_1_ACTIVE, PUNISHER_5_ACTIVE,
