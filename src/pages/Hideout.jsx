@@ -172,6 +172,10 @@ const Hideout = () => {
         setCurrentLevels(prev => ({ ...prev, [moduleName]: prev[moduleName] + 1 }));
     };
 
+    const handlePreviousBuild = (moduleName) => {
+        setCurrentLevels(prev => ({ ...prev, [moduleName]: prev[moduleName] - 1 }));
+    }
+
     const resetProgress = () => {
         const initial = {};
         Object.keys(groupedModules).forEach(key => initial[key] = key === 'Stash' ? 1 : 0);
@@ -314,6 +318,12 @@ const Hideout = () => {
                                         <h2 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0, color: theme.colors.textMain }}>{moduleName}</h2>
 
                                     </div>
+                                    {currentLvl > 0 && (
+                                        <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto', padding: '0 0.5rem', cursor: 'pointer' }}
+                                            onClick={() => handlePreviousBuild(moduleName)}>
+                                            <Icons.Rotate size={16} />
+                                        </div>
+                                    )}
                                     {isMaxLevel ? (
                                         <div style={styles.maxBadge}>
                                             <Icons.Check size={16} /> MAX LEVEL
