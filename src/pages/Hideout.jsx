@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { theme, styles, Icons } from '../Component/HideoutComponent';
+import { theme, hideoutStyles as styles, Icons } from '../Component/EftComponent';
 import * as QuestComponent from '../Component/QuestComponent';
 import hideout from '../data/hideout.json';
 

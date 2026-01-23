@@ -6,7 +6,7 @@ import Badge from 'react-bootstrap/Badge';
 
 import { NavLink } from 'react-router-dom';
 
-import { GiHomeGarage, GiPc, GiTreeGrowth, GiTrophy } from 'react-icons/gi';
+import { GiHomeGarage, GiPc, GiTreeGrowth, GiTrophy, GiMachineGunMagazine } from 'react-icons/gi';
 import { FaGem, FaMap, FaQrcode } from 'react-icons/fa';
 import { styles, COLORS } from './KappaComponent';
 import BEAR from '/BEAR_Icon.webp';
@@ -23,6 +23,7 @@ function AppNavbar() {
         { key: "#/Kappa", href: "/Kappa", icon: GiTrophy, text: "Kappa" },
         { key: "#/QuestTree", href: "/QuestTree", icon: GiTreeGrowth, text: "Quest Tree" },
         { key: "#/Hideout", href: "/Hideout", icon: GiHomeGarage, text: "Hideout" },
+        { key: "#/Balistic", href: "/Balistic", icon: GiMachineGunMagazine, text: "Balistic" },
 
     ];
 

@@ -14,6 +14,7 @@ import Kappa from "./pages/Kappa.jsx";
 import QuestTree from "./pages/QuestTree.jsx";
 import Hideout from "./pages/Hideout.jsx";
 import AppNavbar from './Component/AppNavbar.jsx';
+import Balistic from "./pages/Balistic.jsx";
 
 const pageComponents = {
   QuestTree: <QuestTree/>,
@@ -21,6 +22,7 @@ const pageComponents = {
   Map : < MapPage/>,
   AddQuest: <AddQuest/>,
   Hideout: <Hideout/>,
+  Balistic: <Balistic/>,
   Default: <Home/>,
 };
 

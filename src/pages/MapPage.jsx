@@ -2,9 +2,8 @@
 import React, { useEffect, useState, useRef, Fragment } from 'react';
 import quests from "../data/tasks";
 import mapFeatures from "../data/maps";
-import styles from '../Component/MapComponents';
+import { mapStyles as styles, Icons } from '../Component/EftComponent';
 import * as QuestComponent from '../Component/QuestComponent';
-import { ChevronUpIcon, ChevronDownIcon } from '../Component/KappaComponent';
 
 /* ---------------- STORAGE KEYS ---------------- */
 const OBJECTIVE_CHECK_KEY = "eft_objective_checklist";
@@ -473,7 +472,7 @@ const MapPage = () => {
               onClick={() => setShowQuestKey(!showQuestKey)}>
               Key Lists ({questKeys.length})
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexGrow: 1, justifyContent: 'flex-end', minWidth: '100px', color: 'white' }}>
-                {showQuestKey ? <ChevronUpIcon size={20} /> : <ChevronDownIcon size={20} />}
+                {showQuestKey ? <Icons.ChevronUp size={20} /> : <Icons.ChevronDown size={20} />}
               </div>
             </div>
             {showQuestKey && (

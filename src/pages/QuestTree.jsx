@@ -2,8 +2,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import tasks from "../data/tasks";
 import * as d3 from 'd3';
 import dagre from 'dagre';
-import { div, li } from 'framer-motion/client';
-import styles2 from '../Component/MapComponents';
+import {mapStyles as styles2} from '../Component/EftComponent.jsx';
 import * as QuestComponent from '../Component/QuestComponent';
 
 import Button from 'react-bootstrap/Button';

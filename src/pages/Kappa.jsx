@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import quests from "../data/tasks";
-import { CheckIcon, ExternalLinkIcon, FilterIcon, SearchIcon, TrophyIcon, RotateCcwIcon, ChevronUpIcon, ChevronDownIcon, COLORS, styles, CrossIcon } from '../Component/KappaComponent';
+import { kappaStyles as styles, Icons, COLORS } from '../Component/EftComponent';
 import * as QuestComponent from '../Component/QuestComponent';
 // --- Components ---
 const ProgressBar = ({ current, total, color = COLORS.accent }) => {
@@ -49,7 +49,7 @@ const TraderSection = ({ traderName, quests, completedIds, onToggle }) => {
                         <ProgressBar current={completedCount} total={total} color={isAllComplete ? COLORS.success : COLORS.blue} />
                     </div>
                     <div style={{ color: COLORS.textSecondary, display: 'flex', alignItems: 'center' }}>
-                        {isExpanded ? <ChevronUpIcon size={20} /> : <ChevronDownIcon size={20} />}
+                        {isExpanded ? <Icons.ChevronUp size={20} /> : <Icons.ChevronDown size={20} />}
                     </div>
                 </div>
             </div>
@@ -71,7 +71,7 @@ const TraderSection = ({ traderName, quests, completedIds, onToggle }) => {
                                     }}
                                 >
                                     {/* <CheckIcon size={16} />  */}
-                                    {isDone && isComplete ? <CheckIcon size={16} /> : < CrossIcon size={16} />}
+                                    {isDone && isComplete ? <Icons.Check size={16} /> : < Icons.Cross size={16} />}
                                 </button>
 
                                 <div style={{ flexGrow: 1 }}>
@@ -101,7 +101,7 @@ const TraderSection = ({ traderName, quests, completedIds, onToggle }) => {
                                                 style={{ color: '#60a5fa', padding: '0.25rem' }}
                                                 title="View on Wiki"
                                             >
-                                                <ExternalLinkIcon size={16} />
+                                                <Icons.ExternalLink size={16} />
                                             </a>
                                         </div>
                                     </div>
@@ -213,7 +213,7 @@ const Kappa = () => {
                     <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                             <div style={{ backgroundColor: '#ca8a04', padding: '0.5rem', borderRadius: '0.5rem', display: 'flex' }}>
-                                <TrophyIcon size={24} style={{ color: 'white' }} />
+                                <Icons.Trophy size={24} style={{ color: 'white' }} />
                             </div>
                             <div>
                                 <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', lineHeight: 1.2, margin: 0 }}>Kappa Tracker</h1>
@@ -255,7 +255,7 @@ const Kappa = () => {
                 <div style={styles.controlBarStyle}>
                     <div style={{ position: 'relative', flexGrow: 1 }}>
                         <div style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: COLORS.textSecondary }}>
-                            <SearchIcon size={18} />
+                            <Icons.Search size={18} />
                         </div>
                         <input
                             type="text"
@@ -270,7 +270,7 @@ const Kappa = () => {
                         onClick={() => setShowCompleted(!showCompleted)}
                         style={{ ...styles.buttonStyle, backgroundColor: showCompleted ? COLORS.bgCard : '#374151', }}
                     >
-                        <FilterIcon size={18} />
+                        <Icons.Filter size={18} />
                         <span>{showCompleted ? 'Hide Completed' : 'Show Completed'}</span>
                     </button>
                 </div>
@@ -285,7 +285,7 @@ const Kappa = () => {
                         border: `1px dashed ${COLORS.border}`
                     }}>
                         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem', color: COLORS.textSecondary }}>
-                            <TrophyIcon size={48} />
+                            <Icons.Trophy size={48} />
                         </div>
                         <h3 style={{ fontSize: '1.25rem', fontWeight: '600', color: COLORS.textSecondary, margin: 0 }}>No quests found</h3>
                         <p style={{ color: '#4b5563', marginTop: '0.5rem' }}>Try adjusting your filters or search terms.</p>
