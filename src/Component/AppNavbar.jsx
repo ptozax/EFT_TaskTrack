@@ -8,7 +8,7 @@ import { NavLink } from 'react-router-dom';
 
 import { GiHomeGarage, GiPc, GiTreeGrowth, GiTrophy, GiMachineGunMagazine } from 'react-icons/gi';
 import { FaGem, FaMap, FaQrcode } from 'react-icons/fa';
-import { styles, COLORS } from './KappaComponent';
+import { kappaStyles as styles, COLORS } from './EftComponent';
 import BEAR from '/BEAR_Icon.webp';
 import USEC from '/USEC_Emblem.webp';
 
