@@ -1040,6 +1040,7 @@ export const Icons = {
 };
 
 export const TRADER_THEMES = {
+    "Any": { bg: "#00ccff", border: "#000000", text: "#ffffff" }, // ฟ้า
     "Prapor": { bg: "#7b1fa2", border: "#e1bee7", text: "#ffffff" }, // ม่วงสด
     "Therapist": { bg: "#0288d1", border: "#81d4fa", text: "#ffffff" }, // ฟ้าสด
     "Skier": { bg: "#f57c00", border: "#ffe0b2", text: "#ffffff" }, // ส้มสด

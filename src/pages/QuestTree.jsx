@@ -2,27 +2,13 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import tasks from "../data/tasks";
 import * as d3 from 'd3';
 import dagre from 'dagre';
-import {mapStyles as styles2} from '../Component/EftComponent.jsx';
+import { mapStyles as styles2, TRADER_THEMES } from '../Component/EftComponent.jsx';
 import * as QuestComponent from '../Component/QuestComponent';
 
 import Button from 'react-bootstrap/Button';
 
 const COMPLETE_KEY = "eft_completed_quests";
 const STORAGE_KEY = "eft_selected_quests";
-
-const TRADER_THEMES = {
-    "Prapor": { bg: "#7b1fa2", border: "#e1bee7", text: "#ffffff" }, // ม่วงสด
-    "Therapist": { bg: "#0288d1", border: "#81d4fa", text: "#ffffff" }, // ฟ้าสด
-    "Skier": { bg: "#f57c00", border: "#ffe0b2", text: "#ffffff" }, // ส้มสด
-    "Peacekeeper": { bg: "#2e7d32", border: "#a5d6a7", text: "#ffffff" }, // เขียวเข้มทหาร
-    "Mechanic": { bg: "#D34E4E", border: "#ffcdd2", text: "#ffffff" }, // แดงชมพู (ตามที่คุณชอบแต่สดขึ้น)
-    "Ragman": { bg: "#c2185b", border: "#f8bbd0", text: "#ffffff" }, // ชมพูบานเย็น
-    "Jaeger": { bg: "#689f38", border: "#dcedc8", text: "#ffffff" }, // เขียวสว่าง
-    "Fence": { bg: "#5d4037", border: "#d7ccc8", text: "#ffffff" }, // น้ำตาลเข้ม
-    "Lightkeeper": { bg: "#ffea00ff", border: "#f57f17", text: "#000000" }, // เหลืองทองสว่าง (Text ดำ)
-    "BTR Driver": { bg: "#ffeb3b", border: "#212121", text: "#000000" }, // เหลือง Taxi/Hazard (เด่นที่สุด)
-    "Ref": { bg: "#d32f2f", border: "#ffcdd2", text: "#ffffff" }, // แดงสด Arena
-};
 
 const QuestTree = () => {
     const [selectedTrader, setSelectedTrader] = useState("All");

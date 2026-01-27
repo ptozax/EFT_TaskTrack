@@ -2,25 +2,11 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import quests from "../data/tasks";
 import * as QuestComponent from '../Component/QuestComponent';
+import { TRADER_THEMES } from '../Component/EftComponent';
 
 const STORAGE_KEY = "eft_selected_quests";
 const OBJECTIVE_CHECK_KEY = "eft_objective_checklist";
 const COMPLETE_KEY = "eft_completed_quests";
-
-const TRADER_THEMES = {
-  "Any": { bg: "#00ccff", border: "#000000", text: "#ffffff" }, // ม่วงสด
-  "Prapor": { bg: "#7b1fa2", border: "#e1bee7", text: "#ffffff" }, // ม่วงสด
-  "Therapist": { bg: "#0288d1", border: "#81d4fa", text: "#ffffff" }, // ฟ้าสด
-  "Skier": { bg: "#f57c00", border: "#794f11", text: "#ffffff" }, // ส้มสด
-  "Peacekeeper": { bg: "#2e7d32", border: "#a5d6a7", text: "#ffffff" }, // เขียวเข้มทหาร
-  "Mechanic": { bg: "#D34E4E", border: "#ffcdd2", text: "#ffffff" }, // แดงชมพู (ตามที่คุณชอบแต่สดขึ้น)
-  "Ragman": { bg: "#c2185b", border: "#f8bbd0", text: "#ffffff" }, // ชมพูบานเย็น
-  "Jaeger": { bg: "#689f38", border: "#dcedc8", text: "#ffffff" }, // เขียวสว่าง
-  "Fence": { bg: "#5d4037", border: "#d7ccc8", text: "#ffffff" }, // น้ำตาลเข้ม
-  "Lightkeeper": { bg: "#ffea00ff", border: "#f57f17", text: "#000000" }, // เหลืองทองสว่าง (Text ดำ)
-  "BTR Driver": { bg: "#ffeb3b", border: "#212121", text: "#000000" }, // เหลือง Taxi/Hazard (เด่นที่สุด)
-  "Ref": { bg: "#d32f2f", border: "#ffcdd2", text: "#ffffff" }, // แดงสด Arena
-};
 
 const Home = () => {
   /* ---------------- SAVE STATE ---------------- */
@@ -356,7 +342,7 @@ const Home = () => {
                   {traderOptions.map((trader) => {
                     const active = trader === "Any" ? selectedTraders.length === 0 : selectedTraders.includes(trader);
                     const theme = active ? TRADER_THEMES[trader] : { bg: "#1e293b", border: "#334155", text: "#f8fafc" };
-
+                    
                     return (
                       <button
                         key={trader}

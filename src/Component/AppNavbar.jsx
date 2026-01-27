@@ -140,24 +140,33 @@ function AppNavbar() {
                                     as={NavLink}
                                     to={item.href}
                                     style={({ isActive }) => isActive ? activeStyle : inactiveStyle}
-                                    className='d-flex align-items-center'
                                 >
                                     {renderNavLinkContent(item)}
                                 </Nav.Link>
                             )
                                 : (
-                                    <Nav.Link className='d-flex align-items-center' key={item.key}>
-                                        <item.icon />
-                                        <NavDropdown title={item.text} id={`${item.key}-nav-dropdown`}>
-                                            {item.subLinks.map((subItem) => (
-                                                <NavDropdown.Item key={subItem.key} to={subItem.href} as={NavLink}
-                                                    style={({ isActive }) => isActive ? activeStyle : inactiveStyle}
-                                                >
-                                                    {renderNavLinkContent(subItem)}
-                                                </NavDropdown.Item>
-                                            ))}
-                                        </NavDropdown>
-                                    </Nav.Link>
+                                    <NavDropdown
+                                        key={item.key}
+                                        title={
+                                            /* CHANGE: Use 'd-inline-flex' instead of 'd-flex' */
+                                            <span className="d-inline-flex align-items-center">
+                                                <item.icon className="me-2" />
+                                                {item.text}
+                                            </span>
+                                        }
+                                        id={`${item.key}-nav-dropdown`}
+                                    >
+                                        {item.subLinks.map((subItem) => (
+                                            <NavDropdown.Item
+                                                key={subItem.key}
+                                                to={subItem.href}
+                                                as={NavLink}
+                                                style={({ isActive }) => isActive ? activeStyle : inactiveStyle}
+                                            >
+                                                {renderNavLinkContent(subItem)}
+                                            </NavDropdown.Item>
+                                        ))}
+                                    </NavDropdown>
                                 )
                         ))}
                     </Nav>
