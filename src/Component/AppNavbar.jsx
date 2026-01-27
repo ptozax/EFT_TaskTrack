@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
+import NavDropdown from 'react-bootstrap/NavDropdown';
 import Badge from 'react-bootstrap/Badge';
 
 import { NavLink } from 'react-router-dom';
 
-import { GiHomeGarage, GiPc, GiTreeGrowth, GiTrophy, GiMachineGunMagazine } from 'react-icons/gi';
-import { FaGem, FaMap, FaQrcode } from 'react-icons/fa';
+import { GiHomeGarage, GiPc, GiTreeGrowth, GiTrophy, GiMachineGunMagazine, GiProgression } from 'react-icons/gi';
+import { FaGem, FaMap, FaQrcode, FaTools } from 'react-icons/fa';
 import { kappaStyles as styles, COLORS } from './EftComponent';
 import BEAR from '/BEAR_Icon.webp';
 import USEC from '/USEC_Emblem.webp';
@@ -17,15 +18,30 @@ const RESET = ["All", "Questline", "Hideout"];
 function AppNavbar() {
 
     const mainNavLinks = [
-        { key: "#/", href: "/", icon: FaGem, text: "Home" },
-        { key: "#/AddQuest", href: "/AddQuest", icon: FaQrcode, text: "Add Quest" },
-        { key: "#/Map", href: "/Map", icon: FaMap, text: "Map" },
-        { key: "#/Kappa", href: "/Kappa", icon: GiTrophy, text: "Kappa" },
-        { key: "#/QuestTree", href: "/QuestTree", icon: GiTreeGrowth, text: "Quest Tree" },
-        { key: "#/Hideout", href: "/Hideout", icon: GiHomeGarage, text: "Hideout" },
-        { key: "#/Balistic", href: "/Balistic", icon: GiMachineGunMagazine, text: "Balistic" },
+        { key: "#/", href: "/", icon: FaGem, text: "Home", subLinks: [] },
+        { key: "#/AddQuest", href: "/AddQuest", icon: FaQrcode, text: "Add Quest", subLinks: [] },
+        { key: "#/Map", href: "/Map", icon: FaMap, text: "Map", subLinks: [] },
+        {
+            key: "#/Progressions", href: "", icon: GiProgression, text: "Progressions", subLinks: [
+                { key: "#/Kappa", href: "/Kappa", icon: GiTrophy, text: "Kappa" },
+                { key: "#/QuestTree", href: "/QuestTree", icon: GiTreeGrowth, text: "Quest Tree" },
+                { key: "#/Hideout", href: "/Hideout", icon: GiHomeGarage, text: "Hideout" }]
+        },
+        {
+            key: "#/Tools", href: "", icon: FaTools, text: "Tools", subLinks: [
+                { key: "#/Balistic", href: "/Balistic", icon: GiMachineGunMagazine, text: "Balistic" }]
+        },
 
     ];
+    // { key: "#/", href: "/", icon: FaGem, text: "Home" },
+    // { key: "#/AddQuest", href: "/AddQuest", icon: FaQrcode, text: "Add Quest" },
+    // { key: "#/Map", href: "/Map", icon: FaMap, text: "Map" },
+    // { key: "#/Kappa", href: "/Kappa", icon: GiTrophy, text: "Kappa" },
+    // { key: "#/QuestTree", href: "/QuestTree", icon: GiTreeGrowth, text: "Quest Tree" },
+    // { key: "#/Hideout", href: "/Hideout", icon: GiHomeGarage, text: "Hideout" },
+    // { key: "#/Balistic", href: "/Balistic", icon: GiMachineGunMagazine, text: "Balistic" },
+
+    // ];
 
     const settingsNavLinks = [
 
@@ -118,14 +134,31 @@ function AppNavbar() {
                 <Navbar.Collapse id="responsive-navbar-nav">
                     <Nav className="me-auto text-center" >
                         {mainNavLinks.map((item) => (
-                            <Nav.Link
-                                key={item.key}
-                                as={NavLink}
-                                to={item.href}
-                                style={({ isActive }) => isActive ? activeStyle : inactiveStyle}
-                            >
-                                {renderNavLinkContent(item)}
-                            </Nav.Link>
+                            item.subLinks.length === 0 ? (
+                                <Nav.Link
+                                    key={item.key}
+                                    as={NavLink}
+                                    to={item.href}
+                                    style={({ isActive }) => isActive ? activeStyle : inactiveStyle}
+                                    className='d-flex align-items-center'
+                                >
+                                    {renderNavLinkContent(item)}
+                                </Nav.Link>
+                            )
+                                : (
+                                    <Nav.Link className='d-flex align-items-center' key={item.key}>
+                                        <item.icon />
+                                        <NavDropdown title={item.text} id={`${item.key}-nav-dropdown`}>
+                                            {item.subLinks.map((subItem) => (
+                                                <NavDropdown.Item key={subItem.key} to={subItem.href} as={NavLink}
+                                                    style={({ isActive }) => isActive ? activeStyle : inactiveStyle}
+                                                >
+                                                    {renderNavLinkContent(subItem)}
+                                                </NavDropdown.Item>
+                                            ))}
+                                        </NavDropdown>
+                                    </Nav.Link>
+                                )
                         ))}
                     </Nav>
                     <Nav>
