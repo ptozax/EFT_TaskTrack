@@ -44,67 +44,57 @@ const ItemPrice = () => {
     }
     setStatus("Stopped");
   };
-
+  
   const detectIcon = () => {
+    // Guard: ถ้า OpenCV / video / canvas ยังไม่พร้อม ให้หยุดทันที
     if (!window.cv || !videoRef.current || !canvasRef.current) return;
 
-    const video = videoRef.current;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d", { willReadFrequently: true });
 
-    // Draw full resolution frame to canvas
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    // 1) วาด frame ปัจจุบันจาก video ลง canvas (full resolution)
+    ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
 
-    let src = null;
-    let template = null;
-    let dst = null;
+    // 2) อ่านภาพจาก canvas และ template
+    const src = cv.imread(canvas);
 
+    const templateEl = document.getElementById("template");
+    if (!templateEl) {
+      src.delete();
+      return;
+    }
+    const template = cv.imread(templateEl);
 
-    // 1. Read the current screen frame
-    src = window.cv.imread(canvas);
+    // 3) Template Matching
+    const dst = new cv.Mat();
+    cv.matchTemplate(src, template, dst, cv.TM_CCOEFF_NORMED);
 
-    // 2. Read the template image from the <img> tag
-    const templateImgElement = document.getElementById("template");
-    if (!templateImgElement) return;
-    template = window.cv.imread(templateImgElement);
+    // 4) หา match ที่ดีที่สุด
+    const { maxVal, maxLoc } = cv.minMaxLoc(dst);
 
-    dst = new window.cv.Mat();
-    const mask = new window.cv.Mat();
-
-    // 3. Perform Template Matching
-    window.cv.matchTemplate(
-      src,
-      template,
-      dst,
-      window.cv.TM_CCOEFF_NORMED,
-      mask
-    );
-
-    // 4. Find the best match location
-    const result = window.cv.minMaxLoc(dst, mask);
-    const { maxVal, maxLoc } = result;
-
-    // Threshold: 0.7 - 0.8 is usually good
     if (maxVal > 0.85) {
-      setStatus(`FOUND: ${(maxVal * 100).toFixed(1)}% at ${maxLoc.x},${maxLoc.y}`);
+      // FOUND
+      setStatus(
+        `FOUND: ${(maxVal * 100).toFixed(1)}% at ${maxLoc.x},${maxLoc.y}`
+      );
 
-      // Draw detection box on canvas
-      ctx.strokeStyle = "#00ff00"; // Bright green
+      // วาดกรอบตำแหน่งที่เจอ
+      ctx.strokeStyle = "#00ff00";
       ctx.lineWidth = 5;
-      ctx.strokeRect(maxLoc.x, maxLoc.y, template.cols, template.rows);
-
+      ctx.strokeRect(
+        maxLoc.x,
+        maxLoc.y,
+        template.cols,
+        template.rows
+      );
     } else {
       setStatus("Searching...");
     }
 
-
-    mask.delete();
-
-    // 5. CRITICAL: Clean up memory to prevent browser crash
-    if (src) src.delete();
-    if (template) template.delete();
-    if (dst) dst.delete();
-
+    // 5) เคลียร์ memory (สำคัญมากใน browser)
+    src.delete();
+    template.delete();
+    dst.delete();
   };
 
   return (
