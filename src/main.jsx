@@ -16,7 +16,10 @@ import Hideout from "./pages/Hideout.jsx";
 import AppNavbar from './Component/AppNavbar.jsx';
 import Balistic from "./pages/Balistic.jsx";
 
+import ItemPrice from "./pages/ItemPrice.jsx";  
+
 const pageComponents = {
+  ItemPrice:<ItemPrice/>,
   QuestTree: <QuestTree/>,
   Kappa: <Kappa/>,
   Map : < MapPage/>,
@@ -24,6 +27,7 @@ const pageComponents = {
   Hideout: <Hideout/>,
   Balistic: <Balistic/>,
   Default: <Home/>,
+
 };
 
 function HandlePage() {
