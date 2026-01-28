@@ -1,7 +1,8 @@
 
 import React, { useRef, useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import iconImg from "../../public/Top_R.png";
+import iconImgR from "../../public/Top_R.png";
+import iconImgL from "../../public/Top_L.png"
 
 const ItemPrice = () => {
   const videoRef = useRef(null);
@@ -44,7 +45,7 @@ const ItemPrice = () => {
     }
     setStatus("Stopped");
   };
-  
+
   const detectIcon = () => {
     // Guard: ถ้า OpenCV / video / canvas ยังไม่พร้อม ให้หยุดทันที
     if (!window.cv || !videoRef.current || !canvasRef.current) return;
@@ -58,7 +59,7 @@ const ItemPrice = () => {
     // 2) อ่านภาพจาก canvas และ template
     const src = cv.imread(canvas);
 
-    const templateEl = document.getElementById("template");
+    const templateEl = document.getElementById("templateR");
     if (!templateEl) {
       src.delete();
       return;
@@ -87,6 +88,86 @@ const ItemPrice = () => {
         template.cols,
         template.rows
       );
+
+
+
+
+
+
+
+
+
+      // =========================
+      // CROP ไปทางซ้าย 1000x20
+      // =========================
+      const cropWidth = 1000;
+      const cropHeight = 20;
+
+      // x เริ่มต้น (ไปทางซ้าย)
+      const cropX = Math.max(0, maxLoc.x - cropWidth);
+      const cropY = maxLoc.y;
+
+      // กันไม่ให้เกินขอบ canvas
+      const safeWidth = Math.min(cropWidth, canvas.width - cropX);
+      const safeHeight = Math.min(cropHeight, canvas.height - cropY);
+
+      const croppedImage = ctx.getImageData(
+        cropX,
+        cropY,
+        safeWidth,
+        safeHeight
+      );
+
+
+      // วาดลง canvas ชั่วคราว
+      const tempCanvas = document.createElement("canvas");
+      tempCanvas.width = croppedLeft.width;
+      tempCanvas.height = croppedLeft.height;
+      const tempCtx = tempCanvas.getContext("2d");
+      tempCtx.putImageData(croppedLeft, 0, 0);
+
+
+
+      // =========================
+      // STEP 2: หา templateL
+      // =========================
+      const srcL = cv.imread(tempCanvas);
+
+      const templateLEl = document.getElementById("templateL");
+      if (!templateLEl) {
+        srcL.delete();
+        return;
+      }
+
+      const templateL = cv.imread(templateLEl);
+      const dstL = new cv.Mat();
+
+      cv.matchTemplate(srcL, templateL, dstL, cv.TM_CCOEFF_NORMED);
+      const { maxVal: maxValL, maxLoc: maxLocL } = cv.minMaxLoc(dstL);
+
+      if (maxValL > 0.85) {
+        // =========================
+        // STEP 3: Crop ฝั่งขวาที่เหลือ
+        // =========================
+        const rightX = maxLocL.x + templateL.cols;
+        const rightWidth = srcL.cols - rightX;
+
+        if (rightWidth > 0) {
+          ctx.strokeStyle = "#ff0000"; // แดง
+          ctx.lineWidth = 3;
+          ctx.strokeRect(
+            rightX,
+            rightY,
+            rightWidth,
+            rightHeight
+          );
+        }
+      }
+
+
+
+
+
     } else {
       setStatus("Searching...");
     }
@@ -115,7 +196,8 @@ const ItemPrice = () => {
         <canvas ref={canvasRef} style={{ width: "100%", height: "auto" }} />
       </div>
 
-      <img id="template" src={iconImg} alt="template" style={{ display: "none" }} />
+      <img id="templateR" src={iconImgR} alt="template" style={{ display: "none" }} />
+      <img id="templateL" src={iconImgL} alt="template" style={{ display: "none" }} />
     </div>
   );
 };
