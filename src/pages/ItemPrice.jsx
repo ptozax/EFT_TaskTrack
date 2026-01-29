@@ -1,8 +1,10 @@
 
 import React, { useRef, useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import Tesseract from "tesseract.js";
 import iconImgR from "/Top_R.png";
 import iconImgL from "/Top_L.png";
+import items from "../data/items.json";
 
 const ItemPrice = () => {
   const videoRef = useRef(null);
@@ -10,7 +12,7 @@ const ItemPrice = () => {
   const intervalRef = useRef(null);
   const streamRef = useRef(null);
   const [status, setStatus] = useState("Idle");
-
+  const [itemList, setItemList] = useState([]);
 
   const canvasCrop = useRef(null);
 
@@ -157,7 +159,7 @@ const ItemPrice = () => {
     const matchL = cv.minMaxLoc(result);
 
     if (matchL.maxVal >= 0.85) {
-      console.log("✅ Found LEFT icon", matchL.maxVal);
+      // console.log("✅ Found LEFT icon", matchL.maxVal);
 
       // ตำแหน่งจริงของ L
       const leftX = cropX + matchL.maxLoc.x;
@@ -188,6 +190,9 @@ const ItemPrice = () => {
           canvasCrop.current.width = textWidth;
           canvasCrop.current.height = textHeight;
           ctxCrop.putImageData(textImage, 0, 0);
+          const image = canvasCrop.current.toDataURL("image/png");
+
+          processImage(image);
         }
       }
     }
@@ -203,32 +208,101 @@ const ItemPrice = () => {
     result.delete();
   };
 
+  const levenshtein = (a, b) => {
+    const dp = Array.from({ length: a.length + 1 }, () =>
+      Array(b.length + 1).fill(0)
+    );
+
+    for (let i = 0; i <= a.length; i++) dp[i][0] = i;
+    for (let j = 0; j <= b.length; j++) dp[0][j] = j;
+
+    for (let i = 1; i <= a.length; i++) {
+      for (let j = 1; j <= b.length; j++) {
+        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        dp[i][j] = Math.min(
+          dp[i - 1][j] + 1,
+          dp[i][j - 1] + 1,
+          dp[i - 1][j - 1] + cost
+        );
+      }
+    }
+
+    return dp[a.length][b.length];
+  };
+
+  const processImage = async (image) => {
+    const result = await Tesseract.recognize(
+      image,
+      'eng',
+      // { logger: m => console.log(m.status) }
+    );
+    // console.log(result.data.text.split('|\n')[0].trim());
+    const text = result.data.text.split('|\n')[0].trim();
+
+    let min = Infinity;
+    const best = items.reduce((best, item) => {
+      const d = levenshtein(text, item.name);
+      return d < min ? (min = d, item) : best;
+    }, null);
+    if (best) {
+      // console.log(best);
+      if (itemList.includes(best.id)) return;
+      setItemList(prev => {
+        return prev.includes(best.id) ? prev :
+          [best.id, ...prev]
+      });
+    }
+  };
 
   return (
-    <div className="container mt-3">
+    <div className="m-3">
       <h4>Full Res Icon Detection</h4>
+      <div className="row">
 
-      <div className="mb-3">
-        <button className="btn btn-primary me-2" onClick={startCapture}>Start Capture</button>
-        <button className="btn btn-danger" onClick={stopCapture}>Stop</button>
+        <div className="col">
+          <button className="btn btn-primary me-2" onClick={startCapture}>Start Capture</button>
+          <button className="btn btn-danger" onClick={stopCapture}>Stop</button>
+
+          <p>Status: <span className="badge bg-dark">{status}</span></p>
+
+          <video ref={videoRef} style={{ display: "none" }} />
+
+          <div className="border" style={{ overflow: "auto", maxWidth: "100%", maxHeight: "100%" }}>
+            {/* CSS handles the visual display size, while JS handles the internal resolution */}
+            <canvas ref={canvasRef} style={{ width: "100%", height: "auto" }} />
+          </div>
+
+          <div className="border" style={{ maxWidth: "100%", maxHeight: "5%" }}>
+            {/* CSS handles the visual display size, while JS handles the internal resolution */}
+            <canvas ref={canvasCrop} style={{ width: "100%", height: "auto" }} />
+          </div>
+
+          <img id="templateR" src={iconImgR} alt="template" style={{ display: "none" }} />
+          <img id="templateL" src={iconImgL} alt="template" style={{ display: "none" }} />
+        </div>
+
+        <div className="col mx-3">
+          <h4>Item Lists</h4>
+          <div className="row">
+            {itemList?.map((id, index) => {
+              const item = items.find(i => i.id === id);
+              const trader = item.sellFor
+                .filter(trader => trader.source !== "fleaMarket") // 1. Remove Flea Market
+                .sort((a, b) => b.priceRUB - a.priceRUB)[0];      // 2. Sort Descending & take first
+              const fleaMarket = item.sellFor.find(trader => trader.source === "fleaMarket");
+              return (
+                <div key={index} className="mb-3 p-2 border col-md-4">
+                  <h5 className="card-title">{item.name}</h5>
+                  <img src={item.inspectImageLink} alt={item.name} style={{width: '8rem'}} />
+                  <pre className="card-text">Trader Price: {trader.source} {trader.price} {trader.currency}</pre>
+                  {fleaMarket && <pre className="card-text">FleaMarket: {fleaMarket?.price} {fleaMarket?.currency}</pre>}
+                </div>
+              )
+            })}
+          </div>
+        </div>
       </div>
 
-      <p>Status: <span className="badge bg-dark">{status}</span></p>
-
-      <video ref={videoRef} style={{ display: "none" }} />
-
-      <div className="border" style={{ overflow: "auto", maxWidth: "100%", maxHeight: "600px" }}>
-        {/* CSS handles the visual display size, while JS handles the internal resolution */}
-        <canvas ref={canvasRef} style={{ width: "100%", height: "auto" }} />
-      </div>
-
-      <div className="border" style={{ overflow: "auto", maxWidth: "100%", maxHeight: "600px" }}>
-        {/* CSS handles the visual display size, while JS handles the internal resolution */}
-        <canvas ref={canvasCrop} style={{ width: "100%", height: "auto" }} />
-      </div>
-
-      <img id="templateR" src={iconImgR} alt="template" style={{ display: "none" }} />
-      <img id="templateL" src={iconImgL} alt="template" style={{ display: "none" }} />
     </div>
   );
 };
