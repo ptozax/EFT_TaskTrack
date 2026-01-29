@@ -8,7 +8,7 @@ import Badge from 'react-bootstrap/Badge';
 import { NavLink } from 'react-router-dom';
 
 import { GiHomeGarage, GiPc, GiTreeGrowth, GiTrophy, GiMachineGunMagazine, GiProgression } from 'react-icons/gi';
-import { FaGem, FaMap, FaQrcode, FaTools } from 'react-icons/fa';
+import { FaGem, FaMap, FaQrcode, FaTools, FaExchangeAlt } from 'react-icons/fa';
 import { kappaStyles as styles, COLORS } from './EftComponent';
 import BEAR from '/BEAR_Icon.webp';
 import USEC from '/USEC_Emblem.webp';
@@ -29,19 +29,11 @@ function AppNavbar() {
         },
         {
             key: "#/Tools", href: "", icon: FaTools, text: "Tools", subLinks: [
-                { key: "#/Balistic", href: "/Balistic", icon: GiMachineGunMagazine, text: "Balistic" }]
+                { key: "#/Balistic", href: "/Balistic", icon: GiMachineGunMagazine, text: "Balistic" },
+                { key: "#/ItemPrice", href: "/ItemPrice", icon: FaExchangeAlt, text: "Item Price" }]
         },
 
     ];
-    // { key: "#/", href: "/", icon: FaGem, text: "Home" },
-    // { key: "#/AddQuest", href: "/AddQuest", icon: FaQrcode, text: "Add Quest" },
-    // { key: "#/Map", href: "/Map", icon: FaMap, text: "Map" },
-    // { key: "#/Kappa", href: "/Kappa", icon: GiTrophy, text: "Kappa" },
-    // { key: "#/QuestTree", href: "/QuestTree", icon: GiTreeGrowth, text: "Quest Tree" },
-    // { key: "#/Hideout", href: "/Hideout", icon: GiHomeGarage, text: "Hideout" },
-    // { key: "#/Balistic", href: "/Balistic", icon: GiMachineGunMagazine, text: "Balistic" },
-
-    // ];
 
     const settingsNavLinks = [
 
