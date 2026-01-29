@@ -342,7 +342,7 @@ const Home = () => {
                   {traderOptions.map((trader) => {
                     const active = trader === "Any" ? selectedTraders.length === 0 : selectedTraders.includes(trader);
                     const theme = active ? TRADER_THEMES[trader] : { bg: "#1e293b", border: "#334155", text: "#f8fafc" };
-                    
+
                     return (
                       <button
                         key={trader}
@@ -572,6 +572,32 @@ const Home = () => {
                               );
                             })}
                           </ul>
+
+                          <span>Reward</span>
+                          <div className="d-flex justify-content-start align-items-center mb-2">
+                            {quest.finishRewards.items.map(obj => (
+                              <span
+                                key={`${quest.id}-reward-${obj.item.id}`}
+                                // 1. Added d-flex, flex-column, align-items-center, justify-content-center
+                                className="badge text-dark border 1px solid gray bg-info ms-1 d-flex flex-column align-items-center justify-content-center"
+                                style={{ minWidth: '60px' }} // Optional: prevents badge from being too skinny
+                              >
+                                <div
+                                  // 2. Changed paddingRight to mb-1 (margin-bottom) for vertical spacing
+                                  className="mb-1"
+                                  style={{ height: '4rem', display: 'flex', alignItems: 'center' }}
+                                >
+                                  <img
+                                    src={obj.item.baseImageLink}
+                                    alt={obj.item.name}
+                                    style={{ width: '4rem' }}
+                                  />
+                                </div>
+                                {/* Text stays at the bottom */}
+                                <span>{obj.item.shortName} x {obj.count}</span>
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       );
                     })}
