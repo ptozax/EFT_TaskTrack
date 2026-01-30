@@ -14,6 +14,7 @@ const ItemPrice = () => {
   const [status, setStatus] = useState("Idle");
   const [itemList, setItemList] = useState([]);
   const [loading, setLoading] = useState(false);
+  const chance = Math.random() < 0.9;
 
   const canvasCrop = useRef(null);
 
@@ -332,8 +333,7 @@ const ItemPrice = () => {
               className="d-flex justify-content-center align-items-center"
               style={{ height: "calc(100vh - 25rem)" }}
             >
-              {/* <h1>No items in list</h1> */}
-              <h1>หาม้าย Items นิ๊</h1>
+              <h1>{chance ? "No items in list" : "หาม้าย Items นิ๊"}</h1>
             </div>
           ) : (
             <>
