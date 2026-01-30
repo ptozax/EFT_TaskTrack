@@ -13,8 +13,56 @@ const ItemPrice = () => {
   const streamRef = useRef(null);
   const [status, setStatus] = useState("Idle");
   const [itemList, setItemList] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const canvasCrop = useRef(null);
+
+  const getCurrentPrice = async (id) => {
+    setLoading(true);
+    const query = `
+      query MyQuery {
+        item(
+          id: "${id}",
+          gameMode: pve
+        ) {
+          id
+          name
+          sellFor {
+            currency
+            price
+            priceRUB
+            source
+          }
+        }
+      }
+  `;
+
+    // 2. Fetch with params converted to string
+    try {
+      const response = await fetch('https://api.tarkov.dev/graphql', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ query }),
+      });
+
+      const result = await response.json();
+      
+      if (result.data && result.data.item) {
+        // console.log(result.data.item);
+        setItemList(prev => {
+          return prev.some(i => i.id === result.data.item.id) ? prev :
+            [result.data.item, ...prev]
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const startCapture = async () => {
     try {
@@ -246,60 +294,77 @@ const ItemPrice = () => {
     }, null);
     if (best) {
       // console.log(best);
-      if (itemList.includes(best.id)) return;
-      setItemList(prev => {
-        return prev.includes(best.id) ? prev :
-          [best.id, ...prev]
-      });
+      if (itemList.some(i => i.id === best.id)) return;
+      getCurrentPrice(best.id);
     }
   };
 
   return (
-    <div className="m-3">
+    <div className="m-5">
       <h4>Full Res Icon Detection</h4>
       <div className="row">
-
-        <div className="col">
-          <button className="btn btn-primary me-2" onClick={startCapture}>Start Capture</button>
-          <button className="btn btn-danger" onClick={stopCapture}>Stop</button>
-
+        <div>
+          <div className="d-flex align-items-center">
+            <button className="btn btn-primary me-2" onClick={startCapture}>Start Capture</button>
+            <button className="btn btn-danger me-2" onClick={stopCapture}>Stop</button>
+            <div className="border ms-2 flex-grow-1" style={{ height: '40px' }}>
+              <canvas ref={canvasCrop} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+            </div>
+          </div>
           <p>Status: <span className="badge bg-dark">{status}</span></p>
-
           <video ref={videoRef} style={{ display: "none" }} />
-
-          <div className="border" style={{ overflow: "auto", maxWidth: "100%", maxHeight: "100%" }}>
-            {/* CSS handles the visual display size, while JS handles the internal resolution */}
+          <div className="border" style={{ overflow: "auto", maxWidth: "100%", maxHeight: "100%", display: 'none' }}>
             <canvas ref={canvasRef} style={{ width: "100%", height: "auto" }} />
           </div>
-
-          <div className="border" style={{ maxWidth: "100%", maxHeight: "5%" }}>
-            {/* CSS handles the visual display size, while JS handles the internal resolution */}
-            <canvas ref={canvasCrop} style={{ width: "100%", height: "auto" }} />
-          </div>
-
           <img id="templateR" src={iconImgR} alt="template" style={{ display: "none" }} />
           <img id="templateL" src={iconImgL} alt="template" style={{ display: "none" }} />
-        </div>
 
-        <div className="col mx-3">
-          <h4>Item Lists</h4>
-          <div className="row">
-            {itemList?.map((id, index) => {
-              const item = items.find(i => i.id === id);
-              const trader = item.sellFor
-                .filter(trader => trader.source !== "fleaMarket") // 1. Remove Flea Market
-                .sort((a, b) => b.priceRUB - a.priceRUB)[0];      // 2. Sort Descending & take first
-              const fleaMarket = item.sellFor.find(trader => trader.source === "fleaMarket");
-              return (
-                <div key={index} className="mb-3 p-2 border col-md-4">
-                  <h5 className="card-title">{item.name}</h5>
-                  <img src={item.inspectImageLink} alt={item.name} style={{width: '8rem'}} />
-                  <pre className="card-text">Trader Price: {trader.source} {trader.price} {trader.currency}</pre>
-                  {fleaMarket && <pre className="card-text">FleaMarket: {fleaMarket?.price} {fleaMarket?.currency}</pre>}
+          <h4 className="mt-3 text-center">Item Lists</h4>
+          {(loading && itemList.length === 0) ? (
+            <div
+              className="d-flex justify-content-center align-items-center"
+              style={{ height: "calc(100vh - 25rem)" }}
+            >
+              <h1>Loading prices...</h1>
+            </div>
+          ) : (!loading && itemList.length === 0) ? (
+            <div
+              className="d-flex justify-content-center align-items-center"
+              style={{ height: "calc(100vh - 25rem)" }}
+            >
+              {/* <h1>No items in list</h1> */}
+              <h1>หาม้าย Items นิ๊</h1>
+            </div>
+          ) : (
+            <>
+              <div className="container">
+                <div className="row justify-content-center">
+                  {itemList?.map((item, index) => {
+                    const data = items.find(i => i.id === item.id);
+                    const trader = item?.sellFor
+                      .filter(trader => trader.source !== "fleaMarket") // 1. Remove Flea Market
+                      .sort((a, b) => b.priceRUB - a.priceRUB)[0];      // 2. Sort Descending & take first
+                    const fleaMarket = item?.sellFor.find(trader => trader.source === "fleaMarket");
+                    return (
+                      <div key={index} className="border 1px solid gray m-2 col-md-4" style={{ maxWidth: '22%' }}>
+                        <h5 className="card-title mt-2">{data.shortName}</h5>
+                        <p className="card-title"><em>{data.name}</em></p>
+                        <div className="row mt-2">
+                          <div className="col d-flex align-items-center justify-content-center">
+                            <img src={data.inspectImageLink} alt={data.name} style={{ width: '8rem' }} />
+                          </div>
+                          <div className="col">
+                            <p className="card-text mb-1"><b className="text-info">Trader Price:</b> <br /> <em>{trader?.source}</em> <br /> {trader?.price} {trader?.currency}</p>
+                            {fleaMarket && <p><b className="text-danger">FleaMarket:</b> <br /> {fleaMarket?.price} {fleaMarket?.currency}</p>}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
-              )
-            })}
-          </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
