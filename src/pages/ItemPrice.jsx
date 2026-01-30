@@ -337,7 +337,7 @@ const ItemPrice = () => {
             </div>
           ) : (
             <>
-              <div className="container">
+              {/* <div className="container">
                 <div className="row justify-content-center">
                   {itemList?.map((item, index) => {
                     const data = items.find(i => i.id === item.id);
@@ -362,7 +362,92 @@ const ItemPrice = () => {
                     )
                   })}
                 </div>
+              </div> */}
+
+
+
+
+
+
+              <div className="container">
+                <div className="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 justify-content-center">
+                  {itemList?.map((item, index) => {
+                    const data = items.find((i) => i.id === item.id);
+                    if (!data) return null;
+
+                    const trader = item?.sellFor
+                      .filter((t) => t.source !== "fleaMarket")
+                      .sort((a, b) => b.priceRUB - a.priceRUB)[0];
+
+                    const fleaMarket = item?.sellFor.find((t) => t.source === "fleaMarket");
+
+                    return (
+                      <div key={index} className="col">
+                        <div
+                          className="card h-100 border-0 text-light"
+                          style={{
+                            // สไตล์ Glassmorphism
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            backdropFilter: 'blur(10px)',
+                            borderRadius: '16px',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
+                          }}
+                        >
+                          <div className="card-body p-3 d-flex flex-column">
+                            {/* ชื่อสินค้า */}
+                            <h6 className="text-warning mb-0 fw-bold">{data.shortName}</h6>
+                            <small className="text-white-50 text-truncate mb-3" title={data.name}>
+                              {data.name}
+                            </small>
+
+                            {/* รูปภาพสินค้า พร้อมเอฟเฟกต์เรืองแสงเบาๆ */}
+                            <div
+                              className="d-flex align-items-center justify-content-center mb-3 rounded"
+                              style={{
+                                height: '140px',
+                                background: 'rgba(0, 0, 0, 0.2)',
+                                boxShadow: 'inset 0 0 20px rgba(0,0,0,0.5)'
+                              }}
+                            >
+                              <img
+                                src={data.inspectImageLink}
+                                alt={data.name}
+                                style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', filter: 'drop-shadow(0 0 10px rgba(255,255,255,0.2))' }}
+                              />
+                            </div>
+
+                            {/* ส่วนราคา */}
+                            <div className="mt-auto">
+                              {/* Trader Price */}
+                              <div className="p-2 rounded mb-2" style={{ background: 'rgba(23, 162, 184, 0.15)', borderLeft: '4px solid #17a2b8' }}>
+                                <div className="d-flex justify-content-between align-items-center">
+                                  <small className="text-info fw-bold text-uppercase">{trader?.source}</small>
+                                  <span className="fw-bold">{trader?.price?.toLocaleString()} {trader?.currency}</span>
+                                </div>
+                              </div>
+
+                              {/* Flea Market Price */}
+                              {fleaMarket && (
+                                <div className="p-2 rounded" style={{ background: 'rgba(220, 53, 69, 0.15)', borderLeft: '4px solid #dc3545' }}>
+                                  <div className="d-flex justify-content-between align-items-center">
+                                    <small className="text-danger fw-bold">FLEA</small>
+                                    <span className="fw-bold">
+                                      {fleaMarket?.price?.toLocaleString()} {fleaMarket?.currency}
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
+
+              
             </>
           )}
         </div>
