@@ -320,7 +320,7 @@ const ItemPrice = () => {
           <img id="templateR" src={iconImgR} alt="template" style={{ display: "none" }} />
           <img id="templateL" src={iconImgL} alt="template" style={{ display: "none" }} />
 
-          <h4 className="mt-3 text-center">Item Lists</h4>
+          {/* <h4 className="mt-3 text-center">Item Lists</h4> */}
           {(loading && itemList.length === 0) ? (
             <div
               className="d-flex justify-content-center align-items-center"
@@ -447,7 +447,7 @@ const ItemPrice = () => {
                 </div>
               </div>
 
-              
+
             </>
           )}
         </div>
