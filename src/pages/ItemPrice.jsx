@@ -50,7 +50,7 @@ const ItemPrice = () => {
       });
 
       const result = await response.json();
-      
+
       if (result.data && result.data.item) {
         // console.log(result.data.item);
         setItemList(prev => {
@@ -300,6 +300,18 @@ const ItemPrice = () => {
     }
   };
 
+
+
+  const getTierColor = (price) => {
+    if (price >= 100000) return { border: '#ff4444', glow: 'rgb(255, 187, 0)' }; // แพงมาก (แดง/ส้ม)
+    if (price >= 35000) return { border: '#ffbb33', glow: 'rgba(255, 65, 223, 0.59)' };  // ปานกลาง (เหลือง)
+    if (price >= 20000) return { border: '#00C851', glow: 'rgba(105, 255, 165, 0.82)' };   // พอใช้ (เขียว)
+    return { border: 'rgba(255, 255, 255, 0.1)', glow: 'transparent' };               // ทั่วไป
+  };
+
+
+
+
   return (
     <div className="m-5">
       <h4>Full Res Icon Detection</h4>
@@ -381,17 +393,23 @@ const ItemPrice = () => {
 
                     const fleaMarket = item?.sellFor.find((t) => t.source === "fleaMarket");
 
+                    // หาค่าราคาที่สูงที่สุดเพื่อกำหนด Tier
+                    const maxPrice = Math.max(trader?.priceRUB || 0, fleaMarket?.priceRUB || 0);
+                    const tier = getTierColor(maxPrice);
+
                     return (
                       <div key={index} className="col">
                         <div
                           className="card h-100 border-0 text-light"
                           style={{
-                            // สไตล์ Glassmorphism
                             background: 'rgba(255, 255, 255, 0.05)',
                             backdropFilter: 'blur(10px)',
                             borderRadius: '16px',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)'
+                            // เปลี่ยนสี Border ตามราคา
+                            border: `1px solid ${tier.border}`, 
+                            // เพิ่มเงาเรืองแสงตามสี Tier
+                            boxShadow: `0 8px 32px 0 rgba(0, 0, 0, 0.37), 0 0 15px ${tier.glow}`,
+                            transition: 'all 0.3s ease' // เพิ่ม transition ให้ดูนุ่มนวล
                           }}
                         >
                           <div className="card-body p-3 d-flex flex-column">
