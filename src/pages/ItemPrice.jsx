@@ -207,7 +207,7 @@ const ItemPrice = () => {
 
     const matchL = cv.minMaxLoc(result);
 
-    if (matchL.maxVal >= 0.85) {
+    if (matchL.maxVal >= 0.4) {
       // console.log("✅ Found LEFT icon", matchL.maxVal);
 
       // ตำแหน่งจริงของ L
