@@ -463,14 +463,17 @@ const Home = () => {
                       const filteredObjectives =
                         quest.objectives?.filter(
                           (obj) =>
-                            objectiveLocations.length === 0 ||
-                            obj.maps?.some((m) =>
-                              objectiveLocations.includes(m.name)
-                            )
+                            obj.type !== "giveItem" && (
+                              objectiveLocations.length === 0 ||
+                              obj.maps?.some((m) =>
+                                objectiveLocations.includes(m.name)
+                              ))
                         ) || [];
 
+                      const giveItemList = quest.objectives?.filter(obj => obj.type === "giveItem") || [];
+
                       if (selectedTraders.length > 0 && !selectedTraders.includes(quest.trader.name)) return null;
-                      if (filteredObjectives.length === 0) return null;
+                      if (filteredObjectives.length === 0 && giveItemList.length === 0) return null;
 
                       return (
                         <div
@@ -511,12 +514,63 @@ const Home = () => {
 
                           {/* OBJECTIVES */}
                           <ul className="list-unstyled mb-0">
+                            { giveItemList.length > 0 && <h5 className="text-center text-uppercase">hand over</h5>}
+                            {(giveItemList.length > 0) && (
+                              <li className="d-flex justify-content-center align-items-center mb-2 row">
+                                {giveItemList.map((obj) => {
+                                  const key = getObjectiveKey(quest.id, obj.id);
+                                  const checked = checkedObjectives[key];
+                                  const hidden = hiddenObjectives[key];
+                                  if (hidden) return null;
+
+                                  return (
+                                    <span
+                                      key={`${quest.id}-list-${key}`}
+                                      className={`col-2 mb-2 rounded position-relative
+                                        ${checked
+                                          ? "bg-success bg-opacity-10 border border-success"
+                                          : "bg-secondary bg-opacity-10 border border-secondary"
+                                        }
+                                        badge ms-1 d-flex flex-column align-items-center justify-content-center`}
+                                      onClick={() => toggleObjective(quest.id, obj.id)}
+                                    >
+                                      <img
+                                        className="rounded"
+                                        src={obj.item.iconLink}
+                                        alt={obj.item.name}
+                                        style={{
+                                          objectFit: "contain",
+                                          height: "60px",
+                                          width: "auto",
+                                          cursor: "pointer",
+                                        }}
+                                      />
+                                      <button
+                                        className="position-absolute btn btn-sm btn-outline-warning top-0 end-0 m-1"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          toggleHideObjective(quest.id, obj.id);
+                                        }}
+                                      >
+                                        <i className="fa-regular fa-eye-slash"></i>
+                                      </button>
+                                      {/* Text stays at the bottom */}
+                                      <span className={`fw-medium mt-1
+                                      ${checked
+                                          ? "text-decoration-line-through text-muted"
+                                          : "text-light"
+                                        }`}>
+                                        {obj.item.shortName} <span className="text-info">x {obj.count}</span></span>
+                                    </span>
+                                  )
+                                })}
+                              </li>
+                            )}
                             {filteredObjectives.map((obj) => {
                               const key = getObjectiveKey(quest.id, obj.id);
                               const checked = checkedObjectives[key];
                               const hidden = hiddenObjectives[key];
                               if (hidden) return null;
-
                               return (
                                 <li
                                   key={key}
@@ -532,18 +586,6 @@ const Home = () => {
 
 
                                   <div className="d-flex align-items-start">
-                                    {/* OBJECTIVE IMAGE */}
-                                    {/* {obj.item && (
-                                      <img
-                                        src={obj.item.iconLink}
-                                        alt={obj.description}
-                                  
-                                        className="me-3 rounded"
-                                        style={{ objectFit: "contain" ,height :"60px", width: "auto" }}
-                                      />
-                                    )} */}
-
-
                                     {obj.item && (
                                       <img
                                         src={obj.item.iconLink}
@@ -556,7 +598,7 @@ const Home = () => {
                                           cursor: "pointer"
                                         }}
                                       />
-                                    )}s
+                                    )}
 
                                     <div className="flex-grow-1">
                                       <div className="d-flex justify-content-between align-items-start">
@@ -567,7 +609,7 @@ const Home = () => {
                                             }`}
                                         >
                                           {obj.description}
-                                          {["giveItem", "TaskObjectiveShoot", "shoot", "kill"].includes(obj.type) && (
+                                          {["findItem", "TaskObjectiveShoot", "shoot", "kill"].includes(obj.type) && (
                                             <span className="text-info"> x {obj.count}</span>
                                           )}
                                         </span>
@@ -632,7 +674,7 @@ const Home = () => {
                                   />
                                 </div>
                                 {/* Text stays at the bottom */}
-                                <span  >{obj.item.shortName} x {obj.count}</span>
+                                <span  >{obj.item.shortName} <span className="text-info">x {obj.count}</span></span>
                               </span>
                             ))}
                           </div>
