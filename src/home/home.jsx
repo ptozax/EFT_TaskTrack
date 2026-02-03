@@ -528,8 +528,8 @@ const Home = () => {
                                       key={`${quest.id}-list-${key}`}
                                       className={`col-2 mb-2 rounded position-relative
                                         ${checked
-                                          ? "bg-success bg-opacity-10 border border-success"
-                                          : "bg-secondary bg-opacity-10 border border-secondary"
+                                          ? "bg-success bg-opacity-25 border border-success"
+                                          : "bg-danger bg-opacity-25 border border-secondary"
                                         }
                                         badge ms-1 d-flex flex-column align-items-center justify-content-center`}
                                       onClick={() => toggleObjective(quest.id, obj.id)}
