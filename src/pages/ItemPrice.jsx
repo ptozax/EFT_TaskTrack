@@ -5,6 +5,7 @@ import Tesseract from "tesseract.js";
 import iconImgR from "/Top_R.png";
 import iconImgL from "/Top_L.png";
 import items from "../data/items.json";
+import { FiRefreshCcw } from "react-icons/fi";
 
 const ItemPrice = () => {
   const videoRef = useRef(null);
@@ -14,6 +15,7 @@ const ItemPrice = () => {
   const [status, setStatus] = useState("Idle");
   const [itemList, setItemList] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [updatingIds, setUpdatingIds] = useState(new Set());
   const chance = Math.random() < 0.9;
 
   const canvasCrop = useRef(null);
@@ -53,9 +55,21 @@ const ItemPrice = () => {
 
       if (result.data && result.data.item) {
         // console.log(result.data.item);
-        setItemList(prev => {
-          return prev.some(i => i.id === result.data.item.id) ? prev :
-            [result.data.item, ...prev]
+        setItemList(currentItems =>
+          currentItems.map(item => {
+            // 1. Find the item by ID
+            if (item.id === result.data.item.id) {
+              // 2. Create a *new* object with the updates
+              return { ...item, sellFor: result.data.item.sellFor };
+            }
+            // 3. If it's not the one we want, return it unchanged
+            return item;
+          })
+        );
+        setUpdatingIds(prev => {
+          const newSet = new Set(prev);
+          newSet.add(result.data.item.id);
+          return newSet;
         });
       }
     } catch (error) {
@@ -296,6 +310,10 @@ const ItemPrice = () => {
     if (best) {
       // console.log(best);
       if (itemList.some(i => i.id === best.id)) return;
+      setItemList(prev => {
+        return prev.some(i => i.id === best.id) ? prev :
+          [best, ...prev]
+      });
       getCurrentPrice(best.id);
     }
   };
@@ -406,7 +424,7 @@ const ItemPrice = () => {
                             backdropFilter: 'blur(10px)',
                             borderRadius: '16px',
                             // เปลี่ยนสี Border ตามราคา
-                            border: `1px solid ${tier.border}`, 
+                            border: `1px solid ${tier.border}`,
                             // เพิ่มเงาเรืองแสงตามสี Tier
                             boxShadow: `0 8px 32px 0 rgba(0, 0, 0, 0.37), 0 0 15px ${tier.glow}`,
                             transition: 'all 0.3s ease' // เพิ่ม transition ให้ดูนุ่มนวล
@@ -447,9 +465,11 @@ const ItemPrice = () => {
 
                               {/* Flea Market Price */}
                               {fleaMarket && (
-                                <div className="p-2 rounded" style={{ background: 'rgba(220, 53, 69, 0.15)', borderLeft: '4px solid #dc3545' }}>
+                                <div className="p-2 rounded" style={{ background: 'rgba(220, 53, 69, 0.15)', borderLeft: '4px solid #dc3545'}}>
                                   <div className="d-flex justify-content-between align-items-center">
-                                    <small className="text-danger fw-bold">FLEA</small>
+                                    <small className="text-danger fw-bold d-flex align-items-center">FLEA
+                                      {updatingIds.has(item.id) && <FiRefreshCcw className="icon-spin text-warning mx-1" size={24} />}
+                                    </small>
                                     <span className="fw-bold">
                                       {fleaMarket?.price?.toLocaleString()} {fleaMarket?.currency}
                                     </span>
