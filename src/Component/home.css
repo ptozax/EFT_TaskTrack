@@ -1,0 +1,7 @@
+.objective-img {
+    transition: transform 0.2s ease-in-out;
+}
+
+.objective-img:hover {
+    transform: scale(2.5);
+}

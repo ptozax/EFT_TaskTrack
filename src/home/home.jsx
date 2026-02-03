@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
+import "../Component/home.css"
 import quests from "../data/tasks";
 import * as QuestComponent from '../Component/QuestComponent';
 import { TRADER_THEMES } from '../Component/EftComponent';
@@ -519,7 +520,7 @@ const Home = () => {
                               return (
                                 <li
                                   key={key}
-                                  className={`mb-2 p-3 rounded ${checked
+                                  className={`mb-2 p-2 rounded ${checked
                                     ? "bg-success bg-opacity-10 border border-success"
                                     : "bg-secondary bg-opacity-10 border border-secondary"
                                     }`}
@@ -528,46 +529,83 @@ const Home = () => {
                                   }
                                   style={{ cursor: "pointer" }}
                                 >
-                                  <div className="d-flex justify-content-between align-items-start">
-                                    <span
-                                      className={`fw-medium ${checked
-                                        ? "text-decoration-line-through text-muted"
-                                        : "text-light"
-                                        }`}
-                                    >
-                                      {obj.description} {["giveItem", "TaskObjectiveShoot", "shoot", "kill"].includes(obj.type) && <> <span className='text-info'>x {obj.count}</span> </>}
-                                    </span>
 
-                                    <button
-                                      className="btn btn-sm btn-outline-warning ms-2"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        toggleHideObjective(
-                                          quest.id,
-                                          obj.id
-                                        );
-                                      }}
-                                    >
-                                      <i className="fa-regular fa-eye-slash"></i>
-                                    </button>
-                                  </div>
 
-                                  {/* MAP TAGS */}
-                                  {obj.maps?.length > 0 && (
-                                    <div className="mt-2">
-                                      {obj.maps.map((m) => (
+                                  <div className="d-flex align-items-start">
+                                    {/* OBJECTIVE IMAGE */}
+                                    {/* {obj.item && (
+                                      <img
+                                        src={obj.item.iconLink}
+                                        alt={obj.description}
+                                  
+                                        className="me-3 rounded"
+                                        style={{ objectFit: "contain" ,height :"60px", width: "auto" }}
+                                      />
+                                    )} */}
+
+
+                                    {obj.item && (
+                                      <img
+                                        src={obj.item.iconLink}
+                                        alt={obj.description}
+                                        className="me-3 rounded objective-img"
+                                        style={{
+                                          objectFit: "contain",
+                                          height: "60px",
+                                          width: "auto",
+                                          cursor: "pointer"
+                                        }}
+                                      />
+                                    )}s
+
+                                    <div className="flex-grow-1">
+                                      <div className="d-flex justify-content-between align-items-start">
                                         <span
-                                          key={m.name}
-                                          className={`badge rounded-pill me-1 ${checked
-                                            ? "bg-success"
-                                            : "bg-secondary"
+                                          className={`fw-medium ${checked
+                                            ? "text-decoration-line-through text-muted"
+                                            : "text-light"
                                             }`}
                                         >
-                                          {m.name}
+                                          {obj.description}
+                                          {["giveItem", "TaskObjectiveShoot", "shoot", "kill"].includes(obj.type) && (
+                                            <span className="text-info"> x {obj.count}</span>
+                                          )}
                                         </span>
-                                      ))}
+
+                                        <button
+                                          className="btn btn-sm btn-outline-warning ms-2"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            toggleHideObjective(quest.id, obj.id);
+                                          }}
+                                        >
+                                          <i className="fa-regular fa-eye-slash"></i>
+                                        </button>
+                                      </div>
+
+                                      {/* MAP TAGS */}
+                                      {obj.maps?.length > 0 && (
+                                        <div className="mt-2">
+                                          {obj.maps.map((m) => (
+                                            <span
+                                              key={m.name}
+                                              className={`badge rounded-pill me-1 ${checked ? "bg-success" : "bg-secondary"
+                                                }`}
+                                            >
+                                              {m.name}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      )}
                                     </div>
-                                  )}
+                                  </div>
+
+
+
+
+
+
+
                                 </li>
                               );
                             })}
@@ -579,7 +617,7 @@ const Home = () => {
                               <span
                                 key={`${quest.id}-reward-${obj.item.id}`}
                                 // 1. Added d-flex, flex-column, align-items-center, justify-content-center
-                                className="badge text-dark border 1px solid gray bg-info ms-1 d-flex flex-column align-items-center justify-content-center"
+                                className="badge  border 1px solid gray bg-dark bg-gradient  ms-1 d-flex flex-column align-items-center justify-content-center"
                                 style={{ minWidth: '60px' }} // Optional: prevents badge from being too skinny
                               >
                                 <div
@@ -594,7 +632,7 @@ const Home = () => {
                                   />
                                 </div>
                                 {/* Text stays at the bottom */}
-                                <span>{obj.item.shortName} x {obj.count}</span>
+                                <span  >{obj.item.shortName} x {obj.count}</span>
                               </span>
                             ))}
                           </div>
