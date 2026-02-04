@@ -47,10 +47,24 @@ function AppNavbar() {
         return saveFaction ? JSON.parse(saveFaction) : 'BEAR'
     });
 
+    const [gameplayMode, setGameplayMode] = useState(() => {
+        const savegameplayMode = localStorage.getItem('eft_gameplay_mode');
+        return savegameplayMode ? JSON.parse(savegameplayMode) : 'pve'
+    });
+
     const ToggleFaction = () => {
         if (factionName === 'BEAR') setFactionName('USEC')
         else setFactionName('BEAR');
+
+        localStorage.setItem('eft_faction_name', JSON.stringify(factionName === 'BEAR' ? 'USEC' : 'BEAR'));
     };
+
+    const ToggleGameplayMode = () => {
+        if (gameplayMode === 'pve') setGameplayMode('pvp')
+        else setGameplayMode('pve');
+
+        localStorage.setItem('eft_gameplay_mode', JSON.stringify(gameplayMode === 'pve' ? 'pvp' : 'pve'));
+    }
 
     const handleResetClick = () => {
         setShowResetModal(true);
@@ -175,6 +189,25 @@ function AppNavbar() {
                         ))}
 
                         <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto', gap: '0.5rem' }}>
+                            <button
+                                onClick={ToggleGameplayMode}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    padding: '0.5rem 1rem',
+                                    borderRadius: '0.5rem',
+                                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                                    backgroundColor: '#000000',
+                                    color: gameplayMode === 'pve' ? '#0099ff' : '#f87171',
+                                    cursor: 'pointer',
+                                    height: '40px',
+                                    fontWeight: 'bold',
+                                }}
+                                title="Gameplay Mode"
+                            >
+                                {gameplayMode.toUpperCase()}
+                            </button>
                             <img
                                 onClick={() => ToggleFaction()}
                                 src={`${factionName === 'BEAR' ? BEAR : USEC}`}

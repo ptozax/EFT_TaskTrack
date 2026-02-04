@@ -6,6 +6,7 @@ import iconImgR from "/Top_R.png";
 import iconImgL from "/Top_L.png";
 import items from "../data/items.json";
 import { FiRefreshCcw } from "react-icons/fi";
+import { Icons } from "../Component/EftComponent";
 
 const ItemPrice = () => {
   const videoRef = useRef(null);
@@ -22,11 +23,13 @@ const ItemPrice = () => {
 
   const getCurrentPrice = async (id) => {
     setLoading(true);
+    const savegameplayMode = JSON.parse(localStorage.getItem('eft_gameplay_mode'));
+
     const query = `
       query MyQuery {
         item(
           id: "${id}",
-          gameMode: pve
+          gameMode: ${savegameplayMode === 'pve' ? 'pve' : 'regular'}
         ) {
           id
           name
@@ -327,7 +330,18 @@ const ItemPrice = () => {
     return { border: 'rgba(255, 255, 255, 0.1)', glow: 'transparent' };               // ทั่วไป
   };
 
+  const refreshFLEA = () => {
+    setUpdatingIds(new Set());
+    itemList.forEach(item => {
+      getCurrentPrice(item.id);
+    });
+  }
 
+  const toggleRemoveItem = (id) => {
+    console.log(id);
+
+    setItemList(prev => (prev.filter(item => item.id !== id)));
+  }
 
 
   return (
@@ -336,11 +350,16 @@ const ItemPrice = () => {
       <div className="row">
         <div>
           <div className="d-flex align-items-center">
-            <button className="btn btn-primary me-2" onClick={startCapture}>Start Capture</button>
-            <button className="btn btn-danger me-2" onClick={stopCapture}>Stop</button>
-            <div className="border ms-2 flex-grow-1" style={{ height: '40px' }}>
+            {["Idle", "Stopped"].includes(status) ? (
+              <button className="btn btn-primary me-2" onClick={startCapture}>Start Capture</button>
+            ) : (
+              <button className="btn btn-danger me-2" onClick={stopCapture}>Stop</button>
+            )}
+            <div className="border flex-grow-1 rounded" style={{ height: '40px' }}>
               <canvas ref={canvasCrop} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
             </div>
+            <button className="btn btn-danger mx-2" onClick={refreshFLEA}><FiRefreshCcw size={24} className="text-warning" /></button>
+            <button className="btn btn-warning" onClick={() => setItemList([])}><Icons.Rotate size={24} color="#ff0000" /></button>
           </div>
           <p>Status: <span className="badge bg-dark">{status}</span></p>
           <video ref={videoRef} style={{ display: "none" }} />
@@ -432,7 +451,10 @@ const ItemPrice = () => {
                         >
                           <div className="card-body p-3 d-flex flex-column">
                             {/* ชื่อสินค้า */}
-                            <h6 className="text-warning mb-0 fw-bold">{data.shortName}</h6>
+                            <div className="d-flex justify-content-between align-items-center">
+                              <h6 className="text-warning mb-0 fw-bold">{data.shortName}</h6>
+                              <button onClick={() => toggleRemoveItem(item.id)} className="border-0 btn"><Icons.Cross size={20} color="#FF0000" /></button>
+                            </div>
                             <small className="text-white-50 text-truncate mb-3" title={data.name}>
                               {data.name}
                             </small>
@@ -465,7 +487,7 @@ const ItemPrice = () => {
 
                               {/* Flea Market Price */}
                               {fleaMarket && (
-                                <div className="p-2 rounded" style={{ background: 'rgba(220, 53, 69, 0.15)', borderLeft: '4px solid #dc3545'}}>
+                                <div className="p-2 rounded" style={{ background: 'rgba(220, 53, 69, 0.15)', borderLeft: '4px solid #dc3545' }}>
                                   <div className="d-flex justify-content-between align-items-center">
                                     <small className="text-danger fw-bold d-flex align-items-center">FLEA
                                       {updatingIds.has(item.id) && <FiRefreshCcw className="icon-spin text-warning mx-1" size={24} />}
