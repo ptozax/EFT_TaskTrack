@@ -672,7 +672,7 @@ const Home = () => {
                                   <img
                                     src={obj.item.baseImageLink}
                                     alt={obj.item.name}
-                                    style={{ width: '4rem' }}
+                                    style={{ height: '4rem' }}
                                   />
                                 </div>
                                 {/* Text stays at the bottom */}
