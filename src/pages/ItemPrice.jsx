@@ -345,8 +345,8 @@ const ItemPrice = () => {
 
 
   return (
-    <div className="m-5">
-      <h4>Full Res Icon Detection</h4>
+    <div className="m-5 mt-1">
+      {/* <h4>Full Res Icon Detection</h4> */}
       <div className="row">
         <div>
           <div className="d-flex align-items-center">
@@ -358,8 +358,8 @@ const ItemPrice = () => {
             <div className="border flex-grow-1 rounded" style={{ height: '40px' }}>
               <canvas ref={canvasCrop} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
             </div>
-            <button className="btn btn-danger mx-2" onClick={refreshFLEA}><FiRefreshCcw size={24} className="text-warning" /></button>
-            <button className="btn btn-warning" onClick={() => setItemList([])}><Icons.Rotate size={24} color="#ff0000" /></button>
+            <button className="btn btn-success mx-2" onClick={refreshFLEA}><FiRefreshCcw size={24} className="text-white" /></button>
+            <button className="btn btn-warning" onClick={() => setItemList([])}><Icons.Rotate size={24} color="#262626" /></button>
           </div>
           <p>Status: <span className="badge bg-dark">{status}</span></p>
           <video ref={videoRef} style={{ display: "none" }} />
