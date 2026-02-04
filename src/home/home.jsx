@@ -659,28 +659,28 @@ const Home = () => {
 
                             {
                             
-                            // quest.finishRewards.items.map(obj => (
-                            //   <span
-                            //     key={`${quest.id}-reward-${obj.item.id}`}
-                            //     // 1. Added d-flex, flex-column, align-items-center, justify-content-center
-                            //     className="badge  border 1px solid gray bg-dark bg-gradient  ms-1 d-flex flex-column align-items-center justify-content-center"
-                            //     style={{ minWidth: '60px' }} // Optional: prevents badge from being too skinny
-                            //   >
-                            //     <div
-                            //       // 2. Changed paddingRight to mb-1 (margin-bottom) for vertical spacing
-                            //       className="mb-1"
-                            //       style={{ height: '4rem', display: 'flex', alignItems: 'center' }}
-                            //     >
-                            //       <img
-                            //         src={obj.item.baseImageLink}
-                            //         alt={obj.item.name}
-                            //         style={{ width: '4rem' }}
-                            //       />
-                            //     </div>
-                            //     {/* Text stays at the bottom */}
-                            //     <span  >{obj.item.shortName} <span className="text-info">x {obj.count}</span></span>
-                            //   </span>
-                            // ))
+                            quest.finishRewards.items.map(obj => (
+                              <span
+                                key={`${quest.id}-reward-${obj.item.id}`}
+                                // 1. Added d-flex, flex-column, align-items-center, justify-content-center
+                                className="badge  border 1px solid gray bg-dark bg-gradient  ms-1 d-flex flex-column align-items-center justify-content-center"
+                                style={{ minWidth: '60px' }} // Optional: prevents badge from being too skinny
+                              >
+                                <div
+                                  // 2. Changed paddingRight to mb-1 (margin-bottom) for vertical spacing
+                                  className="mb-1"
+                                  style={{ height: '4rem', display: 'flex', alignItems: 'center' }}
+                                >
+                                  <img
+                                    src={obj.item.baseImageLink}
+                                    alt={obj.item.name}
+                                    style={{ width: '4rem' }}
+                                  />
+                                </div>
+                                {/* Text stays at the bottom */}
+                                <span  >{obj.item.shortName} <span className="text-info">x {obj.count}</span></span>
+                              </span>
+                            ))
                             
                             }
 
