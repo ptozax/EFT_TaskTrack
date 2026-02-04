@@ -657,9 +657,7 @@ const Home = () => {
                           <div className="d-flex justify-content-start align-items-center mb-2">
 
 
-                            {
-                            
-                            quest.finishRewards.items.map(obj => (
+                            {quest.finishRewards.items?.map(obj => (
                               <span
                                 key={`${quest.id}-reward-${obj.item.id}`}
                                 // 1. Added d-flex, flex-column, align-items-center, justify-content-center
@@ -680,11 +678,7 @@ const Home = () => {
                                 {/* Text stays at the bottom */}
                                 <span  >{obj.item.shortName} <span className="text-info">x {obj.count}</span></span>
                               </span>
-                            ))
-                            
-                            }
-
-
+                            ))}
 
                           </div>
                         </div>
