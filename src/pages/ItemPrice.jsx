@@ -396,14 +396,16 @@ const ItemPrice = () => {
 
 
 
-          <div className="d-flex align-items-center">
-            {["Idle", "Stopped"].includes(status) ? (
-              <button className="btn btn-primary me-2" onClick={startCapture}>Start Capture</button>
-            ) : (
-              <button className="btn btn-danger me-2" onClick={stopCapture}>Stop</button>
-            )}
+          <div className="d-flex flex-wrap align-items-center p-2 gap-2">
+            <div className="d-flex">
+              {["Idle", "Stopped"].includes(status) ? (
+                <button className="btn btn-primary me-2 text-nowrap" onClick={startCapture}>Start Capture</button>
+              ) : (
+                <button className="btn btn-danger me-2 text-nowrap" onClick={stopCapture}>Stop</button>
+              )}
+            </div>
 
-            <div>
+            <div className="flex-grow-1" style={{ maxWidth: "200px" }}>
               <input
                 className="form-control form-control-l  shadow-sm px-4"
                 placeholder="🔍 Search item..."
@@ -412,14 +414,14 @@ const ItemPrice = () => {
               />
             </div>
 
-            <div className="border flex-grow-1 rounded ms-2" style={{ height: '37px' ,maxWidth: "690px"}}>
+            <div className="border rounded flex-grow-1" style={{ height: '37px' }}>
               <canvas ref={canvasCrop} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
             </div>
 
-
-
-            <button className="btn btn-success mx-2" onClick={refreshFLEA}><FiRefreshCcw size={24} className="text-white" /></button>
-            <button className="btn btn-warning" onClick={() => setItemList([])}><Icons.Rotate size={24} color="#262626" /></button>
+            <div className="d-flex gap-2">
+              <button className="btn btn-success mx-2 flex-shrink-0" onClick={refreshFLEA}><FiRefreshCcw size={24} className="text-white" /></button>
+              <button className="btn btn-warning flex-shrink-0" onClick={() => setItemList([])}><Icons.Rotate size={24} color="#262626" /></button>
+            </div>
           </div>
 
           <video ref={videoRef} style={{ display: "none" }} />
@@ -450,18 +452,18 @@ const ItemPrice = () => {
           {/* SEARCH RESULT */}
           {search && (
 
-            <div className="row justify-content-center mb-4 position-absolute z-1   ">
+            <div className="row justify-content-center mb-4 position-absolute z-1">
               <div className="col-md-9">
                 <div className="card shadow">
-                  <ul className="list-group list-group-flush">
+                  <ul className="list-group list-group-flush" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
                     {searchResults.map((q) => (
                       <li
                         key={`${q.id}-${q.name}`}
                         className="list-group-item d-flex justify-content-between align-items-center"
-
                         onClick={() => { setItemListWithFetch(q); setSearch("") }}
                       >
-                        <span className="fw-medium">{q.name}</span>
+                        <span className="fw-medium me-1">{q.name}</span>
+                        <img src={q?.inspectImageLink} alt={q.name} style={{ width: '120px' }} />
                         {/* <button
                           className="btn btn-sm btn-success rounded-pill px-3"
                           onClick={() => (setItemListWithFetch(q))}
