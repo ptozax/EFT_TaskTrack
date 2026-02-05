@@ -412,7 +412,7 @@ const ItemPrice = () => {
               />
             </div>
 
-            <div className="border flex-grow-1 rounded ms-2" style={{ height: '37px' }}>
+            <div className="border flex-grow-1 rounded ms-2" style={{ height: '37px' ,maxWidth: "690px"}}>
               <canvas ref={canvasCrop} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
             </div>
 
@@ -609,7 +609,7 @@ const ItemPrice = () => {
                                 <div className="p-2 rounded" style={{ background: 'rgba(220, 53, 69, 0.15)', borderLeft: '4px solid #dc3545' }}>
                                   <div className="d-flex justify-content-between align-items-center">
                                     <small className="text-danger fw-bold d-flex align-items-center">FLEA
-                                      {updatingIds.has(item.id) && <FiRefreshCcw className="icon-spin text-warning mx-1" size={24} />}
+                                      {updatingIds.has(item.id) && <FiRefreshCcw className="icon-spin text-warning mx-1" size={15} />}
                                     </small>
                                     <span className="fw-bold">
                                       {fleaMarket?.price?.toLocaleString()} {fleaMarket?.currency}
