@@ -18,8 +18,23 @@ const ItemPrice = () => {
   const [loading, setLoading] = useState(false);
   const [updatingIds, setUpdatingIds] = useState(new Set());
   const chance = Math.random() < 0.9;
-
   const canvasCrop = useRef(null);
+
+
+  const [search, setSearch] = useState("");
+  const [searchResults, setResults] = useState([]);
+
+
+
+  useEffect(() => {
+
+    /* ---------------- SEARCH ---------------- */
+    setResults(items.filter((i) => i.name.toLowerCase().includes(search.toLowerCase()) && !itemList.some((s) => s.name === i.name)))
+
+  }, [search]);
+
+
+
 
   const getCurrentPrice = async (id) => {
     setLoading(true);
@@ -296,6 +311,20 @@ const ItemPrice = () => {
     return dp[a.length][b.length];
   };
 
+
+
+
+
+  const setItemListWithFetch = (obj) => {
+
+    setItemList(prev => {
+      return prev.some(i => i.id === obj.id) ? prev :
+        [obj, ...prev]
+    });
+    getCurrentPrice(obj.id);
+  };
+
+
   const processImage = async (image) => {
     const result = await Tesseract.recognize(
       image,
@@ -313,13 +342,18 @@ const ItemPrice = () => {
     if (best) {
       // console.log(best);
       if (itemList.some(i => i.id === best.id)) return;
-      setItemList(prev => {
-        return prev.some(i => i.id === best.id) ? prev :
-          [best, ...prev]
-      });
-      getCurrentPrice(best.id);
+
+      setItemListWithFetch(best)
+
+      // setItemList(prev => {
+      //   return prev.some(i => i.id === best.id) ? prev :
+      //     [best, ...prev]
+      // });
+      // getCurrentPrice(best.id);
     }
   };
+
+
 
 
 
@@ -344,30 +378,115 @@ const ItemPrice = () => {
   }
 
 
+
+
+  /* ---------------- SEARCH ---------------- */
+  // const searchResults = items.filter(
+  //   (i) =>
+  //     i.name.toLowerCase().includes(search.toLowerCase()) &&
+  //     !itemList.some((s) => s.name === i.name)
+  // );
+
   return (
     <div className="m-5 mt-1">
       {/* <h4>Full Res Icon Detection</h4> */}
       <div className="row">
         <div>
+
+
+
+
           <div className="d-flex align-items-center">
             {["Idle", "Stopped"].includes(status) ? (
               <button className="btn btn-primary me-2" onClick={startCapture}>Start Capture</button>
             ) : (
               <button className="btn btn-danger me-2" onClick={stopCapture}>Stop</button>
             )}
-            <div className="border flex-grow-1 rounded" style={{ height: '40px' }}>
+
+            <div>
+              <input
+                className="form-control form-control-l  shadow-sm px-4"
+                placeholder="🔍 Search item..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+
+            <div className="border flex-grow-1 rounded ms-2" style={{ height: '37px' }}>
               <canvas ref={canvasCrop} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
             </div>
+
+
+
             <button className="btn btn-success mx-2" onClick={refreshFLEA}><FiRefreshCcw size={24} className="text-white" /></button>
             <button className="btn btn-warning" onClick={() => setItemList([])}><Icons.Rotate size={24} color="#262626" /></button>
           </div>
-          <p>Status: <span className="badge bg-dark">{status}</span></p>
+
           <video ref={videoRef} style={{ display: "none" }} />
           <div className="border" style={{ overflow: "auto", maxWidth: "100%", maxHeight: "100%", display: 'none' }}>
             <canvas ref={canvasRef} style={{ width: "100%", height: "auto" }} />
           </div>
           <img id="templateR" src={iconImgR} alt="template" style={{ display: "none" }} />
           <img id="templateL" src={iconImgL} alt="template" style={{ display: "none" }} />
+
+          {/* <p>Status: <span className="badge bg-dark">{status}</span></p> */}
+
+
+
+
+
+          {/* SEARCH */}
+          {/* <div className="row justify-content-center mb-1 mt-1">
+            <div className="col-md-9">
+              <input
+                className="form-control form-control-l  shadow-sm px-4"
+                placeholder="🔍 Search item..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+          </div> */}
+
+          {/* SEARCH RESULT */}
+          {search && (
+
+            <div className="row justify-content-center mb-4 position-absolute z-1   ">
+              <div className="col-md-9">
+                <div className="card shadow">
+                  <ul className="list-group list-group-flush">
+                    {searchResults.map((q) => (
+                      <li
+                        key={`${q.id}-${q.name}`}
+                        className="list-group-item d-flex justify-content-between align-items-center"
+
+                        onClick={() => { setItemListWithFetch(q); setSearch("") }}
+                      >
+                        <span className="fw-medium">{q.name}</span>
+                        {/* <button
+                          className="btn btn-sm btn-success rounded-pill px-3"
+                          onClick={() => (setItemListWithFetch(q))}
+                        >
+                          + Add
+                        </button> */}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
+
+
+
+
+
+          <div className="mb-4"></div>
+
+
+
+
+
 
           {/* <h4 className="mt-3 text-center">Item Lists</h4> */}
           {(loading && itemList.length === 0) ? (
