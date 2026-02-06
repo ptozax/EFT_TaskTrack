@@ -393,36 +393,50 @@ const ItemPrice = () => {
       <div className="row">
         <div>
 
+          <div className="d-flex flex-nowrap align-items-center p-2 gap-2">
 
-
-
-          <div className="d-flex flex-wrap align-items-center p-2 gap-2">
-            <div className="d-flex">
+            <div className="flex-shrink-0">
               {["Idle", "Stopped"].includes(status) ? (
-                <button className="btn btn-primary me-2 text-nowrap" onClick={startCapture}>Start Capture</button>
+                <button className="btn btn-primary text-nowrap" onClick={startCapture}>
+                  Start Capture
+                </button>
               ) : (
-                <button className="btn btn-danger me-2 text-nowrap" onClick={stopCapture}>Stop</button>
+                <button className="btn btn-danger text-nowrap" onClick={stopCapture}>
+                  Stop
+                </button>
               )}
             </div>
 
-            <div className="flex-grow-1" style={{ maxWidth: "200px" }}>
+            <div className="flex-grow-1" style={{ maxWidth: "220px", minWidth: "150px" }}>
               <input
-                className="form-control form-control-l  shadow-sm px-4"
+                className="form-control shadow-sm px-3"
                 placeholder="🔍 Search item..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
 
-            <div className="border rounded flex-grow-1" style={{ height: '37px' }}>
-              <canvas ref={canvasCrop} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+            <div
+              className="border rounded  flex-grow-1"
+              style={{ width: "140px", height: "37px" }}
+            >
+              <canvas
+                ref={canvasCrop}
+                style={{ width: "100%", height: "100%", objectFit: "contain" }}
+              />
             </div>
 
-            <div className="d-flex gap-2">
-              <button className="btn btn-success mx-2 flex-shrink-0" onClick={refreshFLEA}><FiRefreshCcw size={24} className="text-white" /></button>
-              <button className="btn btn-warning flex-shrink-0" onClick={() => setItemList([])}><Icons.Rotate size={24} color="#262626" /></button>
+            <div className="d-flex gap-2 flex-shrink-0">
+              <button className="btn btn-success" onClick={refreshFLEA}>
+                <FiRefreshCcw size={20} />
+              </button>
+              <button className="btn btn-warning" onClick={() => setItemList([])}>
+                <Icons.Rotate size={20} />
+              </button>
             </div>
+
           </div>
+
 
           <video ref={videoRef} style={{ display: "none" }} />
           <div className="border" style={{ overflow: "auto", maxWidth: "100%", maxHeight: "100%", display: 'none' }}>
