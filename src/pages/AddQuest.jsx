@@ -1,9 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Tesseract from "tesseract.js";
 import quests from "../data/tasks";
+import { h1 } from "framer-motion/client";
+import * as QuestComponent from '../Component/QuestComponent';
+
+
 
 const STORAGE_KEY = "eft_selected_quests";
 const OBJECTIVE_KEY = "eft_objective_checklist";
+const COMPLETE_KEY = "eft_completed_quests";
 
 const AddQuest = () => {
   const [search, setSearch] = useState("");
@@ -14,7 +19,8 @@ const AddQuest = () => {
   const [ocrMatchedQuests, setOcrMatchedQuests] = useState([]);
   const [ocrUnmatchedText, setOcrUnmatchedText] = useState("");
   const [selectedTraders, setSelectedTraders] = useState([]);
-
+  const [addMode, setAddMode] = useState(false);
+  const addModeRef = useRef(addMode);
 
 
 
@@ -42,6 +48,18 @@ const AddQuest = () => {
         : [...prev, trader]
     );
   };
+
+
+
+
+
+  useEffect(() => {
+    addModeRef.current = addMode;
+  }, [addMode]);
+
+
+
+
   /* ---------------- LOAD SELECTED QUESTS ---------------- */
   useEffect(() => {
     loadSelected();
@@ -95,16 +113,35 @@ const AddQuest = () => {
   const getSavedQuests = () =>
     JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
 
+
+
   const addQuest = (quest) => {
-    const saved = getSavedQuests();
-    if (saved.some((q) => q.id === quest.id)) return;
+    const mode = addModeRef.current;
+    console.log("REAL MODE:", mode);
 
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify([...saved, quest])
-    );
+    if (!mode) {
+      const saved = getSavedQuests();
+      if (saved.some((q) => q.id === quest.id)) return;
 
-    loadSelected();
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify([...saved, quest])
+      );
+
+      loadSelected();
+    } else {
+
+      const completedQuests = JSON.parse(localStorage.getItem(COMPLETE_KEY) || "[]"); //load
+      const newCompleted = QuestComponent.getPreviousQuestsList(quest.id, completedQuests); // find success
+      console.log("New Completed Quests List:", newCompleted);
+
+
+      const uniqueSet = new Set([...completedQuests, ...newCompleted]); // a+b
+
+      localStorage.setItem(COMPLETE_KEY, JSON.stringify([...uniqueSet]));
+
+
+    }
   };
 
 
@@ -173,11 +210,38 @@ const AddQuest = () => {
   /* ---------------- UI ---------------- */
   return (
     <div className="container py-5">
-      <h2 className="fw-bold mb-4">➕ Add Quest</h2>
+
+
+      <div
+        className={`d-flex align-items-center justify-content-between p-2 rounded-4 transition-all ${addMode ? 'bg-success text-white' : 'bg-warning text-dark'}`}
+        style={{ border: '2px solid transparent', transition: '0.3s ease' }}
+      >
+        <h1 className="mb-0 fw-light" style={{ fontSize: 'calc(1.5rem + 1.5vw)' }}>
+          {addMode ? <strong>➕ Adding to successed</strong> : <strong>➕ Adding to current</strong>}
+        </h1>
+
+        <div className="form-check form-switch">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            role="switch"
+            id="switchH1"
+            style={{
+              width: '3.5rem',
+              height: '1.75rem',
+              cursor: 'pointer',
+              filter: addMode ? 'brightness(1.2)' : 'none'
+            }}
+            checked={addMode}
+            onChange={(e) => setAddMode(e.target.checked)}
+          />
+        </div>
+      </div>
+
 
       {/* SEARCH */}
-      <div className="mb-3">
-        <h6>🔍 Search Quest</h6>
+      <div className="mb-3 mt-3">
+        {/* <h6>🔍 Search Quest</h6> */}
         <input
           className="form-control"
           placeholder="Search quest name..."
@@ -187,38 +251,42 @@ const AddQuest = () => {
       </div>
 
       {/* SEARCH RESULT */}
-      {search && (
-        <ul className="list-group mb-4">
-          {filteredQuests.slice(0, 10).map((quest) => {
-            const saved = selectedQuests.some(
-              (q) => q.id === quest.id
-            );
+      {
+        search && (
+          <ul className="list-group mb-4">
+            {filteredQuests.slice(0, 10).map((quest) => {
+              const saved = selectedQuests.some(
+                (q) => q.id === quest.id
+              );
 
-            return (
-              <li
-                key={quest.name}
-                className="list-group-item d-flex justify-content-between align-items-center"
-              >
-                <span>{quest.name}</span>
-
-                <button
-                  className="btn btn-sm btn-success"
-                  disabled={saved}
+              return (
+                <li
+                  key={quest.name}
+                  className={`list-group-item d-flex justify-content-between align-items-center ${saved ? 'bg-black text-dark' : ''}`}
                   onClick={() => addQuest(quest)}
-                >
-                  {saved ? "Added" : "➕ Add"}
-                </button>
-              </li>
-            );
-          })}
 
-          {filteredQuests.length === 0 && (
-            <li className="list-group-item text-muted">
-              No quest found
-            </li>
-          )}
-        </ul>
-      )}
+                >
+                  <span>{quest.name}</span>
+
+                  {/* <button
+                    className="btn btn-sm btn-success"
+                    disabled={saved}
+                    onClick={() => addQuest(quest)}
+                  >
+                    {saved ? "Added" : "➕ Add"}
+                  </button> */}
+                </li>
+              );
+            })}
+
+            {filteredQuests.length === 0 && (
+              <li className="list-group-item text-muted">
+                No quest found
+              </li>
+            )}
+          </ul>
+        )
+      }
 
 
 
@@ -237,88 +305,94 @@ const AddQuest = () => {
       </div>
 
       {/* OCR MATCH RESULT */}
-      {ocrMatched !== null && (
-        <div className="card mt-3">
-          <div className="card-body">
-            {ocrMatched ? (
-              <>
-                <h6 className="fw-bold text-success">
-                  ✅ OCR Matched Quests
-                </h6>
-                <ul className="mb-0">
-                  {ocrMatchedQuests.map((q) => (
-                    <li key={q}>{q}</li>
-                  ))}
-                </ul>
-              </>
-            ) : (
-              <>
-                <h6 className="fw-bold text-danger">
-                  ❌ No quest matched from OCR
-                </h6>
-                <div className="text-muted small">
-                  Try clearer image or add quest manually
-                </div>
-              </>
-            )}
+      {
+        ocrMatched !== null && (
+          <div className="card mt-3">
+            <div className="card-body">
+              {ocrMatched ? (
+                <>
+                  <h6 className="fw-bold text-success">
+                    ✅ OCR Matched Quests
+                  </h6>
+                  <ul className="mb-0">
+                    {ocrMatchedQuests.map((q) => (
+                      <li key={q}>{q}</li>
+                    ))}
+                  </ul>
+                </>
+              ) : (
+                <>
+                  <h6 className="fw-bold text-danger">
+                    ❌ No quest matched from OCR
+                  </h6>
+                  <div className="text-muted small">
+                    Try clearer image or add quest manually
+                  </div>
+                </>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
 
       {/* OCR UNMATCHED TEXT */}
-      {ocrUnmatchedText && (
-        <div className="card mt-3 border-warning">
-          <div className="card-body">
-            <h6 className="fw-bold text-warning">
-              📝 OCR Text (Unmatched)
-            </h6>
-            <pre
-              className="small text-muted"
-              style={{ whiteSpace: "pre-wrap" }}
-            >
-              {ocrUnmatchedText}
-            </pre>
+      {
+        ocrUnmatchedText && (
+          <div className="card mt-3 border-warning">
+            <div className="card-body">
+              <h6 className="fw-bold text-warning">
+                📝 OCR Text (Unmatched)
+              </h6>
+              <pre
+                className="small text-muted"
+                style={{ whiteSpace: "pre-wrap" }}
+              >
+                {ocrUnmatchedText}
+              </pre>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
 
 
       {/* 🧑‍💼 TRADER FILTER */}
-      {traderOptions.length > 0 && (
-        <div className="card mb-3">
-          <div className="card-body">
-            <h6 className="fw-bold mb-2">
-              🧑‍💼 Filter by Trader
-            </h6>
+      {
+        traderOptions.length > 0 && (
+          <div className="card mb-3">
+            <div className="card-body">
+              <h6 className="fw-bold mb-2">
+                🧑‍💼 Filter by Trader
+              </h6>
 
-            <div className="d-flex flex-wrap gap-2">
-              {traderOptions.map((trader) => (
+              <div className="d-flex flex-wrap gap-2">
+                {traderOptions.map((trader) => (
+                  <button
+                    key={trader}
+                    className={`btn btn-sm ${selectedTraders.includes(trader)
+                      ? "btn-primary"
+                      : "btn-outline-primary"
+                      }`}
+                    onClick={() => toggleTrader(trader)}
+                  >
+                    {trader}
+                  </button>
+                ))}
+              </div>
+
+              {selectedTraders.length > 0 && (
                 <button
-                  key={trader}
-                  className={`btn btn-sm ${selectedTraders.includes(trader)
-                    ? "btn-primary"
-                    : "btn-outline-primary"
-                    }`}
-                  onClick={() => toggleTrader(trader)}
+                  className="btn btn-sm btn-link mt-2 text-danger"
+                  onClick={() => setSelectedTraders([])}
                 >
-                  {trader}
+                  Clear filter
                 </button>
-              ))}
+              )}
             </div>
-
-            {selectedTraders.length > 0 && (
-              <button
-                className="btn btn-sm btn-link mt-2 text-danger"
-                onClick={() => setSelectedTraders([])}
-              >
-                Clear filter
-              </button>
-            )}
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* ✅ SELECTED QUESTS (NAME ONLY) */}
       <div className="card mb-4">
@@ -366,7 +440,7 @@ const AddQuest = () => {
         </div>
       </div>
 
-    </div>
+    </div >
   );
 };
 
