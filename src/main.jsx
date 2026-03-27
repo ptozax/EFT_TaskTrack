@@ -16,7 +16,8 @@ import Hideout from "./pages/Hideout.jsx";
 import AppNavbar from './Component/AppNavbar.jsx';
 import Balistic from "./pages/Balistic.jsx";
 
-import ItemPrice from "./pages/ItemPrice.jsx";  
+import ItemPrice from "./pages/ItemPrice.jsx";
+import WeaponBuild from "./pages/WeaponBuild.jsx";  
 
 const pageComponents = {
   ItemPrice:<ItemPrice/>,
@@ -26,6 +27,7 @@ const pageComponents = {
   AddQuest: <AddQuest/>,
   Hideout: <Hideout/>,
   Balistic: <Balistic/>,
+  WeaponBuild: <WeaponBuild />,
   Default: <Home/>,
 
 };

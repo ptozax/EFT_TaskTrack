@@ -1014,6 +1014,8 @@ export const Icons = {
         <path d="M17 4h2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-2"></path></Icon>,
     ChevronUp: (p) => <Icon {...p}><polyline points="18 15 12 9 6 15"></polyline></Icon>,
     ChevronDown: (p) => <Icon {...p}><polyline points="6 9 12 15 18 9"></polyline></Icon>,
+    ChevronRight: (p) => <Icon {...p}><path d="M9 18l6-6-6-6" /></Icon>,
+    ChevronLeft: (p) => <Icon {...p}><path d="M15 18l-6-6 6-6" /></Icon>,
     Crosshair: (p) => <Icon {...p}>
         <circle cx="12" cy="12" r="10" />
         <line x1="2" y1="12" x2="22" y2="12" />
@@ -1036,7 +1038,10 @@ export const Icons = {
         <path d="M17 4v8a5 5 0 0 1-10 0V4"></path>
         <path d="M7 4H5a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2"></path>
         <path d="M17 4h2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-2"></path></Icon>,
-
+    AlertTriangle: (p) => <Icon {...p}><path d="M12 2l10 20h-20l10-20z" /></Icon>,
+    Weight: (p) => <Icon {...p}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></Icon>,
+    Activity: (p) => <Icon {...p}><circle cx="12" cy="12" r="10" /><path d="M12 8v4l3 3" strokeLinecap="round" /></Icon>,
+    Ban: (p) => <Icon {...p}><circle cx="12" cy="12" r="10" /><line x1="4.93" y1="4.93" x2="19.07" y2="19.07" /></Icon>,
 };
 
 export const TRADER_THEMES = {

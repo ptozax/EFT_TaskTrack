@@ -30,7 +30,8 @@ function AppNavbar() {
         {
             key: "#/Tools", href: "", icon: FaTools, text: "Tools", subLinks: [
                 { key: "#/Balistic", href: "/Balistic", icon: GiMachineGunMagazine, text: "Balistic" },
-                { key: "#/ItemPrice", href: "/ItemPrice", icon: FaExchangeAlt, text: "Item Price" }]
+                { key: "#/ItemPrice", href: "/ItemPrice", icon: FaExchangeAlt, text: "Item Price" },
+                { key: "#/WeaponBuild", href: "/WeaponBuild", icon: FaExchangeAlt, text: "Weapon Build" }]
         },
 
     ];
