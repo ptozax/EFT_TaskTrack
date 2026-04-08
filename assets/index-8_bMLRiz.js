@@ -300,7 +300,30 @@ Error generating stack: `+s.message+`
                                                                         ... on ItemPropertiesWeaponMod {
                                                                         ergonomics
                                                                         recoil
+                                                                        slots {
+                                                                        id
+                                                                        name
+                                                                        filters {
+                                                                            allowedItems {
+                                                                            id
+                                                                            name
+                                                                            shortName
+                                                                            iconLink
+                                                                            weight
+                                                                            conflictingItems {
+                                                                                id
+                                                                                name
+                                                                            }
+                                                                            properties {
+                                                                                ... on ItemPropertiesWeaponMod {
+                                                                                ergonomics
+                                                                                recoil
+                                                                                }
+                                                                            }
                                                                         }
+                                                                        }
+                                                                    }
+                                                                    }
                                                                     }
                                                                     }
                                                                 }
@@ -432,6 +455,30 @@ Error generating stack: `+s.message+`
                                                             ... on ItemPropertiesWeaponMod {
                                                                 ergonomics
                                                                 recoil
+                                                                slots {
+                                                                id
+                                                                name
+                                                                filters {
+                                                                    allowedItems {
+                                                                    id
+                                                                    name
+                                                                    shortName
+                                                                    iconLink
+                                                                    weight
+                                                                    conflictingItems {
+                                                                        id
+                                                                        name
+                                                                    }
+                                                                    properties {
+                                                                        ... on ItemPropertiesWeaponMod {
+                                                                        ergonomics
+                                                                        recoil
+                                                                        }
+                                                                    }
+                                                                }
+                                                                }
+                                                            }
+
                                                             }
                                                             }
                                                         }
@@ -593,7 +640,30 @@ Error generating stack: `+s.message+`
                                                     ... on ItemPropertiesWeaponMod {
                                                     ergonomics
                                                     recoil
+                                                    slots {
+                                                    id
+                                                    name
+                                                    filters {
+                                                        allowedItems {
+                                                        id
+                                                        name
+                                                        shortName
+                                                        iconLink
+                                                        weight
+                                                        conflictingItems {
+                                                            id
+                                                            name
+                                                        }
+                                                        properties {
+                                                            ... on ItemPropertiesWeaponMod {
+                                                            ergonomics
+                                                            recoil
+                                                            }
+                                                        }
                                                     }
+                                                    }
+                                                }
+                                                }
                                                 }
                                                 }
                                             }
