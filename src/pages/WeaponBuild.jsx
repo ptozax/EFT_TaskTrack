@@ -224,7 +224,30 @@ const fetchGraphQL = async (name) => {
                                                                         ... on ItemPropertiesWeaponMod {
                                                                         ergonomics
                                                                         recoil
+                                                                        slots {
+                                                                        id
+                                                                        name
+                                                                        filters {
+                                                                            allowedItems {
+                                                                            id
+                                                                            name
+                                                                            shortName
+                                                                            iconLink
+                                                                            weight
+                                                                            conflictingItems {
+                                                                                id
+                                                                                name
+                                                                            }
+                                                                            properties {
+                                                                                ... on ItemPropertiesWeaponMod {
+                                                                                ergonomics
+                                                                                recoil
+                                                                                }
+                                                                            }
                                                                         }
+                                                                        }
+                                                                    }
+                                                                    }
                                                                     }
                                                                     }
                                                                 }
@@ -356,6 +379,30 @@ const fetchGraphQL = async (name) => {
                                                             ... on ItemPropertiesWeaponMod {
                                                                 ergonomics
                                                                 recoil
+                                                                slots {
+                                                                id
+                                                                name
+                                                                filters {
+                                                                    allowedItems {
+                                                                    id
+                                                                    name
+                                                                    shortName
+                                                                    iconLink
+                                                                    weight
+                                                                    conflictingItems {
+                                                                        id
+                                                                        name
+                                                                    }
+                                                                    properties {
+                                                                        ... on ItemPropertiesWeaponMod {
+                                                                        ergonomics
+                                                                        recoil
+                                                                        }
+                                                                    }
+                                                                }
+                                                                }
+                                                            }
+
                                                             }
                                                             }
                                                         }
@@ -517,7 +564,30 @@ const fetchGraphQL = async (name) => {
                                                     ... on ItemPropertiesWeaponMod {
                                                     ergonomics
                                                     recoil
+                                                    slots {
+                                                    id
+                                                    name
+                                                    filters {
+                                                        allowedItems {
+                                                        id
+                                                        name
+                                                        shortName
+                                                        iconLink
+                                                        weight
+                                                        conflictingItems {
+                                                            id
+                                                            name
+                                                        }
+                                                        properties {
+                                                            ... on ItemPropertiesWeaponMod {
+                                                            ergonomics
+                                                            recoil
+                                                            }
+                                                        }
                                                     }
+                                                    }
+                                                }
+                                                }
                                                 }
                                                 }
                                             }
@@ -1096,7 +1166,7 @@ export default function WeaponBuild() {
         if (!selectedWeapon || selectedWeapon.id !== weapon.id) {
             try {
                 const data = await fetchGraphQL(weapon?.shortName);
-                
+
                 if (data && data.items) {
                     setSelectedWeapon(data.items?.[0]);
                     baseWeapon = data.items?.[0];
@@ -1108,7 +1178,7 @@ export default function WeaponBuild() {
             }
         }
         else baseWeapon = selectedWeapon
-        
+
         const buildState = getAllBuildState(baseWeapon?.properties?.slots, build)
         const matchMap = new Map(
             Object.entries(build).map(([slotId, val]) => [
@@ -1116,7 +1186,7 @@ export default function WeaponBuild() {
                 { slotId, ...val }
             ])
         );
-        
+
         const result = [...buildState].reduce((acc, item, i) => {
             const key = `${item.id}::${item.name}`;
             if (matchMap.has(key)) {
@@ -1215,7 +1285,7 @@ export default function WeaponBuild() {
                             <div className='d-flex justify-content-center mb-3'>
                                 <Icons.Package size={64} className="opacity-25" />
                             </div>
-                            <p className="lead text-muted">{isLoading ? ("Loading Preset ..."):("Select a weapon above to initialize the Gunsmith bench.")}</p>
+                            <p className="lead text-muted">{isLoading ? ("Loading Preset ...") : ("Select a weapon above to initialize the Gunsmith bench.")}</p>
                         </div>
                     )}
                 </div>
