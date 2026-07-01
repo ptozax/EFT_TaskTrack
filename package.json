@@ -9,6 +9,7 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
     "build": "vite build",
+    "update-optimizer": "node scripts/update-optimizer-data.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },

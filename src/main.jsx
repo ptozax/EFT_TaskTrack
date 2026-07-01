@@ -17,7 +17,8 @@ import AppNavbar from './Component/AppNavbar.jsx';
 import Balistic from "./pages/Balistic.jsx";
 
 import ItemPrice from "./pages/ItemPrice.jsx";
-import WeaponBuild from "./pages/WeaponBuild.jsx";  
+import WeaponBuild from "./pages/WeaponBuild.jsx";
+import WeaponOptimizer from "./pages/WeaponOptimizer.jsx";
 
 const pageComponents = {
   ItemPrice:<ItemPrice/>,
@@ -28,6 +29,7 @@ const pageComponents = {
   Hideout: <Hideout/>,
   Balistic: <Balistic/>,
   WeaponBuild: <WeaponBuild />,
+  WeaponOptimizer: <WeaponOptimizer />,
   Default: <Home/>,
 
 };
