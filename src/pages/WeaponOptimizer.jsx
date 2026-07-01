@@ -168,25 +168,47 @@ function computeBuild(gun, C, objective, MODS) {
 
   let out;
   if (C.maxRecoil > 0 && objective !== 'recoil') {
-    // Sweep recoil weight light→heavy; keep the FIRST (lightest = best ergo) that
-    // meets the cap. If none meet it, keep the one with lowest recoil.
+    // Goal: maximum ergo with recoil ≤ cap. Lighter recoil-weight = more ergo but
+    // higher recoil; heavier = lower recoil but less ergo. So we want the LIGHTEST
+    // weight that still meets the cap. Sweep light→heavy to bracket that boundary…
     const weights = [base.rec, 1, 2, 3, 5, 8, 13, 21, 34, 55, 100, 200];
-    let hit = null,
+    let best = null, // best passing build so far (max ergo under cap)
+      loFail = null, // last failing weight (just lighter than the bracket)
+      hiPass = null, // first passing weight
       fb = null,
-      fbRec = Infinity;
+      fbRec = Infinity; // fallback if nothing meets the cap: lowest recoil we saw
     for (const w of weights) {
       const p = pass(w);
       const rv = recVof(p.r);
       if (rv <= C.maxRecoil) {
-        hit = p;
-        break;
+        best = p;
+        hiPass = w;
+        break; // heavier weights only lower ergo — no need to look further
       }
+      loFail = w;
       if (rv < fbRec) {
         fbRec = rv;
         fb = p;
       }
     }
-    out = hit || fb;
+    // …then binary-search between the last failing weight (higher ergo, over cap) and
+    // the first passing weight to slide recoil as close to the cap as possible from
+    // below — recovering the ergo that the coarse step would otherwise overshoot.
+    if (best && loFail != null && hiPass != null) {
+      let lo = loFail,
+        hi = hiPass;
+      for (let i = 0; i < 16; i++) {
+        const mid = (lo + hi) / 2;
+        const p = pass(mid);
+        if (recVof(p.r) <= C.maxRecoil) {
+          if (p.r.ergo > best.r.ergo) best = p; // keep the higher-ergo passing build
+          hi = mid; // try to lighten further (push recoil up toward the cap)
+        } else {
+          lo = mid;
+        }
+      }
+    }
+    out = best || fb;
   } else {
     out = pass(base.rec);
   }
