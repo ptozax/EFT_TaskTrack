@@ -39,6 +39,7 @@ query OptimizerData {
     shortName
     weight
     iconLink
+    image512pxLink
     buyFor { priceRUB }
     properties {
       __typename
@@ -47,6 +48,7 @@ query OptimizerData {
         ergonomics
         recoilVertical
         recoilHorizontal
+        defaultPreset { image512pxLink iconLink }
         ${SLOT_FRAGMENT}
       }
     }
@@ -129,6 +131,8 @@ async function main() {
         shortName: g.shortName,
         caliber: p.caliber ? p.caliber.replace(/^Caliber/, '') : null,
         icon: g.iconLink || null,
+        // hi-res assembled "standard build" image (default preset), with fallbacks
+        image: p.defaultPreset?.image512pxLink || g.image512pxLink || g.iconLink || null,
         ergo: p.ergonomics ?? 0,
         recoilV: p.recoilVertical ?? 0,
         recoilH: p.recoilHorizontal ?? 0,

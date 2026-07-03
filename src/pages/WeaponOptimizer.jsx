@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import html2canvas from 'html2canvas';
 
 /* =========================================================================
  * Tarkov Gun Mod Optimizer  (ported from /mod/index.html)
@@ -269,9 +270,14 @@ function computeBuild(gun, C, objective, MODS) {
   };
 }
 
-/* ------- shareable build-card export (opens in new tab for screenshot) ------- */
-function exportCard(B) {
-  if (!B) return;
+// tarkov.dev assets don't send CORS headers, which taints the export canvas.
+// Route icons through images.weserv.nl, which re-serves them with `Access-Control-
+// Allow-Origin: *` (and converts webp→png) so html2canvas can read the pixels.
+const proxyIcon = (url) =>
+  url ? `https://images.weserv.nl/?url=${encodeURIComponent(url.replace(/^https?:\/\//, ''))}&output=png` : '';
+
+/* ------- shareable build-card: builds the standalone HTML document ------- */
+function buildCardDoc(B) {
   const gun = B.gun,
     res = B.res;
   const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -287,7 +293,7 @@ function exportCard(B) {
         if (m.ergo) chips.push(`<span class="c ${m.ergo > 0 ? 'good' : 'bad'}">ergo ${m.ergo > 0 ? '+' : ''}${m.ergo}</span>`);
         return `<div class="mrow" style="margin-left:${depth * 22}px">
         ${depth ? '<span class="tree">↳</span>' : ''}
-        <img loading="lazy" src="${esc(m.icon || '')}" onerror="this.style.opacity=0">
+        <img crossorigin="anonymous" src="${esc(proxyIcon(m.icon))}" onerror="this.style.opacity=0">
         <div class="minfo">
           <div class="mtop"><span class="slot">${esc(p.slot || '')}</span><b>${esc(m.shortName || m.name)}</b></div>
           <div class="mname">${esc(m.name)}</div>
@@ -313,50 +319,50 @@ function exportCard(B) {
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:"Segoe UI",Tahoma,sans-serif;background:#0d0b07;color:#e8e2d0;
     background-image:radial-gradient(1200px 600px at 50% -10%,#2a2617 0%,#0d0b07 60%);padding:28px 14px;min-height:100vh}
-  .card{max-width:760px;margin:0 auto;background:#16140d;border:1px solid #3a3527;border-radius:16px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.6)}
-  .hero{display:flex;gap:18px;align-items:center;padding:24px 26px;background:linear-gradient(120deg,#26231a 0%,#1a1811 70%);border-bottom:1px solid #3a3527;position:relative}
-  .hero::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(#c8a656,#9fb04b)}
-  .gunimg{width:120px;height:78px;object-fit:contain;flex:none;background:#0d0b07;border-radius:10px;border:1px solid #3a3527}
+  .card{max-width:1040px;margin:0 auto;background:#16140d;border:1px solid #3a3527;border-radius:20px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+  .hero{display:flex;gap:24px;align-items:center;padding:32px 36px;background:linear-gradient(120deg,#26231a 0%,#1a1811 70%);border-bottom:1px solid #3a3527;position:relative}
+  .hero::before{content:"";position:absolute;left:0;top:0;bottom:0;width:7px;background:linear-gradient(#c8a656,#9fb04b)}
+  .gunimg{width:168px;height:108px;object-fit:contain;flex:none;background:#0d0b07;border-radius:14px;border:1px solid #3a3527}
   .htext{flex:1;min-width:0}
-  .htext h1{font-size:23px;color:#f0e9d2;letter-spacing:.3px;line-height:1.2}
-  .htext .sub{margin-top:7px;display:flex;gap:8px;flex-wrap:wrap}
-  .pill{font-size:12px;padding:3px 10px;border-radius:20px;background:#0d0b07;border:1px solid #3a3527;color:#c8a656}
+  .htext h1{font-size:32px;color:#f0e9d2;letter-spacing:.3px;line-height:1.2}
+  .htext .sub{margin-top:10px;display:flex;gap:10px;flex-wrap:wrap}
+  .pill{font-size:16px;padding:5px 14px;border-radius:20px;background:#0d0b07;border:1px solid #3a3527;color:#c8a656}
   .pill.olive{color:#9fb04b}
-  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1px;background:#3a3527}
-  .stat{background:#16140d;padding:16px 18px}
-  .stat .k{font-size:11px;color:#a29a80;text-transform:uppercase;letter-spacing:.6px}
-  .stat .v{font-size:27px;font-weight:800;margin-top:4px;color:#f0e9d2}
-  .stat .v small{font-size:14px;color:#a29a80;font-weight:600}
-  .delta{font-size:13px;margin-left:6px;font-weight:700}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:1px;background:#3a3527}
+  .stat{background:#16140d;padding:22px 24px}
+  .stat .k{font-size:14px;color:#a29a80;text-transform:uppercase;letter-spacing:.6px}
+  .stat .v{font-size:37px;font-weight:800;margin-top:6px;color:#f0e9d2}
+  .stat .v small{font-size:19px;color:#a29a80;font-weight:600}
+  .delta{font-size:18px;margin-left:8px;font-weight:700}
   .delta.g{color:#7bbf5a}.delta.b{color:#d1685a}
-  .bars{padding:18px 26px;border-top:1px solid #3a3527;border-bottom:1px solid #3a3527;background:#13110b}
-  .bar{margin:10px 0}
-  .bar .lab{display:flex;justify-content:space-between;font-size:12px;color:#a29a80;margin-bottom:5px}
+  .bars{padding:24px 36px;border-top:1px solid #3a3527;border-bottom:1px solid #3a3527;background:#13110b}
+  .bar{margin:14px 0}
+  .bar .lab{display:flex;justify-content:space-between;font-size:16px;color:#a29a80;margin-bottom:7px}
   .bar .lab b{color:#e8e2d0}
-  .track{height:9px;border-radius:6px;background:#26231a;overflow:hidden}
-  .fill{height:100%;border-radius:6px;background:linear-gradient(90deg,#9fb04b,#7bbf5a)}
+  .track{height:12px;border-radius:8px;background:#26231a;overflow:hidden}
+  .fill{height:100%;border-radius:8px;background:linear-gradient(90deg,#9fb04b,#7bbf5a)}
   .fill.rec{background:linear-gradient(90deg,#c8a656,#d1685a)}
-  .tags{display:flex;gap:8px;flex-wrap:wrap;padding:16px 26px 4px}
-  .tag{font-size:12px;padding:5px 11px;border-radius:8px}
+  .tags{display:flex;gap:10px;flex-wrap:wrap;padding:22px 36px 6px}
+  .tag{font-size:16px;padding:7px 15px;border-radius:10px}
   .tag.ok{background:#1e2a17;border:1px solid #3c5a26;color:#7bbf5a}
   .tag.no{background:#2e1c17;border:1px solid #5a3326;color:#d1685a}
-  .list{padding:16px 20px 8px}
-  .list h2{font-size:13px;color:#c8a656;text-transform:uppercase;letter-spacing:1px;margin:6px 6px 12px}
-  .mrow{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:10px}
-  .mrow img{width:46px;height:46px;object-fit:contain;flex:none;background:#0d0b07;border-radius:7px;border:1px solid #2a2617}
-  .tree{color:#5a5442;font-size:16px;margin-right:-4px}
+  .list{padding:22px 28px 12px}
+  .list h2{font-size:17px;color:#c8a656;text-transform:uppercase;letter-spacing:1px;margin:8px 8px 16px}
+  .mrow{display:flex;align-items:center;gap:16px;padding:12px 14px;border-radius:12px}
+  .mrow img{width:62px;height:62px;object-fit:contain;flex:none;background:#0d0b07;border-radius:9px;border:1px solid #2a2617}
+  .tree{color:#5a5442;font-size:22px;margin-right:-4px}
   .minfo{flex:1;min-width:0}
-  .mtop{display:flex;align-items:center;gap:8px}
-  .mtop .slot{font-size:11px;color:#8f876d;background:#0d0b07;border:1px solid #2a2617;border-radius:5px;padding:1px 7px;flex:none}
-  .mtop b{font-size:14px;color:#f0e9d2}
-  .mname{font-size:12px;color:#a29a80;margin:2px 0 4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .chips{display:flex;gap:6px;flex-wrap:wrap}
-  .c{font-size:11px;padding:1px 8px;border-radius:10px;background:#26231a;color:#a29a80}
+  .mtop{display:flex;align-items:center;gap:10px}
+  .mtop .slot{font-size:14px;color:#8f876d;background:#0d0b07;border:1px solid #2a2617;border-radius:6px;padding:2px 9px;flex:none}
+  .mtop b{font-size:18px;color:#f0e9d2}
+  .mname{font-size:15px;color:#a29a80;margin:3px 0 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .c{font-size:14px;padding:2px 10px;border-radius:12px;background:#26231a;color:#a29a80}
   .c.good{color:#7bbf5a}.c.bad{color:#d1685a}
-  .price{font-size:13px;color:#c8a656;white-space:nowrap;flex:none;font-weight:600}
-  .foot{padding:16px 26px;border-top:1px solid #3a3527;color:#8f876d;font-size:11px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;background:#13110b}
+  .price{font-size:17px;color:#c8a656;white-space:nowrap;flex:none;font-weight:600}
+  .foot{padding:22px 36px;border-top:1px solid #3a3527;color:#8f876d;font-size:14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;background:#13110b}
   .foot b{color:#c8a656}
-  .hintbar{max-width:760px;margin:0 auto 16px;text-align:center;font-size:13px;color:#a29a80;background:#1c1a13;border:1px solid #3a3527;border-radius:10px;padding:10px 14px}
+  .hintbar{max-width:1040px;margin:0 auto 16px;text-align:center;font-size:16px;color:#a29a80;background:#1c1a13;border:1px solid #3a3527;border-radius:12px;padding:12px 18px}
   .hintbar b{color:#c8a656}
   @media print{.hintbar{display:none}}
 </style></head>
@@ -364,7 +370,7 @@ function exportCard(B) {
   <div class="hintbar">📸 กด <b>Win + Shift + S</b> แล้วลากเลือกเฉพาะการ์ด เพื่อบันทึกเป็นรูป • ไม่ต้องเซฟหน้านี้</div>
   <div class="card">
   <div class="hero">
-    <img class="gunimg" src="${esc(gun.icon || '')}" onerror="this.style.opacity=0">
+    <img class="gunimg" crossorigin="anonymous" src="${esc(proxyIcon(gun.image || gun.icon))}" onerror="this.style.opacity=0">
     <div class="htext">
       <h1>${esc(gun.name)}</h1>
       <div class="sub">
@@ -398,13 +404,78 @@ function exportCard(B) {
   </div>
 </div></body></html>`;
 
+  return doc;
+}
+
+// Fallback: open the card in a new tab so the user can screenshot it manually.
+function openCardTab(B) {
+  if (!B) return;
   const w = window.open('', '_blank');
   if (w) {
     w.document.open();
-    w.document.write(doc);
+    w.document.write(buildCardDoc(B));
     w.document.close();
   } else {
     alert('เบราว์เซอร์บล็อกการเปิดแท็บใหม่ — อนุญาต pop-up ให้หน้านี้แล้วลองอีกครั้ง');
+  }
+}
+
+// Render the card in an offscreen iframe (isolates its CSS from the app), then
+// rasterise it to a PNG via html2canvas and trigger a download.
+async function exportCardImage(B) {
+  if (!B) return;
+  const gun = B.gun;
+  const fileName = `${(gun.shortName || gun.name || 'build').replace(/[^\w.-]+/g, '_')}_build.png`;
+
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'position:fixed;left:-10000px;top:0;width:1100px;height:10px;border:0;';
+  document.body.appendChild(iframe);
+
+  try {
+    const idoc = iframe.contentDocument;
+    idoc.open();
+    idoc.write(buildCardDoc(B));
+    idoc.close();
+
+    // wait for the iframe document to finish parsing
+    await new Promise((res) => {
+      if (idoc.readyState === 'complete') res();
+      else iframe.addEventListener('load', res, { once: true });
+    });
+
+    // wait for every proxied icon to settle (loaded or errored) so none are blank
+    await Promise.all(
+      [...idoc.images].map((img) =>
+        img.complete ? Promise.resolve() : new Promise((r) => (img.onload = img.onerror = r))
+      )
+    );
+
+    const card = idoc.querySelector('.card');
+    const canvas = await html2canvas(card, {
+      useCORS: true,
+      backgroundColor: '#0d0b07',
+      scale: 3,
+      windowWidth: 1100,
+    });
+
+    await new Promise((res, rej) =>
+      canvas.toBlob((blob) => {
+        if (!blob) return rej(new Error('toBlob returned null'));
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+        res();
+      }, 'image/png')
+    );
+  } catch (e) {
+    // if anything still fails, fall back to the screenshot-in-a-tab flow
+    console.error('exportCardImage failed, opening tab instead:', e);
+    openCardTab(B);
+  } finally {
+    document.body.removeChild(iframe);
   }
 }
 
@@ -528,6 +599,7 @@ export default function WeaponOptimizer() {
   const [exclude, setExclude] = useState(() => new Set());
 
   const [build, setBuild] = useState(null);
+  const [exporting, setExporting] = useState(false);
 
   // load precomputed dataset once
   useEffect(() => {
@@ -632,18 +704,31 @@ export default function WeaponOptimizer() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <select
-              value={gunId}
-              onChange={(e) => setGunId(e.target.value)}
-              size={Math.min(12, Math.max(2, filtered.length))}
-              style={{ marginTop: 6 }}
-            >
-              {filtered.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {(g.shortName ? g.shortName + ' — ' : '') + g.name} ({g.caliber || '?'})
-                </option>
-              ))}
-            </select>
+            <div className="gmo-gunlist">
+              {filtered.length ? (
+                filtered.map((g) => (
+                  <div
+                    key={g.id}
+                    className={`gitem ${g.id === gunId ? 'on' : ''}`}
+                    onClick={() => setGunId(g.id)}
+                  >
+                    <img
+                      src={g.image || g.icon || ''}
+                      onError={(e) => (e.target.style.visibility = 'hidden')}
+                      alt=""
+                    />
+                    <div className="gi-info">
+                      <b>{g.shortName || g.name}</b>
+                      <div className="gi-sub">
+                        {g.name} · {g.caliber || '?'}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="none">ไม่พบปืนที่ตรงกับคำค้นหา</div>
+              )}
+            </div>
 
             <label>เป้าหมาย (Objective)</label>
             <div className="gmo-seg">
@@ -730,8 +815,22 @@ export default function WeaponOptimizer() {
             <button className="gmo-go" onClick={run} disabled={!gunId}>
               🔧 หาชุดที่ดีที่สุด
             </button>
-            <button className="gmo-go2" onClick={() => exportCard(build)} disabled={!build}>
-              📤 เปิดการ์ดบิลด์ (แท็บใหม่ → screenshot)
+            <button
+              className="gmo-go2"
+              onClick={async () => {
+                setExporting(true);
+                try {
+                  await exportCardImage(build);
+                } finally {
+                  setExporting(false);
+                }
+              }}
+              disabled={!build || exporting}
+            >
+              {exporting ? '⏳ กำลังสร้างรูป…' : '📥 ดาวน์โหลดการ์ดบิลด์ (PNG)'}
+            </button>
+            <button className="gmo-go2" onClick={() => openCardTab(build)} disabled={!build}>
+              📤 เปิดการ์ดในแท็บใหม่
             </button>
           </div>
 
@@ -778,7 +877,11 @@ export default function WeaponOptimizer() {
                     </div>
                   ))}
                   <div className="gmo-row basegun">
-                    <img src={build.gun.icon || ''} onError={(e) => (e.target.style.visibility = 'hidden')} alt="" />
+                    <img
+                      src={build.gun.image || build.gun.icon || ''}
+                      onError={(e) => (e.target.style.visibility = 'hidden')}
+                      alt=""
+                    />
                     <div className="slot accent">ปืนฐาน</div>
                     <div className="nm">
                       <b>{build.gun.name}</b>
@@ -848,6 +951,20 @@ const GMO_CSS = `
 .gmo-row{display:flex;align-items:center;gap:12px;padding:9px 14px;border-top:1px solid var(--line)}
 .gmo-row:first-child{border-top:none}
 .gmo-row.basegun{background:var(--panel2)}
+.gmo-row.basegun img{width:96px;height:52px}
+.gmo-gunlist{margin-top:6px;max-height:360px;overflow-y:auto;background:var(--panel2);border:1px solid var(--line);border-radius:7px}
+.gmo-gunlist .gitem{display:flex;align-items:center;gap:10px;padding:7px 9px;cursor:pointer;border-top:1px solid var(--line)}
+.gmo-gunlist .gitem:first-child{border-top:none}
+.gmo-gunlist .gitem:hover{background:var(--panel)}
+.gmo-gunlist .gitem.on{background:var(--acc)}
+.gmo-gunlist .gitem.on b{color:#1a1710}
+.gmo-gunlist .gitem.on .gi-sub{color:#3a3320}
+.gmo-gunlist .gitem img{width:72px;height:40px;object-fit:contain;flex:none;background:#0d0b07;border-radius:5px;border:1px solid var(--line)}
+.gmo-gunlist .gitem.on img{border-color:#1a1710}
+.gmo-gunlist .gi-info{flex:1;min-width:0}
+.gmo-gunlist .gi-info b{font-size:13px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gmo-gunlist .gi-sub{font-size:11px;color:var(--dim);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gmo-gunlist .none{padding:14px;color:var(--dim);font-size:12px;text-align:center}
 .gmo-row img{width:42px;height:42px;object-fit:contain;background:#0d0b07;border-radius:5px;flex:none}
 .gmo-row .slot{width:130px;color:var(--dim);font-size:12px;flex:none}
 .gmo-row .slot.accent{color:var(--acc)}
