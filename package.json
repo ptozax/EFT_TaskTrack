@@ -10,6 +10,8 @@
     "deploy": "gh-pages -d dist",
     "build": "vite build",
     "update-optimizer": "node scripts/update-optimizer-data.mjs",
+    "update-data": "node scripts/update-data.mjs",
+    "update": "npm run update-data && npm run update-optimizer",
     "lint": "eslint .",
     "preview": "vite preview"
   },

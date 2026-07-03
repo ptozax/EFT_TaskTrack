@@ -18,7 +18,7 @@
         "weight": 0.012,
         "recoilModifier": 0,
         "ricochetChance": 0.4,
-        "stackMaxSize": 60,
+        "stackMaxSize": 80,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "54527a984bdc2d4e668b4567",
@@ -50,7 +50,7 @@
         "weight": 0.012,
         "recoilModifier": 0.05,
         "ricochetChance": 0.38,
-        "stackMaxSize": 60,
+        "stackMaxSize": 80,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "54527ac44bdc2d36668b4567",
@@ -82,7 +82,7 @@
         "weight": 0.05,
         "recoilModifier": 0,
         "ricochetChance": 0,
-        "stackMaxSize": 20,
+        "stackMaxSize": 25,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "560d5e524bdc2d25448b4571",
@@ -146,7 +146,7 @@
         "weight": 0.016,
         "recoilModifier": 0,
         "ricochetChance": 0.35,
-        "stackMaxSize": 60,
+        "stackMaxSize": 70,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "5656d7c34bdc2d9d198b4587",
@@ -210,7 +210,7 @@
         "weight": 0.005,
         "recoilModifier": 0,
         "ricochetChance": 0.05,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "56d59d3ad2720bdb418b4577",
@@ -242,7 +242,7 @@
         "weight": 0.01,
         "recoilModifier": 0.07,
         "ricochetChance": 0.36,
-        "stackMaxSize": 60,
+        "stackMaxSize": 80,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "56dfef82d2720bbd668b4567",
@@ -274,7 +274,7 @@
         "weight": 0.01,
         "recoilModifier": 0.1,
         "ricochetChance": 0.38,
-        "stackMaxSize": 60,
+        "stackMaxSize": 80,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "56dff026d2720bb8668b4567",
@@ -306,7 +306,7 @@
         "weight": 0.01,
         "recoilModifier": 0.05,
         "ricochetChance": 0.37,
-        "stackMaxSize": 60,
+        "stackMaxSize": 80,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "56dff061d2720bb5668b4567",
@@ -338,7 +338,7 @@
         "weight": 0.01,
         "recoilModifier": 0,
         "ricochetChance": 0.26,
-        "stackMaxSize": 60,
+        "stackMaxSize": 80,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "56dff0bed2720bb0668b4567",
@@ -370,7 +370,7 @@
         "weight": 0.01,
         "recoilModifier": -0.03,
         "ricochetChance": 0.2,
-        "stackMaxSize": 60,
+        "stackMaxSize": 80,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "56dff216d2720bbd668b4568",
@@ -402,7 +402,7 @@
         "weight": 0.01,
         "recoilModifier": 0.03,
         "ricochetChance": 0.38,
-        "stackMaxSize": 60,
+        "stackMaxSize": 80,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "56dff2ced2720bb4668b4567",
@@ -434,7 +434,7 @@
         "weight": 0.01,
         "recoilModifier": -0.05,
         "ricochetChance": 0.04,
-        "stackMaxSize": 60,
+        "stackMaxSize": 80,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "56dff338d2720bbd668b4569",
@@ -466,7 +466,7 @@
         "weight": 0.01,
         "recoilModifier": 0,
         "ricochetChance": 0.4,
-        "stackMaxSize": 60,
+        "stackMaxSize": 80,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "56dff3afd2720bba668b4567",
@@ -498,7 +498,7 @@
         "weight": 0.01,
         "recoilModifier": -0.05,
         "ricochetChance": 0.15,
-        "stackMaxSize": 60,
+        "stackMaxSize": 80,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "56dff421d2720b5f5a8b4567",
@@ -530,7 +530,7 @@
         "weight": 0.01,
         "recoilModifier": 0,
         "ricochetChance": 0.4,
-        "stackMaxSize": 60,
+        "stackMaxSize": 80,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "56dff4a2d2720bbd668b456a",
@@ -562,7 +562,7 @@
         "weight": 0.01,
         "recoilModifier": -0.15,
         "ricochetChance": 0.4,
-        "stackMaxSize": 60,
+        "stackMaxSize": 80,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "56dff4ecd2720b5f5a8b4568",
@@ -594,7 +594,7 @@
         "weight": 0.01,
         "recoilModifier": -0.15,
         "ricochetChance": 0.065,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "5735fdcd2459776445391d61",
@@ -626,7 +626,7 @@
         "weight": 0.01,
         "recoilModifier": 0,
         "ricochetChance": 0.065,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "5735ff5c245977640e39ba7e",
@@ -658,7 +658,7 @@
         "weight": 0.01,
         "recoilModifier": -0.05,
         "ricochetChance": 0.05,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "573601b42459776410737435",
@@ -690,7 +690,7 @@
         "weight": 0.01,
         "recoilModifier": -0.1,
         "ricochetChance": 0.05,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "573602322459776445391df1",
@@ -722,7 +722,7 @@
         "weight": 0.01,
         "recoilModifier": 0,
         "ricochetChance": 0.065,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "5736026a245977644601dc61",
@@ -754,7 +754,7 @@
         "weight": 0.01,
         "recoilModifier": 0,
         "ricochetChance": 0.1,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "573603562459776430731618",
@@ -786,7 +786,7 @@
         "weight": 0.01,
         "recoilModifier": 0,
         "ricochetChance": 0.1,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "573603c924597764442bd9cb",
@@ -818,7 +818,7 @@
         "weight": 0.01,
         "recoilModifier": 0,
         "ricochetChance": 0.095,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "573718ba2459775a75491131",
@@ -850,7 +850,7 @@
         "weight": 0.011,
         "recoilModifier": 0,
         "ricochetChance": 0.065,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "573719762459775a626ccbc1",
@@ -882,7 +882,7 @@
         "weight": 0.007,
         "recoilModifier": 0.04,
         "ricochetChance": 0.09,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "573719df2459775a626ccbc2",
@@ -914,7 +914,7 @@
         "weight": 0.009,
         "recoilModifier": 0.05,
         "ricochetChance": 0.075,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "57371aab2459775a77142f22",
@@ -946,7 +946,7 @@
         "weight": 0.009,
         "recoilModifier": 0,
         "ricochetChance": 0.05,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "57371b192459775a9f58a5e0",
@@ -978,7 +978,7 @@
         "weight": 0.01,
         "recoilModifier": -0.07,
         "ricochetChance": 0.1,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "57371e4124597760ff7b25f1",
@@ -1010,7 +1010,7 @@
         "weight": 0.011,
         "recoilModifier": 0,
         "ricochetChance": 0.005,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "57371eb62459776125652ac1",
@@ -1042,7 +1042,7 @@
         "weight": 0.01,
         "recoilModifier": 0,
         "ricochetChance": 0.03,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "57371f2b24597761224311f1",
@@ -1074,7 +1074,7 @@
         "weight": 0.008,
         "recoilModifier": 0,
         "ricochetChance": 0.065,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "57371f8d24597761006c6a81",
@@ -1106,7 +1106,7 @@
         "weight": 0.01,
         "recoilModifier": 0,
         "ricochetChance": 0.1,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "5737201124597760fc4431f1",
@@ -1138,7 +1138,7 @@
         "weight": 0.012,
         "recoilModifier": 0,
         "ricochetChance": 0.01,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.13824,
         "item": {
             "id": "5737207f24597760ff7b25f2",
@@ -1170,7 +1170,7 @@
         "weight": 0.011,
         "recoilModifier": 0,
         "ricochetChance": 0.05,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "573720e02459776143012541",
@@ -1202,7 +1202,7 @@
         "weight": 0.011,
         "recoilModifier": 0,
         "ricochetChance": 0.05,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.19584,
         "item": {
             "id": "57372140245977611f70ee91",
@@ -1234,7 +1234,7 @@
         "weight": 0.009,
         "recoilModifier": 0,
         "ricochetChance": 0.05,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.16128,
         "item": {
             "id": "5737218f245977612125ba51",
@@ -1266,7 +1266,7 @@
         "weight": 0.023,
         "recoilModifier": 0,
         "ricochetChance": 0.4,
-        "stackMaxSize": 50,
+        "stackMaxSize": 70,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "57a0dfb82459774d3078b56c",
@@ -1298,7 +1298,7 @@
         "weight": 0.023,
         "recoilModifier": 0.05,
         "ricochetChance": 0.5,
-        "stackMaxSize": 50,
+        "stackMaxSize": 70,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "57a0e5022459774d1673f889",
@@ -1330,7 +1330,7 @@
         "weight": 0.05,
         "recoilModifier": 0,
         "ricochetChance": 0.1,
-        "stackMaxSize": 20,
+        "stackMaxSize": 25,
         "staminaBurnPerDamage": 0.21024,
         "item": {
             "id": "58820d1224597753c90aeb13",
@@ -1362,7 +1362,7 @@
         "weight": 0.01,
         "recoilModifier": 0,
         "ricochetChance": 0.065,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "58864a4f2459770fcc257101",
@@ -1426,7 +1426,7 @@
         "weight": 0.024,
         "recoilModifier": 0.01,
         "ricochetChance": 0.38,
-        "stackMaxSize": 40,
+        "stackMaxSize": 50,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "58dd3ad986f77403051cba8f",
@@ -1458,7 +1458,7 @@
         "weight": 0.016,
         "recoilModifier": 0.07,
         "ricochetChance": 0.315,
-        "stackMaxSize": 60,
+        "stackMaxSize": 70,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "59e0d99486f7744a32234762",
@@ -1490,7 +1490,7 @@
         "weight": 0.016,
         "recoilModifier": -0.06,
         "ricochetChance": 0.35,
-        "stackMaxSize": 60,
+        "stackMaxSize": 70,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "59e4cf5286f7741778269d8a",
@@ -1522,7 +1522,7 @@
         "weight": 0.02,
         "recoilModifier": -0.3,
         "ricochetChance": 0.358,
-        "stackMaxSize": 60,
+        "stackMaxSize": 70,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "59e4d24686f7741776641ac7",
@@ -1554,7 +1554,7 @@
         "weight": 0.012,
         "recoilModifier": 0.05,
         "ricochetChance": 0.175,
-        "stackMaxSize": 60,
+        "stackMaxSize": 70,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "59e4d3d286f774176a36250a",
@@ -1586,7 +1586,7 @@
         "weight": 0.016,
         "recoilModifier": 0.1,
         "ricochetChance": 0.065,
-        "stackMaxSize": 50,
+        "stackMaxSize": 70,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "59e6542b86f77411dc52a77a",
@@ -1618,7 +1618,7 @@
         "weight": 0.01,
         "recoilModifier": -0.15,
         "ricochetChance": 0.1,
-        "stackMaxSize": 50,
+        "stackMaxSize": 70,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "59e655cb86f77411dc52a77b",
@@ -1650,7 +1650,7 @@
         "weight": 0.016,
         "recoilModifier": 0,
         "ricochetChance": 0.05,
-        "stackMaxSize": 50,
+        "stackMaxSize": 70,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "59e6658b86f77411d949b250",
@@ -1682,7 +1682,7 @@
         "weight": 0.012,
         "recoilModifier": -0.02,
         "ricochetChance": 0.38,
-        "stackMaxSize": 60,
+        "stackMaxSize": 80,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "59e68f6f86f7746c9f75e846",
@@ -1714,7 +1714,7 @@
         "weight": 0.012,
         "recoilModifier": 0.04,
         "ricochetChance": 0.38,
-        "stackMaxSize": 60,
+        "stackMaxSize": 80,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "59e6906286f7746c9f75e847",
@@ -1746,7 +1746,7 @@
         "weight": 0.012,
         "recoilModifier": 0.08,
         "ricochetChance": 0.36,
-        "stackMaxSize": 60,
+        "stackMaxSize": 80,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "59e690b686f7746c9f75e848",
@@ -1778,7 +1778,7 @@
         "weight": 0.012,
         "recoilModifier": 0,
         "ricochetChance": 0.1,
-        "stackMaxSize": 60,
+        "stackMaxSize": 80,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "59e6918f86f7746c9f75e849",
@@ -1810,7 +1810,7 @@
         "weight": 0.012,
         "recoilModifier": 0,
         "ricochetChance": 0.26,
-        "stackMaxSize": 60,
+        "stackMaxSize": 80,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "59e6920f86f77411d82aa167",
@@ -1842,7 +1842,7 @@
         "weight": 0.012,
         "recoilModifier": 0,
         "ricochetChance": 0.2,
-        "stackMaxSize": 60,
+        "stackMaxSize": 80,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "59e6927d86f77411da468256",
@@ -1906,7 +1906,7 @@
         "weight": 0.011,
         "recoilModifier": 0,
         "ricochetChance": 0.4,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "5a269f97c4a282000b151807",
@@ -1938,7 +1938,7 @@
         "weight": 0.0119,
         "recoilModifier": -0.03,
         "ricochetChance": 0.2,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "5a26abfac4a28232980eabff",
@@ -1970,7 +1970,7 @@
         "weight": 0.01,
         "recoilModifier": -0.05,
         "ricochetChance": 0.2,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "5a26ac06c4a282000c5a90a8",
@@ -2002,7 +2002,7 @@
         "weight": 0.0115,
         "recoilModifier": 0.05,
         "ricochetChance": 0.4,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "5a26ac0ec4a28200741e1e18",
@@ -2034,7 +2034,7 @@
         "weight": 0.04,
         "recoilModifier": 0,
         "ricochetChance": 0,
-        "stackMaxSize": 20,
+        "stackMaxSize": 35,
         "staminaBurnPerDamage": 0.09504,
         "item": {
             "id": "5a38ebd9c4a282000d722a5b",
@@ -2066,7 +2066,7 @@
         "weight": 0.015,
         "recoilModifier": 0,
         "ricochetChance": 0.065,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "5a3c16fe86f77452b62de32a",
@@ -2098,7 +2098,7 @@
         "weight": 0.024,
         "recoilModifier": 0.03,
         "ricochetChance": 0.25,
-        "stackMaxSize": 40,
+        "stackMaxSize": 50,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "5a6086ea4f39f99cd479502f",
@@ -2130,7 +2130,7 @@
         "weight": 0.023,
         "recoilModifier": 0.01,
         "ricochetChance": 0.38,
-        "stackMaxSize": 40,
+        "stackMaxSize": 50,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "5a608bf24f39f98ffc77720e",
@@ -2162,7 +2162,7 @@
         "weight": 0.007,
         "recoilModifier": 0,
         "ricochetChance": 0.4,
-        "stackMaxSize": 60,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "5ba2678ad4351e44f824b344",
@@ -2194,7 +2194,7 @@
         "weight": 0.007,
         "recoilModifier": 0,
         "ricochetChance": 0.3,
-        "stackMaxSize": 60,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "5ba26812d4351e003201fef1",
@@ -2226,7 +2226,7 @@
         "weight": 0.007,
         "recoilModifier": 0.1,
         "ricochetChance": 0.6,
-        "stackMaxSize": 60,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "5ba26835d4351e0035628ff5",
@@ -2258,7 +2258,7 @@
         "weight": 0.01,
         "recoilModifier": -0.22,
         "ricochetChance": 0.5,
-        "stackMaxSize": 60,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "5ba26844d4351e00334c9475",
@@ -2290,7 +2290,7 @@
         "weight": 0.013,
         "recoilModifier": 0.05,
         "ricochetChance": 0.002,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1728,
         "item": {
             "id": "5c0d56a986f774449d5de529",
@@ -2322,7 +2322,7 @@
         "weight": 0.04,
         "recoilModifier": 0.35,
         "ricochetChance": 0.01,
-        "stackMaxSize": 20,
+        "stackMaxSize": 25,
         "staminaBurnPerDamage": 0.2592,
         "item": {
             "id": "5c0d591486f7744c505b416f",
@@ -2354,7 +2354,7 @@
         "weight": 0.011,
         "recoilModifier": 0.1,
         "ricochetChance": 0.05,
-        "stackMaxSize": 60,
+        "stackMaxSize": 80,
         "staminaBurnPerDamage": 0.2016,
         "item": {
             "id": "5c0d5ae286f7741e46554302",
@@ -2386,7 +2386,7 @@
         "weight": 0.011,
         "recoilModifier": 0.15,
         "ricochetChance": 0.38,
-        "stackMaxSize": 60,
+        "stackMaxSize": 80,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "5c0d5e4486f77478390952fe",
@@ -2418,7 +2418,7 @@
         "weight": 0.023,
         "recoilModifier": 0.07,
         "ricochetChance": 0.4,
-        "stackMaxSize": 50,
+        "stackMaxSize": 70,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "5c0d668f86f7747ccb7f13b2",
@@ -2450,7 +2450,7 @@
         "weight": 0.023,
         "recoilModifier": 0.15,
         "ricochetChance": 0.5,
-        "stackMaxSize": 50,
+        "stackMaxSize": 70,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "5c0d688c86f77413ae3407b2",
@@ -2482,7 +2482,7 @@
         "weight": 0.006,
         "recoilModifier": -0.06,
         "ricochetChance": 0.05,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.12672,
         "item": {
             "id": "5c3df7d588a4501f290594e5",
@@ -2514,7 +2514,7 @@
         "weight": 0.009,
         "recoilModifier": 0,
         "ricochetChance": 0.2,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.13824,
         "item": {
             "id": "5c925fa22e221601da359b7b",
@@ -2642,7 +2642,7 @@
         "weight": 0.006,
         "recoilModifier": 0,
         "ricochetChance": 0.6,
-        "stackMaxSize": 60,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "5cc80f38e4a949001152b560",
@@ -2674,7 +2674,7 @@
         "weight": 0.006,
         "recoilModifier": 0,
         "ricochetChance": 0.6,
-        "stackMaxSize": 60,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "5cc80f53e4a949000e1ea4f8",
@@ -2706,7 +2706,7 @@
         "weight": 0.007,
         "recoilModifier": -0.15,
         "ricochetChance": 0.3,
-        "stackMaxSize": 60,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "5cc80f67e4a949035e43bbba",
@@ -2738,7 +2738,7 @@
         "weight": 0.006,
         "recoilModifier": 0,
         "ricochetChance": 0.2,
-        "stackMaxSize": 60,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.13824,
         "item": {
             "id": "5cc80f79e4a949033c7343b2",
@@ -2770,7 +2770,7 @@
         "weight": 0.007,
         "recoilModifier": 0,
         "ricochetChance": 0.05,
-        "stackMaxSize": 60,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "5cc80f8fe4a949033b0224a2",
@@ -2802,7 +2802,7 @@
         "weight": 0.006,
         "recoilModifier": 0,
         "ricochetChance": 0.05,
-        "stackMaxSize": 60,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.18432,
         "item": {
             "id": "5cc86832d7f00c000d3a6e6c",
@@ -2834,7 +2834,7 @@
         "weight": 0.006,
         "recoilModifier": 0,
         "ricochetChance": 0.1,
-        "stackMaxSize": 60,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.13824,
         "item": {
             "id": "5cc86840d7f00c002412c56c",
@@ -2866,7 +2866,7 @@
         "weight": 0.044,
         "recoilModifier": 0,
         "ricochetChance": 0,
-        "stackMaxSize": 20,
+        "stackMaxSize": 25,
         "staminaBurnPerDamage": 0.0576,
         "item": {
             "id": "5d6e6772a4b936088465b17c",
@@ -2898,7 +2898,7 @@
         "weight": 0.048,
         "recoilModifier": 0,
         "ricochetChance": 0,
-        "stackMaxSize": 20,
+        "stackMaxSize": 25,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "5d6e67fba4b9361bc73bc779",
@@ -2930,7 +2930,7 @@
         "weight": 0.059,
         "recoilModifier": 1.15,
         "ricochetChance": 0,
-        "stackMaxSize": 20,
+        "stackMaxSize": 25,
         "staminaBurnPerDamage": 0.1296,
         "item": {
             "id": "5d6e6806a4b936088465b17e",
@@ -2962,7 +2962,7 @@
         "weight": 0.055,
         "recoilModifier": 0.2,
         "ricochetChance": 0.1,
-        "stackMaxSize": 20,
+        "stackMaxSize": 25,
         "staminaBurnPerDamage": 0.2304,
         "item": {
             "id": "5d6e6869a4b9361c140bcfde",
@@ -2994,7 +2994,7 @@
         "weight": 0.044,
         "recoilModifier": -0.15,
         "ricochetChance": 0.1,
-        "stackMaxSize": 20,
+        "stackMaxSize": 25,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "5d6e6891a4b9361bd473feea",
@@ -3026,7 +3026,7 @@
         "weight": 0.048,
         "recoilModifier": -0.1,
         "ricochetChance": 0.1,
-        "stackMaxSize": 20,
+        "stackMaxSize": 25,
         "staminaBurnPerDamage": 0.1728,
         "item": {
             "id": "5d6e689ca4b9361bc8618956",
@@ -3058,7 +3058,7 @@
         "weight": 0.05,
         "recoilModifier": 0.5,
         "ricochetChance": 0.1,
-        "stackMaxSize": 20,
+        "stackMaxSize": 25,
         "staminaBurnPerDamage": 0.1728,
         "item": {
             "id": "5d6e68a8a4b9360b6c0d54e2",
@@ -3090,7 +3090,7 @@
         "weight": 0.043,
         "recoilModifier": 0.1,
         "ricochetChance": 0.1,
-        "stackMaxSize": 20,
+        "stackMaxSize": 25,
         "staminaBurnPerDamage": 0.2016,
         "item": {
             "id": "5d6e68b3a4b9361bca7e50b5",
@@ -3122,7 +3122,7 @@
         "weight": 0.055,
         "recoilModifier": 0.25,
         "ricochetChance": 0.1,
-        "stackMaxSize": 20,
+        "stackMaxSize": 25,
         "staminaBurnPerDamage": 0.21024,
         "item": {
             "id": "5d6e68c4a4b9361b93413f79",
@@ -3154,7 +3154,7 @@
         "weight": 0.034,
         "recoilModifier": -0.15,
         "ricochetChance": 0.1,
-        "stackMaxSize": 20,
+        "stackMaxSize": 25,
         "staminaBurnPerDamage": 0.24768,
         "item": {
             "id": "5d6e68d1a4b93622fe60e845",
@@ -3186,7 +3186,7 @@
         "weight": 0.05,
         "recoilModifier": 0.15,
         "ricochetChance": 0.1,
-        "stackMaxSize": 20,
+        "stackMaxSize": 25,
         "staminaBurnPerDamage": 0.2016,
         "item": {
             "id": "5d6e68dea4b9361bcc29e659",
@@ -3218,7 +3218,7 @@
         "weight": 0.026,
         "recoilModifier": -0.25,
         "ricochetChance": 0.1,
-        "stackMaxSize": 20,
+        "stackMaxSize": 25,
         "staminaBurnPerDamage": 0.2016,
         "item": {
             "id": "5d6e68e6a4b9361c140bcfe0",
@@ -3250,7 +3250,7 @@
         "weight": 0.04,
         "recoilModifier": 0,
         "ricochetChance": 0,
-        "stackMaxSize": 20,
+        "stackMaxSize": 25,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "5d6e6911a4b9361bd5780d52",
@@ -3282,7 +3282,7 @@
         "weight": 0.028,
         "recoilModifier": 0.1,
         "ricochetChance": 0,
-        "stackMaxSize": 20,
+        "stackMaxSize": 35,
         "staminaBurnPerDamage": 0.0864,
         "item": {
             "id": "5d6e695fa4b936359b35d852",
@@ -3314,7 +3314,7 @@
         "weight": 0.032,
         "recoilModifier": 0,
         "ricochetChance": 0,
-        "stackMaxSize": 20,
+        "stackMaxSize": 35,
         "staminaBurnPerDamage": 0.072,
         "item": {
             "id": "5d6e69b9a4b9361bc8618958",
@@ -3346,7 +3346,7 @@
         "weight": 0.032,
         "recoilModifier": 0.15,
         "ricochetChance": 0,
-        "stackMaxSize": 20,
+        "stackMaxSize": 35,
         "staminaBurnPerDamage": 0.0864,
         "item": {
             "id": "5d6e69c7a4b9360b6c0d54e4",
@@ -3378,7 +3378,7 @@
         "weight": 0.034,
         "recoilModifier": 0.05,
         "ricochetChance": 0.1,
-        "stackMaxSize": 20,
+        "stackMaxSize": 35,
         "staminaBurnPerDamage": 0.1872,
         "item": {
             "id": "5d6e6a05a4b93618084f58d0",
@@ -3410,7 +3410,7 @@
         "weight": 0.032,
         "recoilModifier": -0.1,
         "ricochetChance": 0.1,
-        "stackMaxSize": 20,
+        "stackMaxSize": 35,
         "staminaBurnPerDamage": 0.1728,
         "item": {
             "id": "5d6e6a42a4b9364f07165f52",
@@ -3442,7 +3442,7 @@
         "weight": 0.029,
         "recoilModifier": -0.15,
         "ricochetChance": 0.1,
-        "stackMaxSize": 20,
+        "stackMaxSize": 35,
         "staminaBurnPerDamage": 0.2016,
         "item": {
             "id": "5d6e6a53a4b9361bd473feec",
@@ -3474,7 +3474,7 @@
         "weight": 0.029,
         "recoilModifier": 0.3,
         "ricochetChance": 0.1,
-        "stackMaxSize": 20,
+        "stackMaxSize": 35,
         "staminaBurnPerDamage": 0.25344,
         "item": {
             "id": "5d6e6a5fa4b93614ec501745",
@@ -3602,7 +3602,7 @@
         "weight": 0.023,
         "recoilModifier": 0,
         "ricochetChance": 0.4,
-        "stackMaxSize": 40,
+        "stackMaxSize": 50,
         "staminaBurnPerDamage": 0.22,
         "item": {
             "id": "5e023e53d4353e3302577c4c",
@@ -3634,7 +3634,7 @@
         "weight": 0.023,
         "recoilModifier": -0.03,
         "ricochetChance": 0.4,
-        "stackMaxSize": 40,
+        "stackMaxSize": 50,
         "staminaBurnPerDamage": 0.29,
         "item": {
             "id": "5e023e6e34d52a55c3304f71",
@@ -3666,7 +3666,7 @@
         "weight": 0.021,
         "recoilModifier": -0.05,
         "ricochetChance": 0.2,
-        "stackMaxSize": 40,
+        "stackMaxSize": 50,
         "staminaBurnPerDamage": 0.2592,
         "item": {
             "id": "5e023e88277cce2b522ff2b1",
@@ -3698,7 +3698,7 @@
         "weight": 0.015,
         "recoilModifier": 0,
         "ricochetChance": 0.065,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.2016,
         "item": {
             "id": "5e81f423763d9f754677bf2e",
@@ -3826,7 +3826,7 @@
         "weight": 0.019,
         "recoilModifier": 0,
         "ricochetChance": 0.002,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.2592,
         "item": {
             "id": "5ea2a8e200685063ec28c05a",
@@ -4018,7 +4018,7 @@
         "weight": 0.022,
         "recoilModifier": 0.06,
         "ricochetChance": 0.28,
-        "stackMaxSize": 40,
+        "stackMaxSize": 50,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "5efb0c1bd79ff02a1f5e68d9",
@@ -4050,7 +4050,7 @@
         "weight": 0.015,
         "recoilModifier": 0.07,
         "ricochetChance": 0.1,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.19584,
         "item": {
             "id": "5efb0cabfb3e451d70735af5",
@@ -4082,7 +4082,7 @@
         "weight": 0.015,
         "recoilModifier": 0,
         "ricochetChance": 0.065,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.2016,
         "item": {
             "id": "5efb0d4f4bc50b58e81710f3",
@@ -4114,7 +4114,7 @@
         "weight": 0.009,
         "recoilModifier": 0.05,
         "ricochetChance": 0.2,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.13824,
         "item": {
             "id": "5efb0da7a29a85116f6ea05f",
@@ -4146,7 +4146,7 @@
         "weight": 0.013,
         "recoilModifier": 0.1,
         "ricochetChance": 0.1,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.18432,
         "item": {
             "id": "5efb0e16aeb21837e749c7ff",
@@ -4178,7 +4178,7 @@
         "weight": 0.017,
         "recoilModifier": 0,
         "ricochetChance": 0.065,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.2304,
         "item": {
             "id": "5efb0fc6aeb21837e749c801",
@@ -4210,7 +4210,7 @@
         "weight": 0.019,
         "recoilModifier": 0.35,
         "ricochetChance": 0.065,
-        "stackMaxSize": 50,
+        "stackMaxSize": 70,
         "staminaBurnPerDamage": 0.2016,
         "item": {
             "id": "5f0596629e22f464da6bbdd9",
@@ -4306,7 +4306,7 @@
         "weight": 0.015,
         "recoilModifier": 0,
         "ricochetChance": 0.3,
-        "stackMaxSize": 60,
+        "stackMaxSize": 70,
         "staminaBurnPerDamage": 0.0864,
         "item": {
             "id": "5fbe3ffdf8b6a877a729ea82",
@@ -4466,7 +4466,7 @@
         "weight": 0.014,
         "recoilModifier": 0.03,
         "ricochetChance": 0.3,
-        "stackMaxSize": 60,
+        "stackMaxSize": 70,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "5fd20ff893a8961fc660a954",
@@ -4498,7 +4498,7 @@
         "weight": 0.012,
         "recoilModifier": 0.03,
         "ricochetChance": 0.35,
-        "stackMaxSize": 60,
+        "stackMaxSize": 80,
         "staminaBurnPerDamage": 0.1584,
         "item": {
             "id": "60194943740c5d77f6705eea",
@@ -4530,7 +4530,7 @@
         "weight": 0.013,
         "recoilModifier": 0.06,
         "ricochetChance": 0.48,
-        "stackMaxSize": 60,
+        "stackMaxSize": 80,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "601949593ae8f707c4608daa",
@@ -4562,7 +4562,7 @@
         "weight": 0.015,
         "recoilModifier": 0.1,
         "ricochetChance": 0.435,
-        "stackMaxSize": 60,
+        "stackMaxSize": 70,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "601aa3d2b2bcb34913271e6d",
@@ -4594,7 +4594,7 @@
         "weight": 0.011,
         "recoilModifier": -0.1,
         "ricochetChance": 0.3,
-        "stackMaxSize": 60,
+        "stackMaxSize": 80,
         "staminaBurnPerDamage": 0.1296,
         "item": {
             "id": "61962b617c6c7b169525f168",
@@ -4626,7 +4626,7 @@
         "weight": 0.024,
         "recoilModifier": 0.1,
         "ricochetChance": 0.48,
-        "stackMaxSize": 50,
+        "stackMaxSize": 70,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "61962d879bb3d20b0946d385",
@@ -4658,7 +4658,7 @@
         "weight": 0.015,
         "recoilModifier": -0.1,
         "ricochetChance": 0.1,
-        "stackMaxSize": 60,
+        "stackMaxSize": 70,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "6196364158ef8c428c287d9f",
@@ -4690,7 +4690,7 @@
         "weight": 0.015,
         "recoilModifier": -0.05,
         "ricochetChance": 0.1,
-        "stackMaxSize": 60,
+        "stackMaxSize": 70,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "6196365d58ef8c428c287da1",
@@ -4722,7 +4722,7 @@
         "weight": 0.016,
         "recoilModifier": 0.01,
         "ricochetChance": 0.37,
-        "stackMaxSize": 60,
+        "stackMaxSize": 70,
         "staminaBurnPerDamage": 0.09216,
         "item": {
             "id": "619636be6db0f2477964e710",
@@ -4754,7 +4754,7 @@
         "weight": 0.016,
         "recoilModifier": 0.12,
         "ricochetChance": 0.065,
-        "stackMaxSize": 30,
+        "stackMaxSize": 60,
         "staminaBurnPerDamage": 0.12,
         "item": {
             "id": "62330b3ed4dc74626d570b95",
@@ -4786,7 +4786,7 @@
         "weight": 0.016,
         "recoilModifier": 0.15,
         "ricochetChance": 0.025,
-        "stackMaxSize": 30,
+        "stackMaxSize": 60,
         "staminaBurnPerDamage": 0.13,
         "item": {
             "id": "62330bfadc5883093563729b",
@@ -4818,7 +4818,7 @@
         "weight": 0.016,
         "recoilModifier": 0.08,
         "ricochetChance": 0.055,
-        "stackMaxSize": 30,
+        "stackMaxSize": 60,
         "staminaBurnPerDamage": 0.1,
         "item": {
             "id": "62330c18744e5e31df12f516",
@@ -4850,7 +4850,7 @@
         "weight": 0.015,
         "recoilModifier": -0.29,
         "ricochetChance": 0.03,
-        "stackMaxSize": 30,
+        "stackMaxSize": 60,
         "staminaBurnPerDamage": 0.15,
         "item": {
             "id": "62330c40bdd19b369e1e53d1",
@@ -5042,7 +5042,7 @@
         "weight": 0.007,
         "recoilModifier": 0,
         "ricochetChance": 0.35,
-        "stackMaxSize": 60,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "64b6979341772715af0f9c39",
@@ -5074,7 +5074,7 @@
         "weight": 0.016,
         "recoilModifier": 0.05,
         "ricochetChance": 0.33,
-        "stackMaxSize": 60,
+        "stackMaxSize": 70,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "64b7af434b75259c590fa893",
@@ -5106,7 +5106,7 @@
         "weight": 0.012,
         "recoilModifier": -0.02,
         "ricochetChance": 0.25,
-        "stackMaxSize": 60,
+        "stackMaxSize": 70,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "64b7af5a8532cf95ee0a0dbd",
@@ -5138,7 +5138,7 @@
         "weight": 0.012,
         "recoilModifier": -0.05,
         "ricochetChance": 0.2,
-        "stackMaxSize": 60,
+        "stackMaxSize": 70,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "64b7af734b75259c590fa895",
@@ -5170,7 +5170,7 @@
         "weight": 0.005,
         "recoilModifier": 0,
         "ricochetChance": 0.1,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "64b7bbb74b75259c590fa897",
@@ -5202,7 +5202,7 @@
         "weight": 0.015,
         "recoilModifier": 0.05,
         "ricochetChance": 0.2,
-        "stackMaxSize": 60,
+        "stackMaxSize": 70,
         "staminaBurnPerDamage": 0.0864,
         "item": {
             "id": "64b8725c4b75259c590fa899",
@@ -5234,7 +5234,7 @@
         "weight": 0.05,
         "recoilModifier": 0,
         "ricochetChance": 0.1,
-        "stackMaxSize": 20,
+        "stackMaxSize": 25,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "64b8ee384b75259c590fa89b",
@@ -5362,7 +5362,7 @@
         "weight": 0.024,
         "recoilModifier": 0.1,
         "ricochetChance": 0.3,
-        "stackMaxSize": 40,
+        "stackMaxSize": 50,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "6529243824cbe3c74a05e5c1",
@@ -5394,7 +5394,7 @@
         "weight": 0.024,
         "recoilModifier": 0,
         "ricochetChance": 0.27,
-        "stackMaxSize": 40,
+        "stackMaxSize": 50,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "6529302b8c26af6326029fb7",
@@ -5426,7 +5426,7 @@
         "weight": 0.011,
         "recoilModifier": 0.1,
         "ricochetChance": 0.5,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "6576f4708ca9c4381d16cd9d",
@@ -5458,7 +5458,7 @@
         "weight": 0.015,
         "recoilModifier": 0,
         "ricochetChance": 0.3,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.1152,
         "item": {
             "id": "6576f93989f0062e741ba952",
@@ -5490,7 +5490,7 @@
         "weight": 0.023,
         "recoilModifier": -0.05,
         "ricochetChance": 0.4,
-        "stackMaxSize": 50,
+        "stackMaxSize": 70,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "6576f96220d53a5b8f3e395e",
@@ -5522,7 +5522,7 @@
         "weight": 0.04,
         "recoilModifier": 0.48,
         "ricochetChance": 0.18,
-        "stackMaxSize": 20,
+        "stackMaxSize": 35,
         "staminaBurnPerDamage": 0.25344,
         "item": {
             "id": "660137d8481cc6907a0c5cda",
@@ -5554,7 +5554,7 @@
         "weight": 0.038,
         "recoilModifier": 0.4,
         "ricochetChance": 0.15,
-        "stackMaxSize": 20,
+        "stackMaxSize": 35,
         "staminaBurnPerDamage": 0.25344,
         "item": {
             "id": "660137ef76c1b56143052be8",
@@ -5586,7 +5586,7 @@
         "weight": 0.035,
         "recoilModifier": 0,
         "ricochetChance": 0,
-        "stackMaxSize": 20,
+        "stackMaxSize": 35,
         "staminaBurnPerDamage": 0.09504,
         "item": {
             "id": "6601380580e77cfd080e3418",
@@ -5650,7 +5650,7 @@
         "weight": 0.028,
         "recoilModifier": 0.1,
         "ricochetChance": 0.08,
-        "stackMaxSize": 30,
+        "stackMaxSize": 50,
         "staminaBurnPerDamage": 0.21,
         "item": {
             "id": "668fe62ac62660a5d8071446",
@@ -5682,7 +5682,7 @@
         "weight": 0.029,
         "recoilModifier": 0.05,
         "ricochetChance": 0.02,
-        "stackMaxSize": 30,
+        "stackMaxSize": 50,
         "staminaBurnPerDamage": 0.265,
         "item": {
             "id": "66a0d1c87d0d369e270bb9de",
@@ -5714,7 +5714,7 @@
         "weight": 0.035,
         "recoilModifier": 0.08,
         "ricochetChance": 0.06,
-        "stackMaxSize": 30,
+        "stackMaxSize": 50,
         "staminaBurnPerDamage": 0.23,
         "item": {
             "id": "66a0d1e0ed648d72fe064d06",
@@ -5746,7 +5746,7 @@
         "weight": 0.038,
         "recoilModifier": 0.02,
         "ricochetChance": 0.004,
-        "stackMaxSize": 30,
+        "stackMaxSize": 50,
         "staminaBurnPerDamage": 0.25,
         "item": {
             "id": "66a0d1f88486c69fce00fdf6",
@@ -5842,7 +5842,7 @@
         "weight": 0.022,
         "recoilModifier": 0.04,
         "ricochetChance": 0.3,
-        "stackMaxSize": 40,
+        "stackMaxSize": 50,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "6768c25aa7b238f14a08d3f6",
@@ -5874,7 +5874,7 @@
         "weight": 0.024,
         "recoilModifier": 0.03,
         "ricochetChance": 0.3,
-        "stackMaxSize": 40,
+        "stackMaxSize": 50,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "67c540c3d0538d12ec036c08",
@@ -5906,7 +5906,7 @@
         "weight": 0.024,
         "recoilModifier": -0.03,
         "ricochetChance": 0.2,
-        "stackMaxSize": 40,
+        "stackMaxSize": 50,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "67c540cfb032bbdb530201b8",
@@ -5938,7 +5938,7 @@
         "weight": 0.114,
         "recoilModifier": 0.15,
         "ricochetChance": 0.02,
-        "stackMaxSize": 10,
+        "stackMaxSize": 15,
         "staminaBurnPerDamage": 0.2592,
         "item": {
             "id": "67d41936f378a36c4706eeb9",
@@ -5970,7 +5970,7 @@
         "weight": 0.121,
         "recoilModifier": 0.2,
         "ricochetChance": 0.15,
-        "stackMaxSize": 10,
+        "stackMaxSize": 15,
         "staminaBurnPerDamage": 0.2592,
         "item": {
             "id": "67dc212493ce32834b0fa446",
@@ -6002,7 +6002,7 @@
         "weight": 0.107,
         "recoilModifier": 0.25,
         "ricochetChance": 0.35,
-        "stackMaxSize": 10,
+        "stackMaxSize": 15,
         "staminaBurnPerDamage": 0.2304,
         "item": {
             "id": "67dc255ee3028a8b120efc48",
@@ -6034,7 +6034,7 @@
         "weight": 0.103,
         "recoilModifier": 0.28,
         "ricochetChance": 0.45,
-        "stackMaxSize": 10,
+        "stackMaxSize": 15,
         "staminaBurnPerDamage": 0.2016,
         "item": {
             "id": "67dc2648ba5b79876906a166",
@@ -6162,7 +6162,7 @@
         "weight": 0.013,
         "recoilModifier": 0,
         "ricochetChance": 0.065,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "68c15a033173b556890b5959",
@@ -6194,7 +6194,7 @@
         "weight": 0.0132,
         "recoilModifier": 0,
         "ricochetChance": 0.065,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "68c15b4bb30038a118088bd6",
@@ -6226,7 +6226,7 @@
         "weight": 0.014,
         "recoilModifier": 0,
         "ricochetChance": 0.065,
-        "stackMaxSize": 50,
+        "stackMaxSize": 100,
         "staminaBurnPerDamage": 0.144,
         "item": {
             "id": "68c15f77ed3d7df9220debd6",
