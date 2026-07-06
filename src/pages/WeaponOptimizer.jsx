@@ -15,13 +15,13 @@ const isSuppressor = (m) => (m.types || []).includes('suppressor');
 const SUP_BONUS = 1e6; // routes greedy selection down a branch that can host a suppressor
 const INC_BONUS = 1e6; // same routing trick for user "must-include" mods
 
-// Base objective weights {erg, rec}. When a recoil cap is set we sweep the recoil
-// weight upward to find the smallest one that meets the cap — that leaves the most
-// room for ergonomics (max ergo subject to recoil ≤ cap).
+// Base objective weights {erg, rec}. Ergo points per mod (+5..+20) dwarf recoil
+// percentages (-1..-7%), so no static weight pair yields a true middle build —
+// "balanced" is instead computed in computeBuild by bracketing the two extremes
+// and maxing ergo with recoil capped at their midpoint.
 const OBJ_W = {
   recoil: { erg: 0.4, rec: 3 },
   ergo: { erg: 3, rec: 0.4 },
-  balanced: { erg: 1.5, rec: 1.5 },
 };
 const OBJ_LABEL = { recoil: 'เน้นลด Recoil', ergo: 'เน้น Ergonomics', balanced: 'สมดุล' };
 
@@ -56,6 +56,22 @@ function makeReaches(MODS) {
 // tarkov.dev's conflictingItems is often one-directional: a grip/stock combo like
 // the Hera Arms CQR lists the stocks it blocks, but those stocks don't list the CQR
 // back. Check BOTH directions so we never stack two mutually-exclusive mods.
+// Register / unregister every mod id in a committed pick-tree. optimizeSlots must
+// undo the ids a rejected candidate's sub-evaluation committed, or mods from builds
+// we didn't keep leak into conflict checks and the must-include status.
+function addPickIds(picks, ids) {
+  for (const p of picks) {
+    ids.add(p.mod.id);
+    if (p.children.length) addPickIds(p.children, ids);
+  }
+}
+function removePickIds(picks, ids) {
+  for (const p of picks) {
+    ids.delete(p.mod.id);
+    if (p.children.length) removePickIds(p.children, ids);
+  }
+}
+
 function hasConflict(m, chosenIds, MODS) {
   if (m.conflicts && m.conflicts.some((c) => chosenIds.has(c))) return true;
   for (const cid of chosenIds) {
@@ -113,6 +129,7 @@ function optimizeSlots(slots, budgetRef, C, chosenIds, MODS, W, reaches) {
       const totScore = modScore(m, C, W) + (sub ? sub.score : 0);
       const totCost = price + (sub ? sub.cost : 0);
       chosenIds.delete(id);
+      if (sub) removePickIds(sub.picks, chosenIds); // undo the sub-evaluation's committed ids
       if (budgetRef.left != null && totCost > budgetRef.left) continue;
       if (!best || totScore > best.totScore || (totScore === best.totScore && totCost < best.totCost)) {
         best = { m, sub, totScore, totCost, price };
@@ -127,13 +144,15 @@ function optimizeSlots(slots, budgetRef, C, chosenIds, MODS, W, reaches) {
         if (C.onlyBuy && m.price == null) continue;
         if (hasConflict(m, chosenIds, MODS)) continue;
         if (isMagSlot && C.minCap > 0 && (m.capacity == null || m.capacity < C.minCap)) continue;
-        best = { m, sub: null, totScore: modScore(m, C, W), totCost: m.price || 0, price: m.price || 0 };
-        break;
+        const price = m.price || 0;
+        if (budgetRef.left != null && price > budgetRef.left) continue;
+        if (!best || price < best.price) best = { m, sub: null, totScore: modScore(m, C, W), totCost: price, price };
       }
     }
     if (best && best.totScore <= 0 && !mustFill) continue; // skip useless optional slots
     if (!best) continue;
     chosenIds.add(best.m.id);
+    if (best.sub) addPickIds(best.sub.picks, chosenIds); // re-register the winning sub-tree
     picks.push({ slot: slot.name, mod: best.m, children: best.sub ? best.sub.picks : [] });
     score += best.totScore;
     cost += best.totCost;
@@ -158,30 +177,28 @@ function optimizeSlots(slots, budgetRef, C, chosenIds, MODS, W, reaches) {
 function computeBuild(gun, C, objective, MODS) {
   const reaches = makeReaches(MODS);
   const recVof = (r) => Math.round(gun.recoilV * (1 + r.recoilPct / 100));
-  const base = OBJ_W[objective];
   const budget = () => ({ left: C.budget > 0 ? C.budget : null });
-  const pass = (wRec) => {
-    const W = { erg: base.erg, rec: wRec };
+  const pass = (W) => {
     const c = new Set();
     const r = optimizeSlots(gun.slots, budget(), C, c, MODS, W, reaches);
     return { r, c };
   };
 
-  let out;
-  if (C.maxRecoil > 0 && objective !== 'recoil') {
-    // Goal: maximum ergo with recoil ≤ cap. Lighter recoil-weight = more ergo but
-    // higher recoil; heavier = lower recoil but less ergo. So we want the LIGHTEST
-    // weight that still meets the cap. Sweep light→heavy to bracket that boundary…
-    const weights = [base.rec, 1, 2, 3, 5, 8, 13, 21, 34, 55, 100, 200];
+  // Maximum ergo with recoil ≤ cap. Lighter recoil-weight = more ergo but higher
+  // recoil; heavier = lower recoil but less ergo. So we want the LIGHTEST weight
+  // that still meets the cap. Sweep light→heavy to bracket that boundary…
+  const capSearch = (cap) => {
+    const erg = OBJ_W.ergo.erg;
+    const weights = [OBJ_W.ergo.rec, 1, 2, 3, 5, 8, 13, 21, 34, 55, 100, 200];
     let best = null, // best passing build so far (max ergo under cap)
       loFail = null, // last failing weight (just lighter than the bracket)
       hiPass = null, // first passing weight
       fb = null,
       fbRec = Infinity; // fallback if nothing meets the cap: lowest recoil we saw
     for (const w of weights) {
-      const p = pass(w);
+      const p = pass({ erg, rec: w });
       const rv = recVof(p.r);
-      if (rv <= C.maxRecoil) {
+      if (rv <= cap) {
         best = p;
         hiPass = w;
         break; // heavier weights only lower ergo — no need to look further
@@ -200,8 +217,8 @@ function computeBuild(gun, C, objective, MODS) {
         hi = hiPass;
       for (let i = 0; i < 16; i++) {
         const mid = (lo + hi) / 2;
-        const p = pass(mid);
-        if (recVof(p.r) <= C.maxRecoil) {
+        const p = pass({ erg, rec: mid });
+        if (recVof(p.r) <= cap) {
           if (p.r.ergo > best.r.ergo) best = p; // keep the higher-ergo passing build
           hi = mid; // try to lighten further (push recoil up toward the cap)
         } else {
@@ -209,9 +226,36 @@ function computeBuild(gun, C, objective, MODS) {
         }
       }
     }
-    out = best || fb;
+    return best || fb;
+  };
+
+  let out;
+  if (C.maxRecoil > 0 && objective !== 'recoil') {
+    out = capSearch(C.maxRecoil);
+  } else if (objective === 'balanced') {
+    // สมดุล: sweep the ergo↔recoil tradeoff curve, normalize both stats onto the
+    // achievable range, and keep the build whose WORSE normalized stat is best
+    // (maximin) — a genuinely middle build even when the curve has big gaps.
+    const cands = [pass(OBJ_W.ergo), pass(OBJ_W.recoil)]; // the two extremes anchor the range
+    for (let w = 1; w <= 200; w *= 1.25) cands.push(pass({ erg: OBJ_W.ergo.erg, rec: w }));
+    const ergs = cands.map((p) => p.r.ergo);
+    const recs = cands.map((p) => recVof(p.r));
+    const eLo = Math.min(...ergs),
+      eHi = Math.max(...ergs);
+    const rLo = Math.min(...recs),
+      rHi = Math.max(...recs);
+    let bestKey = -Infinity;
+    for (let i = 0; i < cands.length; i++) {
+      const eN = eHi > eLo ? (ergs[i] - eLo) / (eHi - eLo) : 1;
+      const rN = rHi > rLo ? (rHi - recs[i]) / (rHi - rLo) : 1;
+      const key = Math.min(eN, rN) + 0.001 * (eN + rN); // maximin, tie-break by sum
+      if (key > bestKey) {
+        bestKey = key;
+        out = cands[i];
+      }
+    }
   } else {
-    out = pass(base.rec);
+    out = pass(OBJ_W[objective]);
   }
   const res = out.r,
     chosen = out.c;
@@ -266,6 +310,7 @@ function computeBuild(gun, C, objective, MODS) {
     finalRecV,
     finalRecH,
     totalCost,
+    budgetUsed: C.budget > 0 ? C.budget : null,
     msgs,
   };
 }
@@ -743,8 +788,8 @@ export default function WeaponOptimizer() {
               ))}
             </div>
             <div className="gmo-hint">
-              💡 อยากได้สมดุล: เลือก <b>Ergo สูง</b> แล้วตั้งเพดาน <b>Recoil ≤</b> ด้านล่าง — ระบบจะดัน ergo ให้สูงสุดโดย
-              recoil ไม่เกินที่กำหนด ("Recoil ต่ำ" = ลดสุดๆ ไม่สน ergo)
+              💡 <b>สมดุล</b> = ลด recoil ลงครึ่งทางของที่ลดได้สุด แล้วดัน ergo ให้สูงสุด • อยากคุมเอง: เลือก{' '}
+              <b>Ergo สูง</b> แล้วตั้งเพดาน <b>Recoil ≤</b> ด้านล่าง ("Recoil ต่ำ" = ลดสุดๆ ไม่สน ergo)
             </div>
 
             <label>งบประมาณมอด (₽) — 0 = ไม่จำกัด</label>
@@ -865,7 +910,7 @@ export default function WeaponOptimizer() {
                     </div>
                     <div className="stat-d">
                       มอด {rub(build.res.cost)}
-                      {build.totalCost != null && parseFloat(budget) > 0 ? ` / งบ ${rub(parseFloat(budget))}` : ''}
+                      {build.budgetUsed != null ? ` / งบ ${rub(build.budgetUsed)}` : ''}
                     </div>
                   </div>
                 </div>
