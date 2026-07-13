@@ -24,13 +24,13 @@ export default function WeaponOptimizer() {
 
   const [search, setSearch] = useState('');
   const [gunId, setGunId] = useState('');
-  const [objective, setObjective] = useState('recoil');
+  const [objective, setObjective] = useState('ergo');
   const [budget, setBudget] = useState(0);
-  const [maxRecoil, setMaxRecoil] = useState('');
-  const [minCap, setMinCap] = useState('');
+  const [maxRecoil, setMaxRecoil] = useState('62');
+  const [minCap, setMinCap] = useState('30');
   const [needSup, setNeedSup] = useState(false);
   const [skipOptics, setSkipOptics] = useState(true);
-  const [onlyBuy, setOnlyBuy] = useState(false);
+  const [onlyBuy, setOnlyBuy] = useState(true);
   const [include, setInclude] = useState(() => new Set());
   const [exclude, setExclude] = useState(() => new Set());
 

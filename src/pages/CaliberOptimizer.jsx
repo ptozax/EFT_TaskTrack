@@ -22,9 +22,9 @@ export default function CaliberOptimizer() {
   const [loadErr, setLoadErr] = useState('');
 
   const [caliber, setCaliber] = useState('');
-  const [threshold, setThreshold] = useState('');
+  const [threshold, setThreshold] = useState('62');
   const [needSup, setNeedSup] = useState(false);
-  const [minCap, setMinCap] = useState('');
+  const [minCap, setMinCap] = useState('30');
   const [maxTotal, setMaxTotal] = useState(''); // งบเพดานราคารวม (filter after compute)
   const [include, setInclude] = useState(() => new Set()); // mod ต้องใส่
   const [exclude, setExclude] = useState(() => new Set()); // mod ห้ามใส่
