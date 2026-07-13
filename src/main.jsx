@@ -19,6 +19,7 @@ import Balistic from "./pages/Balistic.jsx";
 import ItemPrice from "./pages/ItemPrice.jsx";
 import WeaponBuild from "./pages/WeaponBuild.jsx";
 import WeaponOptimizer from "./pages/WeaponOptimizer.jsx";
+import CaliberOptimizer from "./pages/CaliberOptimizer.jsx";
 
 const pageComponents = {
   ItemPrice:<ItemPrice/>,
@@ -30,6 +31,7 @@ const pageComponents = {
   Balistic: <Balistic/>,
   WeaponBuild: <WeaponBuild />,
   WeaponOptimizer: <WeaponOptimizer />,
+  CaliberOptimizer: <CaliberOptimizer />,
   Default: <Home/>,
 
 };

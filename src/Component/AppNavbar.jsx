@@ -32,7 +32,8 @@ function AppNavbar() {
                 { key: "#/Balistic", href: "/Balistic", icon: GiMachineGunMagazine, text: "Balistic" },
                 { key: "#/ItemPrice", href: "/ItemPrice", icon: FaExchangeAlt, text: "Item Price" },
                 { key: "#/WeaponBuild", href: "/WeaponBuild", icon: FaExchangeAlt, text: "Weapon Build" },
-                { key: "#/WeaponOptimizer", href: "/WeaponOptimizer", icon: GiMachineGunMagazine, text: "Weapon Optimizer" }]
+                { key: "#/WeaponOptimizer", href: "/WeaponOptimizer", icon: GiMachineGunMagazine, text: "Weapon Optimizer" },
+                { key: "#/CaliberOptimizer", href: "/CaliberOptimizer", icon: GiMachineGunMagazine, text: "Caliber Optimizer" }]
         },
 
     ];
