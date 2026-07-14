@@ -115,7 +115,7 @@ function AppNavbar() {
     }
 
     const activeStyle = {
-        borderBottom: '3px solid #0dcaf0', // Using Bootstrap 'info' color
+        borderBottom: '3px solid #eab308', // Unified gold accent
         color: 'white' // Ensure text is white when active on dark background
     };
     const inactiveStyle = {
@@ -271,7 +271,7 @@ function AppNavbar() {
                                                 type="checkbox"
                                                 checked={active}
                                                 onChange={() => onChangeSelectReset(value)}
-                                                style={{ accentColor: '#f97316', width: '16px', height: '16px', cursor: 'pointer', }}
+                                                style={{ accentColor: '#eab308', width: '16px', height: '16px', cursor: 'pointer', }}
                                             />
                                             <span style={{ fontSize: '12px' }}>{value}</span>
                                         </label>

@@ -258,7 +258,7 @@ const Home = () => {
 
   return (
 
-    <div className="container-fluid">
+    <div className="container-fluid home-dark">
       <div className="row justify-content-md-center">
         <div className="col-md-11 ">
 
@@ -456,7 +456,7 @@ const Home = () => {
                       <div
                         className="mb-4 p-3 rounded border border-secondary bg-black bg-opacity-25 "
                       >
-                        หาม้ายเควสนิ
+                        No quests match this filter.
                       </div>
                     )}
                     {filteredQuests.map((quest) => {
@@ -514,7 +514,7 @@ const Home = () => {
 
                           {/* OBJECTIVES */}
                           <ul className="list-unstyled mb-0">
-                            { giveItemList.length > 0 && <h5 className="text-center text-uppercase">hand over</h5>}
+                            { giveItemList.length > 0 && <h5 className="text-center text-uppercase">Hand Over</h5>}
                             {(giveItemList.length > 0) && (
                               <li className="d-flex justify-content-center align-items-center mb-2 row">
                                 {giveItemList.map((obj) => {

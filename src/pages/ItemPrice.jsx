@@ -517,7 +517,7 @@ const ItemPrice = () => {
               className="d-flex justify-content-center align-items-center"
               style={{ height: "calc(100vh - 25rem)" }}
             >
-              <h1>{chance ? "No items in list" : "หาม้าย Items นิ๊"}</h1>
+              <h1>{chance ? "No items in list" : "No items found"}</h1>
             </div>
           ) : (
             <>

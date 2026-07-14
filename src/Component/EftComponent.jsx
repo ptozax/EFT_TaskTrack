@@ -3,11 +3,11 @@ export const theme = {
     colors: {
         bgMain: '#0f172a',    // Slate 900
         bgCard: '#1e293b',    // Slate 800
-        bgHeader: '#020617',  // Slate 950
+        bgHeader: '#0b1120',  // Slate 950
         textMain: '#e2e8f0',  // Slate 200
-        textMuted: '#64748b', // Slate 500
-        accent: '#f97316',    // Orange 500
-        accentHover: '#ea580c', // Orange 600
+        textMuted: '#94a3b8', // Slate 400
+        accent: '#eab308',    // Gold 500 (unified accent)
+        accentHover: '#ca9a04', // Gold 600
         border: '#334155',    // Slate 700
         success: '#22c55e',   // Green 500
         successBg: 'rgba(34, 197, 94, 0.1)',
@@ -176,7 +176,7 @@ export const hideoutStyles = {
         gap: theme.spacing.sm,
         border: 'none',
         cursor: disabled ? 'not-allowed' : 'pointer',
-        boxShadow: disabled ? 'none' : '0 4px 6px -1px rgba(249, 115, 22, 0.3)',
+        boxShadow: disabled ? 'none' : '0 4px 6px -1px rgba(234, 179, 8, 0.3)',
     }),
     sidebar: (isOpen) => ({
         position: 'fixed',
@@ -226,24 +226,24 @@ export const hideoutStyles = {
 
 // --- Kappa Theme ---
 export const COLORS = {
-    bgDark: '#0f172a',    // slate-950
-    bgCard: '#1f2937',    // gray-800
-    bgHeader: '#111827',  // gray-900
-    textPrimary: '#f3f4f6', // gray-100
-    textSecondary: '#9ca3af', // gray-400
-    border: '#374151',    // gray-700
-    accent: '#eab308',    // yellow-500
-    success: '#16a34a',   // green-600
-    danger: '#ff0000',    // red
+    bgDark: '#0f172a',    // slate-900
+    bgCard: '#1e293b',    // slate-800
+    bgHeader: '#0b1120',  // slate deep
+    textPrimary: '#e2e8f0', // slate-200
+    textSecondary: '#94a3b8', // slate-400
+    border: '#334155',    // slate-700
+    accent: '#eab308',    // gold-500 (unified accent)
+    success: '#22c55e',   // green-500
+    danger: '#ef4444',    // red-500
     blue: '#3b82f6',      // blue-500
-    hoverBg: '#374151',   // lighter gray for hover
+    hoverBg: '#334155',   // lighter gray for hover
 };
 
 export const kappaStyles = {
     containerStyle: {
         width: '100%',
         height: '0.75rem', // h-3
-        backgroundColor: '#374151', // bg-gray-700
+        backgroundColor: '#334155', // bg-gray-700
         borderRadius: '9999px',
         overflow: 'hidden',
     },
@@ -304,7 +304,7 @@ export const kappaStyles = {
     badgeStyle: {
         padding: '0.25rem 0.5rem',
         borderRadius: '0.25rem',
-        backgroundColor: '#374151',
+        backgroundColor: '#334155',
         fontSize: '0.75rem',
         border: '1px solid #4b5563',
     },
@@ -423,7 +423,7 @@ export const mapStyles = {
         display: 'flex',
         height: '93vh',
         // width: '100vw',
-        backgroundColor: '#020617',
+        backgroundColor: '#0b1120',
         color: '#f8fafc',
         fontFamily: 'sans-serif',
         overflow: 'hidden',
@@ -449,7 +449,7 @@ export const mapStyles = {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#020617',
+        background: '#0b1120',
         overflow: 'hidden',
         transition: 'width 0.3s ease-in-out',
     },
@@ -649,7 +649,7 @@ export const mapStyles = {
     },
     inputNumber: {
         width: '80px',
-        backgroundColor: '#020617',
+        backgroundColor: '#0b1120',
         border: '1px solid #334155',
         borderRadius: '4px',
         color: '#60a5fa',
@@ -674,13 +674,13 @@ export const mapStyles = {
 export const AmmoStyles = {
     container: {
         minHeight: '93vh',
-        backgroundColor: '#09090b', // zinc-950
-        color: '#f4f4f5', // zinc-100
+        backgroundColor: '#0b1120', // zinc-950
+        color: '#e2e8f0', // zinc-100
         fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
     },
     header: {
-        backgroundColor: '#18181b', // zinc-900
-        borderBottom: '1px solid #27272a', // zinc-800
+        backgroundColor: '#1e293b', // zinc-900
+        borderBottom: '1px solid #334155', // zinc-800
         position: 'sticky',
         top: 0,
         zIndex: 30,
@@ -724,7 +724,7 @@ export const AmmoStyles = {
     },
     subtitle: {
         fontSize: '0.75rem',
-        color: '#71717a', // zinc-500
+        color: '#64748b', // zinc-500
         marginTop: '0.25rem',
         margin: 0,
     },
@@ -743,12 +743,12 @@ export const AmmoStyles = {
     searchIcon: {
         position: 'absolute',
         left: '0.75rem',
-        color: '#71717a', // zinc-500
+        color: '#64748b', // zinc-500
     },
     searchInput: {
         width: '16rem',
-        backgroundColor: '#09090b', // zinc-950
-        border: '1px solid #3f3f46', // zinc-700
+        backgroundColor: '#0b1120', // zinc-950
+        border: '1px solid #475569', // zinc-700
         fontSize: '0.875rem',
         borderRadius: '0.375rem',
         padding: '0.5rem 1rem 0.5rem 2.5rem',
@@ -757,13 +757,13 @@ export const AmmoStyles = {
         transition: 'all 0.15s ease-in-out',
     },
     caliberSelect: {
-        backgroundColor: '#09090b', // zinc-950
-        border: '1px solid #3f3f46', // zinc-700
+        backgroundColor: '#0b1120', // zinc-950
+        border: '1px solid #475569', // zinc-700
         fontSize: '0.875rem',
         borderRadius: '0.375rem',
         padding: '0.5rem 0.75rem',
         outline: 'none',
-        color: '#d4d4d8', // zinc-300
+        color: '#cbd5e1', // zinc-300
         cursor: 'pointer',
     },
     main: {
@@ -787,8 +787,8 @@ export const AmmoStyles = {
         gap: '0.25rem',
     },
     legendContainer: {
-        backgroundColor: '#18181b', // zinc-900
-        border: '1px solid #27272a', // zinc-800
+        backgroundColor: '#1e293b', // zinc-900
+        border: '1px solid #334155', // zinc-800
         borderRadius: '0.5rem',
         padding: '1rem',
         marginBottom: '1.5rem',
@@ -796,7 +796,7 @@ export const AmmoStyles = {
     legendTitle: {
         fontSize: '0.875rem',
         fontWeight: '700',
-        color: '#d4d4d8', // zinc-300
+        color: '#cbd5e1', // zinc-300
         marginBottom: '0.75rem',
         display: 'flex',
         alignItems: 'center',
@@ -811,8 +811,8 @@ export const AmmoStyles = {
         textAlign: 'center',
     },
     tableContainer: {
-        backgroundColor: '#18181b', // zinc-900
-        border: '1px solid #27272a', // zinc-800
+        backgroundColor: '#1e293b', // zinc-900
+        border: '1px solid #334155', // zinc-800
         borderRadius: '0.75rem',
         overflow: 'hidden',
         boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
@@ -830,15 +830,15 @@ export const AmmoStyles = {
     th: {
         padding: '0.75rem 1rem',
         fontWeight: '500',
-        borderBottom: '1px solid #27272a', // zinc-800
-        color: '#a1a1aa', // zinc-400
-        backgroundColor: 'rgba(9, 9, 11, 0.5)', // zinc-950/50
+        borderBottom: '1px solid #334155', // zinc-800
+        color: '#94a3b8', // zinc-400
+        backgroundColor: 'rgba(11, 17, 32, 0.5)', // slate deep/50
         cursor: 'pointer',
     },
     td: {
         padding: '0.5rem 1rem',
-        borderBottom: '1px solid #27272a', // zinc-800
-        color: '#e4e4e7', // zinc-200
+        borderBottom: '1px solid #334155', // zinc-800
+        color: '#e2e8f0', // zinc-200
     },
     row: {
         cursor: 'pointer',
@@ -847,9 +847,9 @@ export const AmmoStyles = {
     iconCell: {
         width: '2.25rem',
         height: '2.25rem',
-        backgroundColor: '#09090b', // zinc-950
+        backgroundColor: '#0b1120', // zinc-950
         borderRadius: '0.25rem',
-        border: '1px solid #27272a', // zinc-800
+        border: '1px solid #334155', // zinc-800
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -861,9 +861,9 @@ export const AmmoStyles = {
         fontWeight: '700',
         textAlign: 'center',
         width: '2.5rem',
-        color: '#d4d4d8', // zinc-300
-        backgroundColor: 'rgba(39, 39, 42, 0.3)', // zinc-800/30
-        borderBottom: '1px solid #27272a',
+        color: '#cbd5e1', // zinc-300
+        backgroundColor: 'rgba(51, 65, 85, 0.3)', // slate-700/30
+        borderBottom: '1px solid #334155',
     },
     modalOverlay: {
         position: 'fixed',
@@ -877,8 +877,8 @@ export const AmmoStyles = {
         padding: '1rem',
     },
     modalContent: {
-        backgroundColor: '#18181b', // zinc-900
-        border: '1px solid #3f3f46', // zinc-700
+        backgroundColor: '#1e293b', // zinc-900
+        border: '1px solid #475569', // zinc-700
         borderRadius: '0.5rem',
         maxWidth: '42rem',
         width: '100%',
@@ -891,7 +891,7 @@ export const AmmoStyles = {
         position: 'absolute',
         top: '1rem',
         right: '1rem',
-        color: '#a1a1aa', // zinc-400
+        color: '#94a3b8', // zinc-400
         background: 'none',
         border: 'none',
         cursor: 'pointer',
@@ -907,21 +907,21 @@ export const AmmoStyles = {
     },
     modalImageContainer: {
         flexShrink: 0,
-        backgroundColor: '#09090b', // zinc-950
+        backgroundColor: '#0b1120', // zinc-950
         borderRadius: '0.5rem',
         padding: '1rem',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        border: '1px solid #27272a', // zinc-800
+        border: '1px solid #334155', // zinc-800
     },
     pill: {
         padding: '0.25rem 0.75rem',
-        backgroundColor: '#27272a', // zinc-800
-        color: '#d4d4d8', // zinc-300
+        backgroundColor: '#334155', // zinc-800
+        color: '#cbd5e1', // zinc-300
         borderRadius: '9999px',
         fontSize: '0.875rem',
-        border: '1px solid #3f3f46', // zinc-700
+        border: '1px solid #475569', // zinc-700
         fontWeight: '500',
     },
     tracerPill: {
@@ -939,8 +939,8 @@ export const AmmoStyles = {
     sectionTitle: {
         fontSize: '1.125rem',
         fontWeight: '600',
-        color: '#d4d4d8', // zinc-300
-        borderBottom: '1px solid #3f3f46', // zinc-700
+        color: '#cbd5e1', // zinc-300
+        borderBottom: '1px solid #475569', // zinc-700
         paddingBottom: '0.5rem',
         display: 'flex',
         alignItems: 'center',
@@ -948,13 +948,13 @@ export const AmmoStyles = {
         marginBottom: '1rem',
     },
     statBox: {
-        backgroundColor: 'rgba(39, 39, 42, 0.4)', // zinc-800/40
+        backgroundColor: 'rgba(51, 65, 85, 0.4)', // slate-700/40
         padding: '0.75rem',
         borderRadius: '0.375rem',
-        border: '1px solid rgba(63, 63, 70, 0.5)', // zinc-700/50
+        border: '1px solid rgba(71, 85, 105, 0.5)', // slate-600/50
     },
     statLabel: {
-        color: '#71717a', // zinc-500
+        color: '#64748b', // zinc-500
         fontSize: '0.75rem',
         textTransform: 'uppercase',
         letterSpacing: '0.05em',
@@ -966,7 +966,7 @@ export const AmmoStyles = {
         justifyContent: 'space-between',
         alignItems: 'center',
         padding: '0.25rem 0',
-        borderBottom: '1px solid #27272a', // zinc-800
+        borderBottom: '1px solid #334155', // zinc-800
     },
 };
 

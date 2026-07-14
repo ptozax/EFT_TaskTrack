@@ -404,7 +404,7 @@ const QuestTree = () => {
                     <div style={{ position: 'relative' }}>
                         <input
                             type="text"
-                            placeholder="ค้นหาชื่อเควส..."
+                            placeholder="Search quest name..."
                             style={styles.input}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -419,7 +419,7 @@ const QuestTree = () => {
                     <div style={styles.loaderOverlay}>
                         <div style={{ textAlign: 'center' }}>
                             <div style={{ width: '48px', height: '48px', border: '4px solid #eab308', borderTopColor: 'transparent', borderRadius: '50%', margin: '0 auto 16px' }} className="animate-spin"></div>
-                            <p style={{ color: '#94a3b8', fontWeight: 500 }}>กำลังโหลดข้อมูลเควส...</p>
+                            <p style={{ color: '#94a3b8', fontWeight: 500 }}>Loading quest data...</p>
                         </div>
                     </div>
                 ) : (

@@ -23,7 +23,7 @@ export const OBJ_W = {
   recoil: { erg: 0.4, rec: 3 },
   ergo: { erg: 3, rec: 0.4 },
 };
-export const OBJ_LABEL = { recoil: 'เน้นลด Recoil', ergo: 'เน้น Ergonomics', balanced: 'สมดุล' };
+export const OBJ_LABEL = { recoil: 'Low Recoil', ergo: 'High Ergonomics', balanced: 'Balanced' };
 
 // Optic/sight/rail/light slots: no recoil effect, tiny ergo the optimizer would
 // "farm" by stacking mounts. Skipped by default so builds stay realistic.
@@ -276,27 +276,27 @@ export function computeBuild(gun, C, objective, MODS) {
     const nm = m ? m.shortName || m.name : id;
     msgs.push(
       chosen.has(id)
-        ? { ok: 1, t: `✓ ใส่ "${nm}" แล้ว` }
-        : { ok: 0, t: `✗ ใส่ "${nm}" ไม่ได้ (ไม่เข้ากับปืนนี้ หรือชนกับชิ้นอื่น)` }
+        ? { ok: 1, t: `✓ "${nm}" installed` }
+        : { ok: 0, t: `✗ Can't install "${nm}" (incompatible with this gun or conflicts with another part)` }
     );
   }
   if (C.needSup)
     msgs.push(
       res.hasSup
-        ? { ok: 1, t: '✓ ติดตั้ง Suppressor แล้ว' }
-        : { ok: 0, t: '✗ ปืนนี้ติด Suppressor ไม่ได้ (ไม่พบช่องที่รองรับ)' }
+        ? { ok: 1, t: '✓ Suppressor installed' }
+        : { ok: 0, t: "✗ This gun can't mount a suppressor (no compatible slot)" }
     );
   if (C.minCap > 0)
     msgs.push(
       res.cap >= C.minCap
-        ? { ok: 1, t: `✓ ความจุแม็ก ${res.cap} นัด (≥ ${C.minCap})` }
-        : { ok: 0, t: `✗ ไม่มีแม็ก ≥ ${C.minCap} นัด (สูงสุดที่ได้ ${res.cap || '—'})` }
+        ? { ok: 1, t: `✓ Magazine capacity ${res.cap} rounds (≥ ${C.minCap})` }
+        : { ok: 0, t: `✗ No magazine ≥ ${C.minCap} rounds (max available ${res.cap || '—'})` }
     );
   if (C.maxRecoil > 0)
     msgs.push(
       finalRecV <= C.maxRecoil
-        ? { ok: 1, t: `✓ Recoil แนวตั้ง ${finalRecV} (≤ ${C.maxRecoil})` }
-        : { ok: 0, t: `✗ ลด Recoil ได้ต่ำสุดแค่ ${finalRecV} (เกิน ${C.maxRecoil})` }
+        ? { ok: 1, t: `✓ Vertical recoil ${finalRecV} (≤ ${C.maxRecoil})` }
+        : { ok: 0, t: `✗ Recoil only reduced to ${finalRecV} (exceeds ${C.maxRecoil})` }
     );
 
   return {
@@ -351,26 +351,26 @@ export function findCheapestBuild(gun, threshold, C, MODS) {
       const nm = m ? m.shortName || m.name : id;
       msgs.push(
         chosen.has(id)
-          ? { ok: 1, t: `✓ ใส่ "${nm}" แล้ว` }
-          : { ok: 0, t: `✗ ใส่ "${nm}" ไม่ได้ (ไม่เข้ากับปืนนี้ หรือชนกับชิ้นอื่น)` }
+          ? { ok: 1, t: `✓ "${nm}" installed` }
+          : { ok: 0, t: `✗ Can't install "${nm}" (incompatible with this gun or conflicts with another part)` }
       );
     }
     if (C.needSup)
       msgs.push(
         res.hasSup
-          ? { ok: 1, t: '✓ ติดตั้ง Suppressor แล้ว' }
-          : { ok: 0, t: '✗ ปืนนี้ติด Suppressor ไม่ได้ (ไม่พบช่องที่รองรับ)' }
+          ? { ok: 1, t: '✓ Suppressor installed' }
+          : { ok: 0, t: "✗ This gun can't mount a suppressor (no compatible slot)" }
       );
     if (C.minCap > 0)
       msgs.push(
         res.cap >= C.minCap
-          ? { ok: 1, t: `✓ ความจุแม็ก ${res.cap} นัด (≥ ${C.minCap})` }
-          : { ok: 0, t: `✗ ไม่มีแม็ก ≥ ${C.minCap} นัด (สูงสุดที่ได้ ${res.cap || '—'})` }
+          ? { ok: 1, t: `✓ Magazine capacity ${res.cap} rounds (≥ ${C.minCap})` }
+          : { ok: 0, t: `✗ No magazine ≥ ${C.minCap} rounds (max available ${res.cap || '—'})` }
       );
     msgs.push(
       finalRecV <= threshold
-        ? { ok: 1, t: `✓ Recoil แนวตั้ง ${finalRecV} (≤ ${threshold})` }
-        : { ok: 0, t: `✗ ลด Recoil ได้ต่ำสุดแค่ ${finalRecV} (เกิน ${threshold})` }
+        ? { ok: 1, t: `✓ Vertical recoil ${finalRecV} (≤ ${threshold})` }
+        : { ok: 0, t: `✗ Recoil only reduced to ${finalRecV} (exceeds ${threshold})` }
     );
 
     return {
@@ -472,62 +472,62 @@ export function buildCardDoc(B) {
     return `<span class="delta ${good ? 'g' : 'b'}">${diff > 0 ? '▲' : '▼'} ${Math.abs(diff)}</span>`;
   };
 
-  const doc = `<!DOCTYPE html><html lang="th"><head><meta charset="utf-8">
+  const doc = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(gun.shortName || gun.name)} Build — Tarkov Optimizer</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:"Segoe UI",Tahoma,sans-serif;background:#0d0b07;color:#e8e2d0;
-    background-image:radial-gradient(1200px 600px at 50% -10%,#2a2617 0%,#0d0b07 60%);padding:28px 14px;min-height:100vh}
-  .card{max-width:1040px;margin:0 auto;background:#16140d;border:1px solid #3a3527;border-radius:20px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.6)}
-  .hero{display:flex;gap:24px;align-items:center;padding:32px 36px;background:linear-gradient(120deg,#26231a 0%,#1a1811 70%);border-bottom:1px solid #3a3527;position:relative}
-  .hero::before{content:"";position:absolute;left:0;top:0;bottom:0;width:7px;background:linear-gradient(#c8a656,#9fb04b)}
-  .gunimg{width:168px;height:108px;object-fit:contain;flex:none;background:#0d0b07;border-radius:14px;border:1px solid #3a3527}
+  body{font-family:"Segoe UI",Tahoma,sans-serif;background:#0b1120;color:#e2e8f0;
+    background-image:radial-gradient(1200px 600px at 50% -10%,#334155 0%,#0b1120 60%);padding:28px 14px;min-height:100vh}
+  .card{max-width:1040px;margin:0 auto;background:#1e293b;border:1px solid #334155;border-radius:20px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+  .hero{display:flex;gap:24px;align-items:center;padding:32px 36px;background:linear-gradient(120deg,#273449 0%,#0f172a 70%);border-bottom:1px solid #334155;position:relative}
+  .hero::before{content:"";position:absolute;left:0;top:0;bottom:0;width:7px;background:linear-gradient(#eab308,#f59e0b)}
+  .gunimg{width:168px;height:108px;object-fit:contain;flex:none;background:#0b1120;border-radius:14px;border:1px solid #334155}
   .htext{flex:1;min-width:0}
-  .htext h1{font-size:32px;color:#f0e9d2;letter-spacing:.3px;line-height:1.2}
+  .htext h1{font-size:32px;color:#f1f5f9;letter-spacing:.3px;line-height:1.2}
   .htext .sub{margin-top:10px;display:flex;gap:10px;flex-wrap:wrap}
-  .pill{font-size:16px;padding:5px 14px;border-radius:20px;background:#0d0b07;border:1px solid #3a3527;color:#c8a656}
-  .pill.olive{color:#9fb04b}
-  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:1px;background:#3a3527}
-  .stat{background:#16140d;padding:22px 24px}
-  .stat .k{font-size:14px;color:#a29a80;text-transform:uppercase;letter-spacing:.6px}
-  .stat .v{font-size:37px;font-weight:800;margin-top:6px;color:#f0e9d2}
-  .stat .v small{font-size:19px;color:#a29a80;font-weight:600}
+  .pill{font-size:16px;padding:5px 14px;border-radius:20px;background:#0b1120;border:1px solid #334155;color:#eab308}
+  .pill.olive{color:#f59e0b}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:1px;background:#334155}
+  .stat{background:#1e293b;padding:22px 24px}
+  .stat .k{font-size:14px;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px}
+  .stat .v{font-size:37px;font-weight:800;margin-top:6px;color:#f1f5f9}
+  .stat .v small{font-size:19px;color:#94a3b8;font-weight:600}
   .delta{font-size:18px;margin-left:8px;font-weight:700}
-  .delta.g{color:#7bbf5a}.delta.b{color:#d1685a}
-  .bars{padding:24px 36px;border-top:1px solid #3a3527;border-bottom:1px solid #3a3527;background:#13110b}
+  .delta.g{color:#22c55e}.delta.b{color:#ef4444}
+  .bars{padding:24px 36px;border-top:1px solid #334155;border-bottom:1px solid #334155;background:#172033}
   .bar{margin:14px 0}
-  .bar .lab{display:flex;justify-content:space-between;font-size:16px;color:#a29a80;margin-bottom:7px}
-  .bar .lab b{color:#e8e2d0}
-  .track{height:12px;border-radius:8px;background:#26231a;overflow:hidden}
-  .fill{height:100%;border-radius:8px;background:linear-gradient(90deg,#9fb04b,#7bbf5a)}
-  .fill.rec{background:linear-gradient(90deg,#c8a656,#d1685a)}
+  .bar .lab{display:flex;justify-content:space-between;font-size:16px;color:#94a3b8;margin-bottom:7px}
+  .bar .lab b{color:#e2e8f0}
+  .track{height:12px;border-radius:8px;background:#273449;overflow:hidden}
+  .fill{height:100%;border-radius:8px;background:linear-gradient(90deg,#f59e0b,#22c55e)}
+  .fill.rec{background:linear-gradient(90deg,#eab308,#ef4444)}
   .tags{display:flex;gap:10px;flex-wrap:wrap;padding:22px 36px 6px}
   .tag{font-size:16px;padding:7px 15px;border-radius:10px}
-  .tag.ok{background:#1e2a17;border:1px solid #3c5a26;color:#7bbf5a}
-  .tag.no{background:#2e1c17;border:1px solid #5a3326;color:#d1685a}
+  .tag.ok{background:#14321f;border:1px solid #166534;color:#22c55e}
+  .tag.no{background:#3f1d1d;border:1px solid #7f1d1d;color:#ef4444}
   .list{padding:22px 28px 12px}
-  .list h2{font-size:17px;color:#c8a656;text-transform:uppercase;letter-spacing:1px;margin:8px 8px 16px}
+  .list h2{font-size:17px;color:#eab308;text-transform:uppercase;letter-spacing:1px;margin:8px 8px 16px}
   .mrow{display:flex;align-items:center;gap:16px;padding:12px 14px;border-radius:12px}
-  .mrow img{width:62px;height:62px;object-fit:contain;flex:none;background:#0d0b07;border-radius:9px;border:1px solid #2a2617}
-  .tree{color:#5a5442;font-size:22px;margin-right:-4px}
+  .mrow img{width:62px;height:62px;object-fit:contain;flex:none;background:#0b1120;border-radius:9px;border:1px solid #334155}
+  .tree{color:#475569;font-size:22px;margin-right:-4px}
   .minfo{flex:1;min-width:0}
   .mtop{display:flex;align-items:center;gap:10px}
-  .mtop .slot{font-size:14px;color:#8f876d;background:#0d0b07;border:1px solid #2a2617;border-radius:6px;padding:2px 9px;flex:none}
-  .mtop b{font-size:18px;color:#f0e9d2}
-  .mname{font-size:15px;color:#a29a80;margin:3px 0 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mtop .slot{font-size:14px;color:#64748b;background:#0b1120;border:1px solid #334155;border-radius:6px;padding:2px 9px;flex:none}
+  .mtop b{font-size:18px;color:#f1f5f9}
+  .mname{font-size:15px;color:#94a3b8;margin:3px 0 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .chips{display:flex;gap:8px;flex-wrap:wrap}
-  .c{font-size:14px;padding:2px 10px;border-radius:12px;background:#26231a;color:#a29a80}
-  .c.good{color:#7bbf5a}.c.bad{color:#d1685a}
-  .price{font-size:17px;color:#c8a656;white-space:nowrap;flex:none;font-weight:600}
-  .foot{padding:22px 36px;border-top:1px solid #3a3527;color:#8f876d;font-size:14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;background:#13110b}
-  .foot b{color:#c8a656}
-  .hintbar{max-width:1040px;margin:0 auto 16px;text-align:center;font-size:16px;color:#a29a80;background:#1c1a13;border:1px solid #3a3527;border-radius:12px;padding:12px 18px}
-  .hintbar b{color:#c8a656}
+  .c{font-size:14px;padding:2px 10px;border-radius:12px;background:#273449;color:#94a3b8}
+  .c.good{color:#22c55e}.c.bad{color:#ef4444}
+  .price{font-size:17px;color:#eab308;white-space:nowrap;flex:none;font-weight:600}
+  .foot{padding:22px 36px;border-top:1px solid #334155;color:#64748b;font-size:14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;background:#172033}
+  .foot b{color:#eab308}
+  .hintbar{max-width:1040px;margin:0 auto 16px;text-align:center;font-size:16px;color:#94a3b8;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:12px 18px}
+  .hintbar b{color:#eab308}
   @media print{.hintbar{display:none}}
 </style></head>
 <body>
-  <div class="hintbar">📸 กด <b>Win + Shift + S</b> แล้วลากเลือกเฉพาะการ์ด เพื่อบันทึกเป็นรูป • ไม่ต้องเซฟหน้านี้</div>
+  <div class="hintbar">📸 Press <b>Win + Shift + S</b> and drag to capture just the card to save it as an image • no need to save this page</div>
   <div class="card">
   <div class="hero">
     <img class="gunimg" crossorigin="anonymous" src="${esc(proxyIcon(gun.image || gun.icon))}" onerror="this.style.opacity=0">
@@ -542,25 +542,25 @@ export function buildCardDoc(B) {
   </div>
   <div class="stats">
     <div class="stat"><div class="k">Ergonomics</div><div class="v">${B.finalErgo}${dArrow(B.finalErgo, B.baseErgo, true)}</div></div>
-    <div class="stat"><div class="k">Recoil ↕ ตั้ง</div><div class="v">${B.finalRecV}${dArrow(B.finalRecV, B.baseRecV, false)}</div></div>
-    <div class="stat"><div class="k">Recoil ↔ นอน</div><div class="v">${B.finalRecH}${dArrow(B.finalRecH, B.baseRecH, false)}</div></div>
-    <div class="stat"><div class="k">ความจุแม็ก</div><div class="v">${res.cap || '—'}${res.cap ? ' <small>นัด</small>' : ''}</div></div>
-    <div class="stat"><div class="k">ราคารวม</div><div class="v" style="font-size:20px">${money(B.totalCost)}</div></div>
+    <div class="stat"><div class="k">Recoil ↕ Vertical</div><div class="v">${B.finalRecV}${dArrow(B.finalRecV, B.baseRecV, false)}</div></div>
+    <div class="stat"><div class="k">Recoil ↔ Horizontal</div><div class="v">${B.finalRecH}${dArrow(B.finalRecH, B.baseRecH, false)}</div></div>
+    <div class="stat"><div class="k">Magazine capacity</div><div class="v">${res.cap || '—'}${res.cap ? ' <small>rounds</small>' : ''}</div></div>
+    <div class="stat"><div class="k">Total price</div><div class="v" style="font-size:20px">${money(B.totalCost)}</div></div>
   </div>
   <div class="bars">
-    <div class="bar"><div class="lab"><span>ลด Recoil รวม</span><b>-${recoilCut}%</b></div>
+    <div class="bar"><div class="lab"><span>Total recoil reduction</span><b>-${recoilCut}%</b></div>
       <div class="track"><div class="fill rec" style="width:${Math.min(100, Math.max(0, recoilCut))}%"></div></div></div>
     <div class="bar"><div class="lab"><span>Ergonomics</span><b>${B.baseErgo} → ${B.finalErgo}</b></div>
       <div class="track"><div class="fill" style="width:${Math.min(100, Math.max(0, B.finalErgo))}%"></div></div></div>
   </div>
   ${consChips ? `<div class="tags">${consChips}</div>` : ''}
   <div class="list">
-    <h2>⚙ ชุดมอด (${res.picks.length} ช่องหลัก)</h2>
-    ${rows(res.picks, 0) || '<div style="padding:20px;color:#8f876d;text-align:center">ไม่มีมอดในชุด</div>'}
+    <h2>⚙ Mod set (${res.picks.length} main slots)</h2>
+    ${rows(res.picks, 0) || '<div style="padding:20px;color:#64748b;text-align:center">No mods in this build</div>'}
   </div>
   <div class="foot">
-    <span>🔫 สร้างด้วย <b>Tarkov Gun Mod Optimizer</b></span>
-    <span>ข้อมูล: tarkov.dev</span>
+    <span>🔫 Built with <b>Tarkov Gun Mod Optimizer</b></span>
+    <span>Data: tarkov.dev</span>
   </div>
 </div></body></html>`;
 
@@ -576,7 +576,7 @@ export function openCardTab(B) {
     w.document.write(buildCardDoc(B));
     w.document.close();
   } else {
-    alert('เบราว์เซอร์บล็อกการเปิดแท็บใหม่ — อนุญาต pop-up ให้หน้านี้แล้วลองอีกครั้ง');
+    alert('Your browser blocked the new tab — allow pop-ups for this page and try again.');
   }
 }
 
@@ -613,7 +613,7 @@ export async function exportCardImage(B) {
     const card = idoc.querySelector('.card');
     const canvas = await html2canvas(card, {
       useCORS: true,
-      backgroundColor: '#0d0b07',
+      backgroundColor: '#0b1120',
       scale: 3,
       windowWidth: 1100,
     });
@@ -653,7 +653,7 @@ export function ModPicker({ kind, MODLIST, MODS, selected, onAdd, onRemove }) {
     <div className="gmo-picker" data-kind={kind}>
       <input
         type="text"
-        placeholder="ค้นหาชื่อ mod..."
+        placeholder="Search mod name..."
         value={q}
         onChange={(e) => {
           setQ(e.target.value);
@@ -679,7 +679,7 @@ export function ModPicker({ kind, MODLIST, MODS, selected, onAdd, onRemove }) {
               </div>
             ))
           ) : (
-            <div className="none">ไม่พบ mod ที่ตรง</div>
+            <div className="none">No matching mod found</div>
           )}
         </div>
       )}
@@ -743,7 +743,7 @@ export function BuildRows({ picks, depth = 0 }) {
 
 /* All styles scoped under .gmo so they don't collide with Bootstrap / other pages */
 export const GMO_CSS = `
-.gmo{--bg:#12100c;--panel:#1c1a13;--panel2:#26231a;--line:#3a3527;--txt:#e8e2d0;--dim:#a29a80;--acc:#c8a656;--acc2:#9fb04b;--good:#7bbf5a;--bad:#d1685a;
+.gmo{--bg:#0b1120;--panel:#1e293b;--panel2:#273449;--line:#334155;--txt:#e2e8f0;--dim:#94a3b8;--acc:#eab308;--acc2:#f59e0b;--good:#22c55e;--bad:#ef4444;
   background:var(--bg);color:var(--txt);font-family:"Segoe UI",Tahoma,sans-serif;font-size:14px;min-height:calc(100vh - 56px)}
 .gmo *{box-sizing:border-box}
 .gmo-header{padding:16px 22px;border-bottom:1px solid var(--line);background:var(--panel)}
@@ -761,12 +761,12 @@ export const GMO_CSS = `
 .gmo select:focus,.gmo input:focus{outline:none;border-color:var(--acc)}
 .gmo-seg{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
 .gmo-seg button{flex:1;min-width:70px;padding:8px 6px;background:var(--panel2);border:1px solid var(--line);color:var(--dim);border-radius:6px;cursor:pointer;font-size:12px}
-.gmo-seg button.on{background:var(--acc);color:#1a1710;border-color:var(--acc);font-weight:600}
-.gmo-go{width:100%;margin-top:20px;padding:12px;background:var(--acc);color:#1a1710;border:none;border-radius:7px;font-size:15px;font-weight:700;cursor:pointer}
+.gmo-seg button.on{background:var(--acc);color:#0b1120;border-color:var(--acc);font-weight:600}
+.gmo-go{width:100%;margin-top:20px;padding:12px;background:var(--acc);color:#0b1120;border:none;border-radius:7px;font-size:15px;font-weight:700;cursor:pointer}
 .gmo-go:hover:not(:disabled){filter:brightness(1.08)}
 .gmo-go:disabled{opacity:.4;cursor:not-allowed}
 .gmo-go2{width:100%;margin-top:10px;padding:11px;background:transparent;color:var(--acc);border:1px solid var(--acc);border-radius:7px;font-size:14px;font-weight:600;cursor:pointer}
-.gmo-go2:hover:not(:disabled){background:var(--acc);color:#1a1710}
+.gmo-go2:hover:not(:disabled){background:var(--acc);color:#0b1120}
 .gmo-go2:disabled{opacity:.4;cursor:not-allowed}
 .gmo-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:18px}
 .gmo-stats .stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
@@ -784,15 +784,15 @@ export const GMO_CSS = `
 .gmo-gunlist .gitem:first-child{border-top:none}
 .gmo-gunlist .gitem:hover{background:var(--panel)}
 .gmo-gunlist .gitem.on{background:var(--acc)}
-.gmo-gunlist .gitem.on b{color:#1a1710}
-.gmo-gunlist .gitem.on .gi-sub{color:#3a3320}
-.gmo-gunlist .gitem img{width:72px;height:40px;object-fit:contain;flex:none;background:#0d0b07;border-radius:5px;border:1px solid var(--line)}
-.gmo-gunlist .gitem.on img{border-color:#1a1710}
+.gmo-gunlist .gitem.on b{color:#0b1120}
+.gmo-gunlist .gitem.on .gi-sub{color:#475569}
+.gmo-gunlist .gitem img{width:72px;height:40px;object-fit:contain;flex:none;background:#0b1120;border-radius:5px;border:1px solid var(--line)}
+.gmo-gunlist .gitem.on img{border-color:#0b1120}
 .gmo-gunlist .gi-info{flex:1;min-width:0}
 .gmo-gunlist .gi-info b{font-size:13px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gmo-gunlist .gi-sub{font-size:11px;color:var(--dim);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gmo-gunlist .none{padding:14px;color:var(--dim);font-size:12px;text-align:center}
-.gmo-row img{width:42px;height:42px;object-fit:contain;background:#0d0b07;border-radius:5px;flex:none}
+.gmo-row img{width:42px;height:42px;object-fit:contain;background:#0b1120;border-radius:5px;flex:none}
 .gmo-row .slot{width:130px;color:var(--dim);font-size:12px;flex:none}
 .gmo-row .slot.accent{color:var(--acc)}
 .gmo-row .nm{flex:1;min-width:0}
@@ -812,8 +812,8 @@ export const GMO_CSS = `
 .gmo-dropdown{position:absolute;left:0;right:0;top:38px;z-index:10;background:var(--panel2);border:1px solid var(--acc);border-radius:6px;max-height:230px;overflow-y:auto;box-shadow:0 6px 18px rgba(0,0,0,.5)}
 .gmo-dropdown .opt{display:flex;align-items:center;gap:8px;padding:6px 9px;cursor:pointer;font-size:12px;border-top:1px solid var(--line)}
 .gmo-dropdown .opt:first-child{border-top:none}
-.gmo-dropdown .opt:hover{background:var(--acc);color:#1a1710}
-.gmo-dropdown .opt img{width:26px;height:26px;object-fit:contain;background:#0d0b07;border-radius:4px;flex:none}
+.gmo-dropdown .opt:hover{background:var(--acc);color:#0b1120}
+.gmo-dropdown .opt img{width:26px;height:26px;object-fit:contain;background:#0b1120;border-radius:4px;flex:none}
 .gmo-dropdown .opt .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gmo-dropdown .none{padding:9px;color:var(--dim);font-size:12px}
 .gmo-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
@@ -821,11 +821,11 @@ export const GMO_CSS = `
 .gmo-chips .chip2 .t{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gmo-chips .chip2 .x{cursor:pointer;background:var(--line);color:var(--txt);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1;flex:none}
 .gmo-chips .chip2 .x:hover{background:var(--bad);color:#fff}
-.gmo-picker[data-kind=include] .chip2{border-color:#3c5a26}
-.gmo-picker[data-kind=exclude] .chip2{border-color:#5a3326}
+.gmo-picker[data-kind=include] .chip2{border-color:#166534}
+.gmo-picker[data-kind=exclude] .chip2{border-color:#7f1d1d}
 .gmo-note{border-radius:7px;padding:9px 12px;margin-bottom:14px;font-size:13px}
-.gmo-note.ok{background:#1e2a17;border:1px solid #3c5a26;color:var(--good)}
-.gmo-note.warn{background:#2e1c17;border:1px solid #5a3326;color:var(--bad)}
+.gmo-note.ok{background:#14321f;border:1px solid #166534;color:var(--good)}
+.gmo-note.warn{background:#3f1d1d;border:1px solid #7f1d1d;color:var(--bad)}
 .gmo-footer{color:var(--dim);font-size:11px;padding:14px 22px;border-top:1px solid var(--line);margin-top:14px}
 
 /* ---- Caliber Optimizer: ranking table + progress ---- */
@@ -843,7 +843,7 @@ export const GMO_CSS = `
 .gmo-rrow:hover{background:var(--panel2)}
 .gmo-rrow.infeasible{opacity:.55}
 .gmo-rrow .rnk{width:34px;flex:none;text-align:center;font-size:16px;font-weight:700;color:var(--acc)}
-.gmo-rrow img{width:72px;height:40px;object-fit:contain;flex:none;background:#0d0b07;border-radius:5px;border:1px solid var(--line)}
+.gmo-rrow img{width:72px;height:40px;object-fit:contain;flex:none;background:#0b1120;border-radius:5px;border:1px solid var(--line)}
 .gmo-rrow .gn{flex:1;min-width:0}
 .gmo-rrow .gn b{font-size:14px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gmo-rrow .gn .sub{font-size:11px;color:var(--dim);margin-top:2px}
@@ -856,11 +856,11 @@ export const GMO_CSS = `
 .gmo-rrow .col.tc{width:110px;color:var(--acc);font-weight:700}
 .gmo-rrow .recv .v.ok{color:var(--good)}
 .gmo-rrow .recv .v.no{color:var(--bad)}
-.gmo-badge{display:inline-block;font-size:11px;padding:1px 8px;border-radius:10px;background:#2e1c17;border:1px solid #5a3326;color:var(--bad);margin-top:3px}
+.gmo-badge{display:inline-block;font-size:11px;padding:1px 8px;border-radius:10px;background:#3f1d1d;border:1px solid #7f1d1d;color:var(--bad);margin-top:3px}
 .gmo-expand{background:var(--bg);border-top:1px solid var(--line);padding:14px}
 .gmo-expand .exp-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
 .gmo-expand .exp-actions button{padding:9px 14px;background:transparent;color:var(--acc);border:1px solid var(--acc);border-radius:7px;font-size:13px;font-weight:600;cursor:pointer}
-.gmo-expand .exp-actions button:hover:not(:disabled){background:var(--acc);color:#1a1710}
+.gmo-expand .exp-actions button:hover:not(:disabled){background:var(--acc);color:#0b1120}
 .gmo-expand .exp-actions button:disabled{opacity:.4;cursor:not-allowed}
 .gmo-expand .gmo-build{margin-top:4px}
 @media(max-width:820px){

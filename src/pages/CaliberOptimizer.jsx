@@ -118,11 +118,11 @@ export default function CaliberOptimizer() {
 
   // split + sort + apply the optional total-cost ceiling
   const SORTS = {
-    total: { label: 'ราคารวมถูกสุด', cmp: (a, b) => a.totalCost - b.totalCost },
-    mod: { label: 'ค่ามอดถูกสุด', cmp: (a, b) => a.res.cost - b.res.cost },
-    recoil: { label: 'Recoil ต่ำสุด', cmp: (a, b) => a.finalRecV - b.finalRecV },
-    ergo: { label: 'Ergo สูงสุด', cmp: (a, b) => b.finalErgo - a.finalErgo },
-    gun: { label: 'ราคาปืนถูกสุด', cmp: (a, b) => (a.gun.price || 0) - (b.gun.price || 0) },
+    total: { label: 'Cheapest total', cmp: (a, b) => a.totalCost - b.totalCost },
+    mod: { label: 'Cheapest mods', cmp: (a, b) => a.res.cost - b.res.cost },
+    recoil: { label: 'Lowest recoil', cmp: (a, b) => a.finalRecV - b.finalRecV },
+    ergo: { label: 'Highest ergo', cmp: (a, b) => b.finalErgo - a.finalErgo },
+    gun: { label: 'Cheapest gun', cmp: (a, b) => (a.gun.price || 0) - (b.gun.price || 0) },
   };
   const { feasible, infeasible } = useMemo(() => {
     if (!results) return { feasible: [], infeasible: [] };
@@ -151,7 +151,7 @@ export default function CaliberOptimizer() {
           <div className="gn">
             <b>{gun.shortName || gun.name}</b>
             <div className="sub">{gun.name}</div>
-            {!b.feasible && <span className="gmo-badge">ต่ำสุดที่ทำได้ {b.minRecV}</span>}
+            {!b.feasible && <span className="gmo-badge">min achievable {b.minRecV}</span>}
           </div>
           <div className="col recv">
             <div className="k">Recoil ↕</div>
@@ -164,15 +164,15 @@ export default function CaliberOptimizer() {
             <div className="v">{b.finalErgo}</div>
           </div>
           <div className="col gp">
-            <div className="k">ราคาปืน</div>
+            <div className="k">Gun price</div>
             <div className="v">{rub(gun.price)}</div>
           </div>
           <div className="col mc">
-            <div className="k">ค่ามอด</div>
+            <div className="k">Mods cost</div>
             <div className="v">{rub(b.res.cost)}</div>
           </div>
           <div className="col tc">
-            <div className="k">ราคารวม</div>
+            <div className="k">Total price</div>
             <div className="v">{rub(b.totalCost)}</div>
           </div>
         </div>
@@ -190,9 +190,9 @@ export default function CaliberOptimizer() {
                   }
                 }}
               >
-                {exportingId === gun.id ? '⏳ กำลังสร้างรูป…' : '📥 ดาวน์โหลดการ์ด (PNG)'}
+                {exportingId === gun.id ? '⏳ Generating image…' : '📥 Download card (PNG)'}
               </button>
-              <button onClick={() => openCardTab(b)}>📤 เปิดการ์ดในแท็บใหม่</button>
+              <button onClick={() => openCardTab(b)}>📤 Open card in a new tab</button>
             </div>
             <div className="gmo-build">
               {b.msgs.map((m, i) => (
@@ -202,7 +202,7 @@ export default function CaliberOptimizer() {
               ))}
               <div className="gmo-row basegun">
                 <img src={gun.image || gun.icon || ''} onError={(e) => (e.target.style.visibility = 'hidden')} alt="" />
-                <div className="slot accent">ปืนฐาน</div>
+                <div className="slot accent">Base gun</div>
                 <div className="nm">
                   <b>{gun.name}</b>
                   <div className="mods">
@@ -214,7 +214,7 @@ export default function CaliberOptimizer() {
               {b.res.picks.length ? (
                 <BuildRows picks={b.res.picks} />
               ) : (
-                <div className="gmo-empty">ไม่มีมอดในชุด (ปืนฐานผ่าน threshold อยู่แล้ว)</div>
+                <div className="gmo-empty">No mods in this build (the base gun already meets the threshold)</div>
               )}
             </div>
           </div>
@@ -229,16 +229,16 @@ export default function CaliberOptimizer() {
 
       <header className="gmo-header">
         <h1>🎯 Caliber Optimizer</h1>
-        <p>เลือก caliber แล้วระบบจะหาปืนที่โม recoil ลงถึงเป้าหมายได้ด้วยราคาต่ำสุด — จัดอันดับให้เห็นว่าคุ้มสุดคือรุ่นไหน</p>
+        <p>Select a caliber and the tool finds guns that can be modded down to your recoil target for the lowest price — ranked so you can see which one gives the best value.</p>
       </header>
 
-      {loadErr && <div className="gmo-note warn" style={{ margin: 16 }}>โหลดข้อมูลไม่สำเร็จ: {loadErr}</div>}
-      {!data && !loadErr && <div className="gmo-empty">กำลังโหลดข้อมูลปืน/มอด…</div>}
+      {loadErr && <div className="gmo-note warn" style={{ margin: 16 }}>Failed to load data: {loadErr}</div>}
+      {!data && !loadErr && <div className="gmo-empty">Loading gun/mod data…</div>}
 
       {data && (
         <div className="gmo-wrap">
           <div className="gmo-side">
-            <label>เลือก Caliber</label>
+            <label>Select caliber</label>
             <div className="gmo-gunlist">
               {calibers.length ? (
                 calibers.map(([c, n]) => (
@@ -250,58 +250,58 @@ export default function CaliberOptimizer() {
                   >
                     <div className="gi-info">
                       <b>{c}</b>
-                      <div className="gi-sub">{n} กระบอก</div>
+                      <div className="gi-sub">{n} guns</div>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="none">ไม่มีข้อมูล caliber</div>
+                <div className="none">No caliber data</div>
               )}
             </div>
 
-            <label>Recoil แนวตั้ง ≤ (เป้าหมาย)</label>
+            <label>Vertical recoil ≤ (target)</label>
             <input
               type="number"
               min="0"
               step="5"
-              placeholder="เช่น 300"
+              placeholder="e.g. 300"
               value={threshold}
               onChange={(e) => setThreshold(e.target.value)}
             />
 
-            <label>เงื่อนไขเสริม (Constraints)</label>
+            <label>Additional constraints</label>
             <div className="gmo-cons">
               <div className="con">
                 <label className="inline">
                   <input type="checkbox" checked={needSup} onChange={(e) => setNeedSup(e.target.checked)} />
-                  ต้องมี Suppressor
+                  Suppressor required
                 </label>
               </div>
               <div className="con">
-                <span>ความจุแม็ก ≥</span>
+                <span>Magazine capacity ≥</span>
                 <input
                   type="number"
                   min="0"
                   step="1"
-                  placeholder="เช่น 30"
+                  placeholder="e.g. 30"
                   value={minCap}
                   onChange={(e) => setMinCap(e.target.value)}
                 />{' '}
-                นัด
+                rounds
               </div>
               <div className="con">
-                <span>งบเพดานราคารวม ≤</span>
+                <span>Total price cap ≤</span>
                 <input
                   type="number"
                   min="0"
                   step="1000"
-                  placeholder="₽ ไม่จำกัด"
+                  placeholder="₽ unlimited"
                   value={maxTotal}
                   onChange={(e) => setMaxTotal(e.target.value)}
                 />
               </div>
             </div>
-            <label>🔒 Mod ต้องใส่ (บังคับให้อยู่ในชุด)</label>
+            <label>🔒 Required mods (forced into the build)</label>
             <ModPicker
               kind="include"
               MODLIST={MODLIST}
@@ -324,7 +324,7 @@ export default function CaliberOptimizer() {
               }
             />
 
-            <label>🚫 Mod ห้ามใส่</label>
+            <label>🚫 Excluded mods</label>
             <ModPicker
               kind="exclude"
               MODLIST={MODLIST}
@@ -349,16 +349,16 @@ export default function CaliberOptimizer() {
 
             <label className="inline mt">
               <input type="checkbox" checked={onlyBuy} onChange={(e) => setOnlyBuy(e.target.checked)} />
-              เฉพาะมอดที่ซื้อได้ (มีราคา)
+              Only purchasable mods (with a price)
             </label>
 
             <div className="gmo-hint">
-              💡 ราคารวม = ราคาปืน + ค่ามอด • ปืนที่โมยังไงก็ไม่ถึงเป้าหมายจะอยู่ท้ายตาราง พร้อมค่า recoil ต่ำสุดที่ทำได้
-              เพื่อให้เทียบได้ • ถ้าปิด "เฉพาะมอดที่ซื้อได้" มอดที่ไม่มีราคาจะถูกนับเป็น ₽0 — อันดับราคาอาจเพี้ยน
+              💡 Total price = gun price + mods cost • Guns that can never reach the target are listed at the bottom, each
+              with its lowest achievable recoil so you can still compare • If you turn off "Only purchasable mods", mods without a price count as ₽0 — the price ranking may be off
             </div>
 
             <button className="gmo-go" onClick={run} disabled={!canRun}>
-              {running ? '⏳ กำลังคำนวณ…' : '🔍 หาปืนที่คุ้มสุด'}
+              {running ? '⏳ Calculating…' : '🔍 Find best-value gun'}
             </button>
           </div>
 
@@ -366,7 +366,7 @@ export default function CaliberOptimizer() {
             {running && (
               <div className="gmo-progress">
                 <div className="plabel">
-                  กำลังคำนวณ {progress.done}/{progress.total}
+                  Calculating {progress.done}/{progress.total}
                   {progress.name ? ` — ${progress.name}…` : ''}
                 </div>
                 <div className="ptrack">
@@ -380,20 +380,20 @@ export default function CaliberOptimizer() {
                 <div className="gmo-rank-head">
                   <div className="rnk">#</div>
                   <div style={{ width: 72 }} />
-                  <div className="gn">ปืน</div>
+                  <div className="gn">Gun</div>
                   <div className="col recv">Recoil ↕</div>
                   <div className="col ergo">Ergo</div>
-                  <div className="col gp">ราคาปืน</div>
-                  <div className="col mc">ค่ามอด</div>
-                  <div className="col tc">ราคารวม</div>
+                  <div className="col gp">Gun price</div>
+                  <div className="col mc">Mods cost</div>
+                  <div className="col tc">Total price</div>
                 </div>
 
                 <div className="gmo-grouphdr">
                   <span>
-                    ✅ ผ่านเป้าหมาย (Recoil ≤ {th}) — {feasible.length} รุ่น
+                    ✅ Meets target (Recoil ≤ {th}) — {feasible.length} guns
                   </span>
                   <span className="sortby">
-                    เรียงตาม{' '}
+                    Sort by{' '}
                     <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
                       {Object.entries(SORTS).map(([k, s]) => (
                         <option key={k} value={k}>
@@ -407,15 +407,15 @@ export default function CaliberOptimizer() {
                   feasible.map((b, i) => renderRow(b, i + 1))
                 ) : (
                   <div className="gmo-empty">
-                    ไม่มีปืนใน caliber นี้ที่โมถึงเป้าหมายได้
-                    {parseFloat(maxTotal) > 0 ? ' ภายใต้งบเพดานที่ตั้งไว้' : ''}
+                    No gun in this caliber can be modded to meet the target
+                    {parseFloat(maxTotal) > 0 ? ' within the price cap you set' : ''}
                   </div>
                 )}
 
                 {infeasible.length > 0 && (
                   <>
                     <div className="gmo-grouphdr dim">
-                      ❌ ยังไม่ถึงเป้าหมาย — {infeasible.length} รุ่น • เรียงตาม recoil ต่ำสุดที่ทำได้
+                      ❌ Below target — {infeasible.length} guns • sorted by lowest achievable recoil
                     </div>
                     {infeasible.map((b) => renderRow(b, 0))}
                   </>
@@ -425,13 +425,13 @@ export default function CaliberOptimizer() {
 
             {!running && !results && (
               <div className="gmo-build">
-                <div className="gmo-empty">เลือก caliber และตั้งเป้าหมาย Recoil แล้วกด “หาปืนที่คุ้มสุด”</div>
+                <div className="gmo-empty">Select a caliber, set a recoil target, and click “Find best-value gun”</div>
               </div>
             )}
 
             <footer className="gmo-footer">
-              ข้อมูล: tarkov.dev • คำนวณเฉพาะมอดที่ซื้อได้ (มีราคา) และข้ามช่องกล้อง/ราง/ไฟฉาย •
-              ราคาต่ำสุดหาแบบ binary-search บนงบมอด — เป็นการประมาณ
+              Data: tarkov.dev • Only purchasable mods (with a price) are considered, and optic/rail/flashlight slots are skipped •
+              The lowest price is found via a binary search over the mod budget — it is an estimate
             </footer>
           </div>
         </div>

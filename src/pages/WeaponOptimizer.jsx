@@ -113,7 +113,7 @@ export default function WeaponOptimizer() {
     return (
       <div className={`stat-d ${cls}`}>
         {diff > 0 ? '+' : ''}
-        {diff} จาก {base}
+        {diff} from {base}
       </div>
     );
   };
@@ -124,19 +124,19 @@ export default function WeaponOptimizer() {
 
       <header className="gmo-header">
         <h1>⚙ Tarkov Gun Mod Optimizer</h1>
-        <p>เลือกปืน ตั้งเป้าหมายและงบประมาณ — ระบบจะหาชุดมอดที่ให้ผลดีที่สุดจากช่องที่ติดตั้งได้</p>
+        <p>Select a gun, set your objective and budget — the system finds the best-performing mod set from the available slots.</p>
       </header>
 
-      {loadErr && <div className="gmo-note warn" style={{ margin: 16 }}>โหลดข้อมูลไม่สำเร็จ: {loadErr}</div>}
-      {!data && !loadErr && <div className="gmo-empty">กำลังโหลดข้อมูลปืน/มอด…</div>}
+      {loadErr && <div className="gmo-note warn" style={{ margin: 16 }}>Failed to load data: {loadErr}</div>}
+      {!data && !loadErr && <div className="gmo-empty">Loading gun/mod data…</div>}
 
       {data && (
         <div className="gmo-wrap">
           <div className="gmo-side">
-            <label>ค้นหา / เลือกปืน</label>
+            <label>Search / select a gun</label>
             <input
               type="text"
-              placeholder="พิมพ์ชื่อปืน เช่น M4A1, AK-74..."
+              placeholder="Type a gun name, e.g. M4A1, AK-74..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -162,16 +162,16 @@ export default function WeaponOptimizer() {
                   </div>
                 ))
               ) : (
-                <div className="none">ไม่พบปืนที่ตรงกับคำค้นหา</div>
+                <div className="none">No guns match your search</div>
               )}
             </div>
 
-            <label>เป้าหมาย (Objective)</label>
+            <label>Objective</label>
             <div className="gmo-seg">
               {[
-                ['recoil', 'Recoil ต่ำ'],
-                ['ergo', 'Ergo สูง'],
-                ['balanced', 'สมดุล'],
+                ['recoil', 'Low recoil'],
+                ['ergo', 'High ergo'],
+                ['balanced', 'Balanced'],
               ].map(([v, txt]) => (
                 <button key={v} className={objective === v ? 'on' : ''} onClick={() => setObjective(v)}>
                   {txt}
@@ -179,47 +179,47 @@ export default function WeaponOptimizer() {
               ))}
             </div>
             <div className="gmo-hint">
-              💡 <b>สมดุล</b> = ลด recoil ลงครึ่งทางของที่ลดได้สุด แล้วดัน ergo ให้สูงสุด • อยากคุมเอง: เลือก{' '}
-              <b>Ergo สูง</b> แล้วตั้งเพดาน <b>Recoil ≤</b> ด้านล่าง ("Recoil ต่ำ" = ลดสุดๆ ไม่สน ergo)
+              💡 <b>Balanced</b> = cut recoil halfway to its minimum, then maximize ergo • For full control: pick{' '}
+              <b>High ergo</b> and set a <b>Recoil ≤</b> ceiling below ("Low recoil" = minimize recoil, ignoring ergo)
             </div>
 
-            <label>งบประมาณมอด (₽) — 0 = ไม่จำกัด</label>
+            <label>Mod budget (₽) — 0 = unlimited</label>
             <input type="number" min="0" step="1000" value={budget} onChange={(e) => setBudget(e.target.value)} />
 
-            <label>เงื่อนไข (Constraints)</label>
+            <label>Constraints</label>
             <div className="gmo-cons">
               <div className="con">
-                <span>Recoil แนวตั้ง ≤</span>
+                <span>Vertical recoil ≤</span>
                 <input
                   type="number"
                   min="0"
                   step="5"
-                  placeholder="ไม่จำกัด"
+                  placeholder="unlimited"
                   value={maxRecoil}
                   onChange={(e) => setMaxRecoil(e.target.value)}
                 />
               </div>
               <div className="con">
-                <span>ความจุแม็ก ≥</span>
+                <span>Magazine capacity ≥</span>
                 <input
                   type="number"
                   min="0"
                   step="1"
-                  placeholder="เช่น 30"
+                  placeholder="e.g. 30"
                   value={minCap}
                   onChange={(e) => setMinCap(e.target.value)}
                 />{' '}
-                นัด
+                rounds
               </div>
               <div className="con">
                 <label className="inline">
                   <input type="checkbox" checked={needSup} onChange={(e) => setNeedSup(e.target.checked)} />
-                  ต้องมี Suppressor
+                  Suppressor required
                 </label>
               </div>
             </div>
 
-            <label>🔒 Mod ต้องใส่ (บังคับให้อยู่ในชุด)</label>
+            <label>🔒 Required mods (forced into the build)</label>
             <ModPicker
               kind="include"
               MODLIST={MODLIST}
@@ -229,7 +229,7 @@ export default function WeaponOptimizer() {
               onRemove={(id) => removePick('include', id)}
             />
 
-            <label>🚫 Mod ห้ามใส่</label>
+            <label>🚫 Excluded mods</label>
             <ModPicker
               kind="exclude"
               MODLIST={MODLIST}
@@ -241,15 +241,15 @@ export default function WeaponOptimizer() {
 
             <label className="inline mt">
               <input type="checkbox" checked={skipOptics} onChange={(e) => setSkipOptics(e.target.checked)} />
-              ข้ามช่องกล้อง/ศูนย์/ราง/ไฟฉาย (แนะนำ — กันฟาร์ม ergo)
+              Skip optic/sight/rail/flashlight slots (recommended — prevents ergo farming)
             </label>
             <label className="inline">
               <input type="checkbox" checked={onlyBuy} onChange={(e) => setOnlyBuy(e.target.checked)} />
-              เฉพาะมอดที่ซื้อได้ (มีราคา)
+              Only purchasable mods (with a price)
             </label>
 
             <button className="gmo-go" onClick={run} disabled={!gunId}>
-              🔧 หาชุดที่ดีที่สุด
+              🔧 Find best build
             </button>
             <button
               className="gmo-go2"
@@ -263,10 +263,10 @@ export default function WeaponOptimizer() {
               }}
               disabled={!build || exporting}
             >
-              {exporting ? '⏳ กำลังสร้างรูป…' : '📥 ดาวน์โหลดการ์ดบิลด์ (PNG)'}
+              {exporting ? '⏳ Generating image…' : '📥 Download build card (PNG)'}
             </button>
             <button className="gmo-go2" onClick={() => openCardTab(build)} disabled={!build}>
-              📤 เปิดการ์ดในแท็บใหม่
+              📤 Open card in a new tab
             </button>
           </div>
 
@@ -280,28 +280,28 @@ export default function WeaponOptimizer() {
                     {d(build.finalErgo, build.baseErgo, true)}
                   </div>
                   <div className="stat">
-                    <div className="k">Recoil ↕ แนวตั้ง</div>
+                    <div className="k">Recoil ↕ Vertical</div>
                     <div className="v">{build.finalRecV}</div>
                     {d(build.finalRecV, build.baseRecV, false)}
                   </div>
                   <div className="stat">
-                    <div className="k">Recoil ↔ แนวนอน</div>
+                    <div className="k">Recoil ↔ Horizontal</div>
                     <div className="v">{build.finalRecH}</div>
                     {d(build.finalRecH, build.baseRecH, false)}
                   </div>
                   <div className="stat">
-                    <div className="k">ความจุแม็ก</div>
+                    <div className="k">Magazine capacity</div>
                     <div className="v">{build.res.cap || '—'}</div>
-                    <div className="stat-d">{build.res.hasSup ? 'มี Suppressor' : ''}</div>
+                    <div className="stat-d">{build.res.hasSup ? 'Suppressor equipped' : ''}</div>
                   </div>
                   <div className="stat">
-                    <div className="k">ราคารวม (ปืน+มอด)</div>
+                    <div className="k">Total price (gun + mods)</div>
                     <div className="v" style={{ fontSize: 18 }}>
                       {rub(build.totalCost)}
                     </div>
                     <div className="stat-d">
-                      มอด {rub(build.res.cost)}
-                      {build.budgetUsed != null ? ` / งบ ${rub(build.budgetUsed)}` : ''}
+                      Mods {rub(build.res.cost)}
+                      {build.budgetUsed != null ? ` / budget ${rub(build.budgetUsed)}` : ''}
                     </div>
                   </div>
                 </div>
@@ -318,7 +318,7 @@ export default function WeaponOptimizer() {
                       onError={(e) => (e.target.style.visibility = 'hidden')}
                       alt=""
                     />
-                    <div className="slot accent">ปืนฐาน</div>
+                    <div className="slot accent">Base gun</div>
                     <div className="nm">
                       <b>{build.gun.name}</b>
                       <div className="mods">
@@ -330,18 +330,18 @@ export default function WeaponOptimizer() {
                   {build.res.picks.length ? (
                     <BuildRows picks={build.res.picks} />
                   ) : (
-                    <div className="gmo-empty">ไม่มีช่องมอดที่เหมาะสม</div>
+                    <div className="gmo-empty">No suitable mod slots</div>
                   )}
                 </div>
               </>
             ) : (
               <div className="gmo-build">
-                <div className="gmo-empty">เลือกปืนแล้วกด “หาชุดที่ดีที่สุด”</div>
+                <div className="gmo-empty">Select a gun and click “Find best build”</div>
               </div>
             )}
             <footer className="gmo-footer">
-              ข้อมูล: tarkov.dev • recoilModifier เป็น % ของ base recoil, ergonomicsModifier เป็นค่าบวก •
-              ผลลัพธ์เป็นการประมาณแบบ greedy
+              Data: tarkov.dev • recoilModifier is a % of base recoil, ergonomicsModifier is an additive value •
+              results are a greedy approximation
             </footer>
           </div>
         </div>

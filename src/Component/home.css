@@ -5,3 +5,74 @@
 .objective-img:hover {
     transform: scale(2.5);
 }
+
+/* --- Unified dark theme for Home (overrides Bootstrap light defaults) --- */
+.home-dark {
+    background-color: #0f172a;
+    color: #e2e8f0;
+    min-height: 100vh;
+    padding-top: 1.5rem;
+    padding-bottom: 2rem;
+}
+
+.home-dark .card {
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    color: #e2e8f0;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+}
+
+.home-dark .list-group {
+    background-color: transparent;
+}
+
+.home-dark .list-group-item {
+    background-color: #0b1120;
+    border-color: #334155;
+    color: #e2e8f0;
+}
+
+.home-dark .list-group-item-action:hover {
+    background-color: #273449;
+    color: #e2e8f0;
+}
+
+.home-dark .form-control {
+    background-color: #0b1120;
+    border-color: #334155;
+    color: #e2e8f0;
+}
+
+.home-dark .form-control::placeholder {
+    color: #64748b;
+}
+
+.home-dark .form-control:focus {
+    background-color: #0b1120;
+    border-color: #eab308;
+    color: #e2e8f0;
+    box-shadow: 0 0 0 0.2rem rgba(234, 179, 8, 0.2);
+}
+
+.home-dark .text-muted {
+    color: #94a3b8 !important;
+}
+
+/* Unify Bootstrap accent utility classes onto the gold accent */
+.home-dark .text-primary {
+    color: #eab308 !important;
+}
+
+.home-dark .text-warning {
+    color: #f59e0b !important;
+}
+
+.home-dark .text-info {
+    color: #38bdf8 !important;
+}
+
+.home-dark h1,
+.home-dark h5,
+.home-dark h6 {
+    color: #e2e8f0;
+}
