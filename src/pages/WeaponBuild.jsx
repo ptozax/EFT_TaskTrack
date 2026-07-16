@@ -1,638 +1,89 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Icons, hideoutStyles as styles, kappaStyles as styless, COLORS } from '../Component/EftComponent';
+import { DATA_URL } from './optimizerCore';
 
-const fetchGraphQL = async (name) => {
-    try {
-        const savegameplayMode = JSON.parse(localStorage.getItem('eft_gameplay_mode'));
-        const query = `
-            query MyQuery {
-                items(name: "${name}", type: gun, limit: 5, gameMode: ${savegameplayMode === 'pve' ? 'pve' : 'regular'}) {
-                    id
-                    name
-                    shortName
-                    iconLink
-                    gridImageLink
-                    basePrice
-                    weight
-                    properties {
-                    ... on ItemPropertiesWeapon {
-                        caliber
-                        ergonomics
-                        recoilVertical
-                        recoilHorizontal
-                        fireRate
-                        defaultErgonomics
-                        defaultRecoilVertical
-                        defaultRecoilHorizontal
-                        slots {
-                        id
-                        name
-                        nameId
-                        filters {
-                            allowedItems {
-                            id
-                            name
-                            shortName
-                            iconLink
-                            weight
-                            conflictingItems {
-                                id
-                                name
-                            }
-                            properties {
-                                ... on ItemPropertiesWeaponMod {
-                                ergonomics
-                                recoil
-                                slots {
-                                    id
-                                    name
-                                    filters {
-                                    allowedItems {
-                                        id
-                                        name
-                                        shortName
-                                        iconLink
-                                        weight
-                                        conflictingItems {
-                                        id
-                                        name
-                                        }
-                                        properties {
-                                        ... on ItemPropertiesWeaponMod {
-                                            ergonomics
-                                            recoil
-                                            slots {
-                                            id
-                                            name
-                                            filters {
-                                                allowedItems {
-                                                id
-                                                name
-                                                shortName
-                                                iconLink
-                                                weight
-                                                conflictingItems {
-                                                    id
-                                                    name
-                                                }
-                                                properties {
-                                                    ... on ItemPropertiesWeaponMod {
-                                                    ergonomics
-                                                    recoil
-                                                    slots {
-                                                        id
-                                                        name
-                                                        filters {
-                                                        allowedItems {
-                                                            id
-                                                            name
-                                                            shortName
-                                                            iconLink
-                                                            weight
-                                                            conflictingItems {
-                                                            id
-                                                            name
-                                                            }
-                                                            properties {
-                                                            ... on ItemPropertiesWeaponMod {
-                                                                ergonomics
-                                                                recoil
-                                                                slots {
-                                                                id
-                                                                name
-                                                                filters {
-                                                                    allowedItems {
-                                                                    id
-                                                                    name
-                                                                    shortName
-                                                                    iconLink
-                                                                    weight
-                                                                    conflictingItems {
-                                                                        id
-                                                                        name
-                                                                    }
-                                                                    properties {
-                                                                        ... on ItemPropertiesWeaponMod {
-                                                                        ergonomics
-                                                                        recoil
-                                                                        }
-                                                                    }
-                                                                    }
-                                                                }
-                                                                }
-                                                            }
-                                                            ... on ItemPropertiesScope {
-                                                                ergonomics
-                                                                recoil
-                                                                slots {
-                                                                id
-                                                                name
-                                                                filters {
-                                                                    allowedItems {
-                                                                    id
-                                                                    name
-                                                                    shortName
-                                                                    iconLink
-                                                                    weight
-                                                                    conflictingItems {
-                                                                        id
-                                                                        name
-                                                                    }
-                                                                    properties {
-                                                                        ... on ItemPropertiesWeaponMod {
-                                                                        ergonomics
-                                                                        recoil
-                                                                        }
-                                                                    }
-                                                                    }
-                                                                }
-                                                                }
-                                                            }
-                                                            }
-                                                        }
-                                                        }
-                                                    }
-                                                    }
-                                                    ... on ItemPropertiesScope {
-                                                    ergonomics
-                                                    recoil
-                                                    slots {
-                                                        id
-                                                        name
-                                                        filters {
-                                                        allowedItems {
-                                                            id
-                                                            name
-                                                            shortName
-                                                            iconLink
-                                                            weight
-                                                            conflictingItems {
-                                                            id
-                                                            name
-                                                            }
-                                                            properties {
-                                                            ... on ItemPropertiesWeaponMod {
-                                                                ergonomics
-                                                                recoil
-                                                            }
-                                                            ... on ItemPropertiesScope {
-                                                                ergonomics
-                                                                recoil
-                                                            }
-                                                            }
-                                                        }
-                                                        }
-                                                    }
-                                                    }
-                                                    ... on ItemPropertiesBarrel {
-                                                    ergonomics
-                                                    recoil
-                                                    slots {
-                                                        id
-                                                        name
-                                                        filters {
-                                                        allowedItems {
-                                                            id
-                                                            name
-                                                            shortName
-                                                            iconLink
-                                                            weight
-                                                            conflictingItems {
-                                                            id
-                                                            name
-                                                            }
-                                                            properties {
-                                                            ... on ItemPropertiesWeaponMod {
-                                                                ergonomics
-                                                                recoil
-                                                                slots {
-                                                                id
-                                                                name
-                                                                filters {
-                                                                    allowedItems {
-                                                                    id
-                                                                    name
-                                                                    shortName
-                                                                    iconLink
-                                                                    weight
-                                                                    conflictingItems {
-                                                                        id
-                                                                        name
-                                                                    }
-                                                                    properties {
-                                                                        ... on ItemPropertiesWeaponMod {
-                                                                        ergonomics
-                                                                        recoil
-                                                                        slots {
-                                                                        id
-                                                                        name
-                                                                        filters {
-                                                                            allowedItems {
-                                                                            id
-                                                                            name
-                                                                            shortName
-                                                                            iconLink
-                                                                            weight
-                                                                            conflictingItems {
-                                                                                id
-                                                                                name
-                                                                            }
-                                                                            properties {
-                                                                                ... on ItemPropertiesWeaponMod {
-                                                                                ergonomics
-                                                                                recoil
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                        }
-                                                                    }
-                                                                    }
-                                                                    }
-                                                                    }
-                                                                }
-                                                                }
-                                                            }
-                                                            }
-                                                        }
-                                                        }
-                                                    }
-                                                    }
-                                                }
-                                                }
-                                            }
-                                            }
-                                        }
-                                        ... on ItemPropertiesScope {
-                                            ergonomics
-                                            recoil
-                                            slots {
-                                            id
-                                            name
-                                            filters {
-                                                allowedItems {
-                                                id
-                                                name
-                                                shortName
-                                                iconLink
-                                                weight
-                                                conflictingItems {
-                                                    id
-                                                    name
-                                                }
-                                                properties {
-                                                    ... on ItemPropertiesWeaponMod {
-                                                    ergonomics
-                                                    recoil
-                                                    slots {
-                                                        id
-                                                        name
-                                                        filters {
-                                                        allowedItems {
-                                                            id
-                                                            name
-                                                            shortName
-                                                            iconLink
-                                                            weight
-                                                            conflictingItems {
-                                                            id
-                                                            name
-                                                            }
-                                                            properties {
-                                                            ... on ItemPropertiesWeaponMod {
-                                                                ergonomics
-                                                                recoil
-                                                            }
-                                                            }
-                                                        }
-                                                        }
-                                                    }
-                                                    }
-                                                    ... on ItemPropertiesScope {
-                                                    ergonomics
-                                                    recoil
-                                                    slots {
-                                                        id
-                                                        name
-                                                        filters {
-                                                        allowedItems {
-                                                            id
-                                                            name
-                                                            shortName
-                                                            iconLink
-                                                            weight
-                                                            conflictingItems {
-                                                            id
-                                                            name
-                                                            }
-                                                            properties {
-                                                            ... on ItemPropertiesWeaponMod {
-                                                                ergonomics
-                                                                recoil
-                                                            }
-                                                            }
-                                                        }
-                                                        }
-                                                    }
-                                                    }
-                                                }
-                                                }
-                                            }
-                                            }
-                                        }
-                                        ... on ItemPropertiesBarrel {
-                                            ergonomics
-                                            recoil
-                                            slots {
-                                            id
-                                            name
-                                            filters {
-                                                allowedItems {
-                                                id
-                                                name
-                                                shortName
-                                                iconLink
-                                                weight
-                                                conflictingItems {
-                                                    id
-                                                    name
-                                                }
-                                                properties {
-                                                    ... on ItemPropertiesWeaponMod {
-                                                    ergonomics
-                                                    recoil
-                                                    slots {
-                                                        id
-                                                        name
-                                                        filters {
-                                                        allowedItems {
-                                                            id
-                                                            name
-                                                            shortName
-                                                            iconLink
-                                                            weight
-                                                            conflictingItems {
-                                                            id
-                                                            name
-                                                            }
-                                                            properties {
-                                                            ... on ItemPropertiesWeaponMod {
-                                                                ergonomics
-                                                                recoil
-                                                                slots {
-                                                                id
-                                                                name
-                                                                filters {
-                                                                    allowedItems {
-                                                                    id
-                                                                    name
-                                                                    shortName
-                                                                    iconLink
-                                                                    weight
-                                                                    conflictingItems {
-                                                                        id
-                                                                        name
-                                                                    }
-                                                                    properties {
-                                                                        ... on ItemPropertiesWeaponMod {
-                                                                        ergonomics
-                                                                        recoil
-                                                                        }
-                                                                    }
-                                                                }
-                                                                }
-                                                            }
-
-                                                            }
-                                                            }
-                                                        }
-                                                        }
-                                                    }
-                                                    }
-                                                }
-                                                }
-                                            }
-                                            }
-                                        }
-                                        }
-                                    }
-                                    }
-                                }
-                                }
-                                ... on ItemPropertiesScope {
-                                ergonomics
-                                recoil
-                                slots {
-                                    id
-                                    name
-                                    filters {
-                                    allowedItems {
-                                        id
-                                        name
-                                        shortName
-                                        iconLink
-                                        weight
-                                        conflictingItems {
-                                        id
-                                        name
-                                        }
-                                        properties {
-                                        ... on ItemPropertiesWeaponMod {
-                                            ergonomics
-                                            recoil
-                                            slots {
-                                            id
-                                            name
-                                            filters {
-                                                allowedItems {
-                                                id
-                                                name
-                                                shortName
-                                                iconLink
-                                                weight
-                                                conflictingItems {
-                                                    id
-                                                    name
-                                                }
-                                                properties {
-                                                    ... on ItemPropertiesWeaponMod {
-                                                    ergonomics
-                                                    recoil
-                                                    }
-                                                    ... on ItemPropertiesScope {
-                                                    ergonomics
-                                                    recoil
-                                                    }
-                                                }
-                                                }
-                                            }
-                                            }
-                                        }
-                                        ... on ItemPropertiesScope {
-                                            ergonomics
-                                            recoil
-                                            slots {
-                                            id
-                                            name
-                                            filters {
-                                                allowedItems {
-                                                id
-                                                name
-                                                shortName
-                                                iconLink
-                                                weight
-                                                conflictingItems {
-                                                    id
-                                                    name
-                                                }
-                                                properties {
-                                                    ... on ItemPropertiesWeaponMod {
-                                                    ergonomics
-                                                    recoil
-                                                    }
-                                                    ... on ItemPropertiesScope {
-                                                    ergonomics
-                                                    recoil
-                                                    }
-                                                }
-                                                }
-                                            }
-                                            }
-                                        }
-                                        }
-                                    }
-                                    }
-                                }
-                                }
-                                ... on ItemPropertiesMagazine {
-                                ergonomics
-                                recoil
-                                slots {
-                                    id
-                                    name
-                                    filters {
-                                    allowedItems {
-                                        id
-                                        name
-                                        shortName
-                                        iconLink
-                                        weight
-                                        conflictingItems {
-                                        id
-                                        name
-                                        }
-                                    }
-                                    }
-                                }
-                                }
-                                ... on ItemPropertiesBarrel {
-                                ergonomics
-                                recoil
-                                slots {
-                                    id
-                                    name
-                                    filters {
-                                    allowedItems {
-                                        id
-                                        name
-                                        shortName
-                                        iconLink
-                                        weight
-                                        conflictingItems {
-                                        id
-                                        name
-                                        }
-                                        properties {
-                                        ... on ItemPropertiesWeaponMod {
-                                            ergonomics
-                                            recoil
-                                            slots {
-                                            id
-                                            name
-                                            filters {
-                                                allowedItems {
-                                                id
-                                                name
-                                                shortName
-                                                iconLink
-                                                weight
-                                                conflictingItems {
-                                                    id
-                                                    name
-                                                }
-                                                properties {
-                                                    ... on ItemPropertiesWeaponMod {
-                                                    ergonomics
-                                                    recoil
-                                                    slots {
-                                                    id
-                                                    name
-                                                    filters {
-                                                        allowedItems {
-                                                        id
-                                                        name
-                                                        shortName
-                                                        iconLink
-                                                        weight
-                                                        conflictingItems {
-                                                            id
-                                                            name
-                                                        }
-                                                        properties {
-                                                            ... on ItemPropertiesWeaponMod {
-                                                            ergonomics
-                                                            recoil
-                                                            }
-                                                        }
-                                                    }
-                                                    }
-                                                }
-                                                }
-                                                }
-                                                }
-                                            }
-                                            }
-                                        }
-                                        }
-                                    }
-                                    }
-                                }
-                                }
-                            }
-                            }
-                        }
-                        }
-                    }
-                    }
-                }
-                }
-                `;
-
-        const response = await fetch('https://api.tarkov.dev/graphql', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            body: JSON.stringify({ query }),
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP Error: ${response.status}`);
-        }
-
-        const json = await response.json();
-
-        if (json.errors) {
-            console.error("GraphQL Errors:", json.errors);
-            return null;
-        }
-
-        return json.data;
-    } catch (error) {
-        console.error("Network or Parsing Error:", error);
-        return null;
+// ---- โหลด dataset (static JSON ที่ preprocess ไว้แล้ว) ครั้งเดียว แล้ว cache ----
+// วิธีเดียวกับ WeaponOptimizer: ไม่ยิง API สด -> โหลดไว = ประกอบต้นไม้อะไหล่ในเครื่องด้วย id lookup
+let DATASET = null;
+let datasetPromise = null;
+const loadDataset = () => {
+    if (DATASET) return Promise.resolve(DATASET);
+    if (!datasetPromise) {
+        datasetPromise = fetch(DATA_URL)
+            .then((r) => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            })
+            .then((d) => {
+                DATASET = d;
+                return d;
+            });
     }
+    return datasetPromise;
+};
+
+// ---- ประกอบต้นไม้อะไหล่จาก dataset ให้มี shape เหมือนที่คอมโพเนนต์เดิมใช้ (จาก tarkov.dev) ----
+// memoize ต่อ mod id: กันวนซ้ำ (cycle) + ไม่ระเบิดเป็น exponential (สร้างแต่ละ mod ครั้งเดียว)
+const buildModResolver = (mods) => {
+    const cache = new Map();
+    const resolve = (id) => {
+        if (cache.has(id)) return cache.get(id);
+        const m = mods[id];
+        if (!m) return null;
+        const obj = {
+            id: m.id,
+            name: m.name,
+            shortName: m.shortName,
+            iconLink: m.icon,
+            weight: m.weight,
+            basePrice: m.price,
+            buyFor: m.buyFor || [],
+            conflictingItems: (m.conflicts || []).map((cid) => ({ id: cid })),
+            properties: { ergonomics: m.ergo, recoil: m.recoil, slots: [] },
+        };
+        cache.set(id, obj); // ตั้ง cache ก่อน resolve slots เพื่อตัด cycle
+        obj.properties.slots = (m.slots || []).map((s) => ({
+            id: s.id,
+            name: s.name,
+            nameId: s.nameId,
+            filters: { allowedItems: (s.allowed || []).map(resolve).filter(Boolean) },
+        }));
+        return obj;
+    };
+    return resolve;
+};
+
+// ประกอบปืน 1 กระบอกจาก dataset (shape เหมือนผลจาก tarkov.dev เดิม)
+const buildWeapon = (gun, mods) => {
+    if (!gun) return null;
+    const resolve = buildModResolver(mods);
+    return {
+        id: gun.id,
+        name: gun.name,
+        shortName: gun.shortName,
+        iconLink: gun.icon,
+        gridImageLink: gun.image || gun.icon,
+        basePrice: gun.price,
+        buyFor: gun.buyFor || [],
+        weight: gun.weight,
+        properties: {
+            caliber: gun.caliber,
+            ergonomics: gun.ergo,
+            defaultErgonomics: gun.ergo,
+            recoilVertical: gun.recoilV,
+            recoilHorizontal: gun.recoilH,
+            defaultRecoilVertical: gun.recoilV,
+            defaultRecoilHorizontal: gun.recoilH,
+            fireRate: gun.fireRate,
+            slots: (gun.slots || []).map((s) => ({
+                id: s.id,
+                name: s.name,
+                nameId: s.nameId,
+                filters: { allowedItems: (s.allowed || []).map(resolve).filter(Boolean) },
+            })),
+        },
+    };
 };
 
 // --- Helper Functions ---
@@ -653,73 +104,100 @@ const getAllowedItems = (filters) => {
     return Array.from(uniqueItemsMap.values());
 };
 
+// ฟอร์แมตราคาเป็นรูเบิล เช่น 12,345 ₽
+const formatPrice = (value) => `₽ ${(value || 0).toLocaleString('en-US')}`;
+
+// สัญลักษณ์สกุลเงินที่พ่อค้าใน Tarkov ใช้
+const CURRENCY_SYMBOL = { RUB: '₽', USD: '$', EUR: '€' };
+const formatMoney = (value, currency = 'RUB') =>
+    `${CURRENCY_SYMBOL[currency] || ''}${(value || 0).toLocaleString('en-US')}`;
+
+// เลือกออฟเฟอร์ที่ "ถูกที่สุด" จาก buyFor (เทียบด้วยราคาเป็นรูเบิล)
+const getBestBuy = (item) => {
+    const offers = (item?.buyFor || []).filter((o) => o && o.priceRUB > 0);
+    if (offers.length === 0) return null;
+    return offers.reduce((best, o) => (o.priceRUB < best.priceRUB ? o : best));
+};
+
+// ป้ายราคาต่อชิ้น: ราคาซื้อจริงในสกุลเงินของพ่อค้า (fallback เป็น basePrice ถ้าไม่มีที่ขาย)
+// ถ้าเป็นสกุลอื่นที่ไม่ใช่รูเบิล จะมีวงเล็บค่าเทียบรูเบิลต่อท้าย เช่น $ 179 (≈ ₽ 25,442)
+const itemBuyLabel = (item) => {
+    const best = getBestBuy(item);
+    if (best) {
+        const label = formatMoney(best.price, best.currency);
+        return best.currency !== 'RUB'
+            ? `${label} (≈ ${formatMoney(best.priceRUB, 'RUB')})`
+            : label;
+    }
+    if (item?.basePrice) return formatMoney(item.basePrice, 'RUB');
+    return null;
+};
+
 // --- Components ---
 
-// 1. ส่วนค้นหาปืน
-const WeaponSearch = ({ onSelect, onBuildState }) => {
+// 1. ส่วนค้นหาปืน — กรองจาก list ในหน่วยความจำ (dataset โหลดไว้แล้ว) ทันที
+const WeaponSearch = ({ guns, loadingData, onSelect, onBuildState }) => {
     const [term, setTerm] = useState('M4A1');
-    const [results, setResults] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [errorMsg, setErrorMsg] = useState('');
+    const [open, setOpen] = useState(true); // เลือกปืนแล้วหุบเอง คลิกหัวการ์ดเพื่อค้นใหม่
 
-    const handleSearch = async (e) => {
-        e.preventDefault();
-        if (!term.trim()) return;
+    const results = useMemo(() => {
+        const q = term.trim().toLowerCase();
+        if (!q) return [];
+        return guns
+            .filter((g) => g.name.toLowerCase().includes(q) || (g.shortName || '').toLowerCase().includes(q))
+            .slice(0, 12);
+    }, [term, guns]);
 
-        setLoading(true);
-        setErrorMsg('');
-        setResults([]);
-
-        try {
-            const data = await fetchGraphQL(term);
-
-            if (data && data.items) {
-                setResults(data.items);
-            } else {
-                setResults([]);
-                if (!data) setErrorMsg("Failed to fetch data from Tarkov.dev");
-            }
-        } catch (error) {
-            console.error("API Error:", error);
-            setErrorMsg("An unexpected error occurred.");
-        }
-        setLoading(false);
+    const pick = (weapon) => {
+        onSelect(weapon);
+        onBuildState({});
+        setOpen(false); // หุบหลังเลือก
     };
 
     return (
         <div className="card bg-dark text-light border-secondary mb-4 shadow-sm">
-            <div className="card-header border-secondary">
+            <div
+                className="card-header border-secondary d-flex align-items-center"
+                style={{ cursor: 'pointer' }}
+                onClick={() => setOpen(!open)}
+            >
                 <h5 className="mb-0 text-warning d-flex align-items-center">
                     <Icons.Search className="me-2" size={20} /> Select Base Weapon
                 </h5>
+                <span className="ms-auto text-muted d-flex align-items-center">
+                    {!open && <small className="me-2 fst-italic">click to search</small>}
+                    {open ? <Icons.ChevronUp size={18} /> : <Icons.ChevronDown size={18} />}
+                </span>
             </div>
+            {open && (
             <div className="card-body">
-                <form onSubmit={handleSearch} className="input-group mb-3">
+                <div className="input-group mb-3">
                     <input
                         type="text"
                         className="form-control bg-dark text-light border-secondary"
                         value={term}
                         onChange={(e) => setTerm(e.target.value)}
                         placeholder="ex. M4A1, AK-74, GLOCK"
+                        autoFocus
                     />
-                    <button className="btn btn-warning fw-bold" type="submit" disabled={loading}>
-                        {loading ? 'Loading...' : 'Search'}
-                    </button>
-                </form>
+                </div>
 
-                {errorMsg && <div className="alert alert-danger py-2">{errorMsg}</div>}
+                {loadingData && <div className="text-muted small mb-2">Loading weapon database ...</div>}
+                {!loadingData && term.trim() && results.length === 0 && (
+                    <div className="text-muted small mb-2">No weapon matches "{term}"</div>
+                )}
 
                 <div className="row g-2">
                     {results.map((weapon) => (
                         <div key={weapon.id} className="col-md-6">
                             <div
-                                onClick={() => { onSelect(weapon); onBuildState({}) }}
+                                onClick={() => pick(weapon)}
                                 className="card bg-secondary text-light h-100 border-0 pointer-cursor hover-effect"
                                 style={{ cursor: 'pointer', transition: '0.2s' }}
                             >
                                 <div className="card-body d-flex align-items-center p-2">
                                     <img
-                                        src={weapon.iconLink}
+                                        src={weapon.icon}
                                         alt={weapon.shortName}
                                         className="me-3 rounded bg-dark p-1"
                                         style={{ width: '64px', height: '64px', objectFit: 'contain' }}
@@ -734,11 +212,12 @@ const WeaponSearch = ({ onSelect, onBuildState }) => {
                     ))}
                 </div>
             </div>
+            )}
         </div>
     );
 };
 
-const calTotalStats = (slotId, buildState, total = { weight: 0, ergo: 0, recoilMod: 0 }) => {
+const calTotalStats = (slotId, buildState, total = { weight: 0, ergo: 0, recoilMod: 0, priceRUB: 0, spend: {} }) => {
     const item = buildState[slotId];
 
     // 1. If no item is in this slot, return the current total accumulation
@@ -746,6 +225,23 @@ const calTotalStats = (slotId, buildState, total = { weight: 0, ergo: 0, recoilM
 
     // 2. Add Weight
     if (item.weight) total.weight += item.weight;
+
+    // 2.5 Add Price — ใช้ราคาซื้อจริงที่ถูกสุด (เทียบรูเบิลเพื่อรวมยอด + แยกยอดตามสกุลเงิน)
+    // spend[currency] = { amount: ยอดในสกุลนั้น, rub: ค่าเทียบรูเบิล }
+    const addSpend = (currency, amount, rub) => {
+        const e = total.spend[currency] || { amount: 0, rub: 0 };
+        e.amount += amount;
+        e.rub += rub;
+        total.spend[currency] = e;
+    };
+    const best = getBestBuy(item);
+    if (best) {
+        total.priceRUB += best.priceRUB;
+        addSpend(best.currency, best.price, best.priceRUB);
+    } else if (item.basePrice) {
+        total.priceRUB += item.basePrice;
+        addSpend('RUB', item.basePrice, item.basePrice);
+    }
 
     // 3. Add Mod Properties
     if (item.properties) {
@@ -768,6 +264,98 @@ const calTotalStats = (slotId, buildState, total = { weight: 0, ergo: 0, recoilM
     return total;
 };
 
+// เก็บอะไหล่ที่ใส่จริงทั้งหมด (รวมอะไหล่ซ้อนอะไหล่) พร้อมชื่อ slot เพื่อเอาไปทำพรีวิว
+const collectEquippedParts = (slots, buildState, acc = []) => {
+    if (!slots) return acc;
+    slots.forEach(slot => {
+        const item = buildState[slot.id];
+        if (item) {
+            acc.push({ slotId: slot.id, slotName: slot.name, item });
+            if (item.properties?.slots) {
+                collectEquippedParts(item.properties.slots, buildState, acc);
+            }
+        }
+    });
+    return acc;
+};
+
+// --- Build Preview Component (เรียงชิ้นส่วนแบบแกลเลอรี) ---
+const WeaponPreview = ({ baseWeapon, buildState }) => {
+    const [open, setOpen] = useState(true);
+    const parts = useMemo(
+        () => collectEquippedParts(baseWeapon?.properties?.slots, buildState),
+        [baseWeapon, buildState]
+    );
+
+    if (!baseWeapon) return null;
+
+    return (
+        <div className="card bg-dark border-secondary mb-4">
+            <div
+                className="card-header bg-black border-bottom border-secondary py-2 d-flex align-items-center"
+                style={{ cursor: 'pointer' }}
+                onClick={() => setOpen(!open)}
+            >
+                <h6 className="mb-0 text-white fw-bold small d-flex align-items-center">
+                    <Icons.Component size={16} className="me-2 text-warning" /> BUILD PREVIEW
+                </h6>
+                <span className="ms-auto badge bg-secondary me-2">{parts.length} parts</span>
+                {open ? <Icons.ChevronUp size={16} className="text-muted" /> : <Icons.ChevronDown size={16} className="text-muted" />}
+            </div>
+            {open && (
+            <div className="card-body" style={{ backgroundColor: '#0d0d0d' }}>
+                {/* ตัวปืนเปล่า */}
+                <div className="text-center mb-3 pb-3 border-bottom border-secondary">
+                    <img
+                        src={baseWeapon.gridImageLink || baseWeapon.iconLink}
+                        alt={baseWeapon.name}
+                        className="img-fluid drop-shadow"
+                        style={{ maxHeight: '150px', objectFit: 'contain' }}
+                    />
+                    <div className="text-warning fw-bold mt-2">{baseWeapon.shortName}</div>
+                    <div className="text-muted small">{baseWeapon.name}</div>
+                </div>
+
+                {/* อะไหล่ที่ใส่ */}
+                {parts.length > 0 ? (
+                    <div className="row g-2">
+                        {parts.map((p) => (
+                            <div key={p.slotId} className="col-6 col-md-4 col-xl-3">
+                                <div className="border border-secondary rounded p-2 h-100 text-center bg-black d-flex flex-column">
+                                    <span className="badge bg-secondary mb-1 text-truncate w-100" style={{ fontSize: '0.6rem' }}>
+                                        {p.slotName.replace('mod_', '').replace(/_/g, ' ').toUpperCase()}
+                                    </span>
+                                    <div className="d-flex align-items-center justify-content-center" style={{ height: '60px' }}>
+                                        <img
+                                            src={p.item.iconLink}
+                                            alt={p.item.shortName}
+                                            style={{ maxWidth: '100%', maxHeight: '60px', objectFit: 'contain' }}
+                                            onError={(e) => (e.target.style.display = 'none')}
+                                        />
+                                    </div>
+                                    <div className="text-light text-truncate small mt-1" style={{ fontSize: '0.7rem' }}>
+                                        {p.item.shortName}
+                                    </div>
+                                    {itemBuyLabel(p.item) ? (
+                                        <div className="text-warning mt-auto" style={{ fontSize: '0.65rem' }} title={getBestBuy(p.item)?.vendor?.name || 'Base price'}>
+                                            {itemBuyLabel(p.item)}
+                                        </div>
+                                    ) : null}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center text-muted small py-3">
+                        Equip parts on the right to preview the build
+                    </div>
+                )}
+            </div>
+            )}
+        </div>
+    );
+};
+
 // --- Stats Component (New) ---
 const WeaponStats = ({ baseWeapon, buildState }) => {
     // Logic คำนวณ Stats
@@ -778,6 +366,25 @@ const WeaponStats = ({ baseWeapon, buildState }) => {
         let totalWeight = baseWeapon.weight || 0;
         let totalErgo = baseWeapon.properties.defaultErgonomics || baseWeapon.properties.ergonomics || 0;
         let recoilMod = 0; // % reduction (negative value usually)
+        let partsPriceRUB = 0; // ราคาอะไหล่รวม (เทียบรูเบิล)
+        const spend = {}; // ยอดที่ต้องจ่ายจริง แยกตามสกุลเงิน เช่น { RUB: x, USD: y }
+
+        // spend[currency] = { amount, rub } — ยอดจริงในสกุลนั้น + ค่าเทียบรูเบิล
+        const addSpend = (currency, amount, rub) => {
+            const e = spend[currency] || { amount: 0, rub: 0 };
+            e.amount += amount;
+            e.rub += rub;
+            spend[currency] = e;
+        };
+
+        // ราคาตัวปืนเปล่า — ใช้ราคาซื้อจริงที่ถูกสุด (fallback basePrice)
+        const baseBuy = getBestBuy(baseWeapon);
+        const basePriceRUB = baseBuy ? baseBuy.priceRUB : (baseWeapon.basePrice || 0);
+        if (baseBuy) {
+            addSpend(baseBuy.currency, baseBuy.price, baseBuy.priceRUB);
+        } else if (baseWeapon.basePrice) {
+            addSpend('RUB', baseWeapon.basePrice, baseWeapon.basePrice);
+        }
 
         // วนลูปของแต่งทั้งหมดใน buildState
         // Object.values(buildState).forEach(item => {
@@ -803,6 +410,10 @@ const WeaponStats = ({ baseWeapon, buildState }) => {
             totalWeight += total.weight;
             totalErgo += total.ergo;
             recoilMod += total.recoilMod;
+            partsPriceRUB += total.priceRUB;
+            Object.entries(total.spend).forEach(([cur, v]) => {
+                addSpend(cur, v.amount, v.rub);
+            });
         });
 
 
@@ -822,7 +433,10 @@ const WeaponStats = ({ baseWeapon, buildState }) => {
             verticalRecoil: finalVert,
             horizontalRecoil: finalHoriz,
             fireRate: baseWeapon.properties.fireRate || 0,
-            basePrice: baseWeapon.basePrice,
+            basePriceRUB: basePriceRUB,
+            partsPriceRUB: partsPriceRUB,
+            totalPriceRUB: basePriceRUB + partsPriceRUB,
+            spend: spend, // ยอดจริงแยกตามสกุลเงิน
             caliber: baseWeapon.properties.caliber
         };
     }, [baseWeapon, buildState]);
@@ -873,6 +487,43 @@ const WeaponStats = ({ baseWeapon, buildState }) => {
                             <div className="fw-bold text-white small">{stats.caliber}</div>
                         </div>
                     </div>
+                </div>
+
+                <div className="row mt-2 border-top border-secondary pt-3 g-2">
+                    <div className="col-6">
+                        <div className="p-2 bg-dark rounded border border-secondary text-center">
+                            <div className="text-muted small text-uppercase" style={{ fontSize: '0.65rem' }}>Base Weapon</div>
+                            <div className="fw-bold text-white small">{formatPrice(stats.basePriceRUB)}</div>
+                        </div>
+                    </div>
+                    <div className="col-6">
+                        <div className="p-2 bg-dark rounded border border-secondary text-center">
+                            <div className="text-muted small text-uppercase" style={{ fontSize: '0.65rem' }}>Parts Total</div>
+                            <div className="fw-bold text-white small">{formatPrice(stats.partsPriceRUB)}</div>
+                        </div>
+                    </div>
+                    <div className="col-12">
+                        <div className="p-2 bg-dark rounded border border-warning text-center">
+                            <div className="text-warning small text-uppercase fw-bold" style={{ fontSize: '0.65rem' }}>Total Build Price (≈ RUB)</div>
+                            <div className="fw-bold text-warning">{formatPrice(stats.totalPriceRUB)}</div>
+                        </div>
+                    </div>
+                    {/* ยอดที่ต้องจ่ายจริง แยกตามสกุลเงินของพ่อค้า */}
+                    {Object.keys(stats.spend).length > 0 && (
+                        <div className="col-12">
+                            <div className="p-2 bg-dark rounded border border-secondary">
+                                <div className="text-muted small text-uppercase mb-1" style={{ fontSize: '0.65rem' }}>You Need (by currency)</div>
+                                <div className="d-flex flex-wrap gap-2 justify-content-center">
+                                    {Object.entries(stats.spend).map(([cur, v]) => (
+                                        <span key={cur} className="badge bg-black border border-secondary text-warning" style={{ fontSize: '0.8rem' }}>
+                                            {formatMoney(v.amount, cur)}
+                                            {cur !== 'RUB' && <span className="text-muted"> (≈ {formatMoney(v.rub, 'RUB')})</span>}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
@@ -985,6 +636,7 @@ const SlotItem = ({ slot, equippedItem, onEquip, depth, buildState }) => {
                                 <div className="d-flex gap-2 small ms-1 mt-1" style={{ fontSize: '0.7rem' }}>
                                     {equippedItem.properties?.ergonomics ? <span className={equippedItem.properties.ergonomics > 0 ? "text-success" : "text-danger"}>Ergo {equippedItem.properties.ergonomics > 0 ? '+' : ''}{equippedItem.properties.ergonomics}</span> : null}
                                     {equippedItem.properties?.recoil ? <span className="text-info">Recoil {equippedItem.properties.recoil}</span> : null}
+                                    {itemBuyLabel(equippedItem) ? <span className="text-warning" title={getBestBuy(equippedItem)?.vendor?.name || 'Base price'}>{itemBuyLabel(equippedItem)}</span> : null}
                                 </div>
                             </div>
                         ) : (
@@ -1046,6 +698,7 @@ const SlotItem = ({ slot, equippedItem, onEquip, depth, buildState }) => {
                                                 <>
                                                     {item.properties?.ergonomics ? <span className={item.properties.ergonomics > 0 ? "text-success" : "text-danger"}>Ergo {item.properties.ergonomics > 0 ? '+' : ''}{item.properties.ergonomics}</span> : null}
                                                     {item.properties?.recoil ? <span className="text-info">Recoil {item.properties.recoil}</span> : null}
+                                                    {itemBuyLabel(item) ? <span className="text-warning" title={getBestBuy(item)?.vendor?.name || 'Base price'}>{itemBuyLabel(item)}</span> : null}
                                                 </>
                                             )}
                                         </div>
@@ -1074,10 +727,29 @@ export default function WeaponBuild() {
     const [isLoading, setIsLoading] = useState(false);
     const [isPopup, setIsPopup] = useState(false);
     const [presetName, setPresetName] = useState("");
+    const [showParts, setShowParts] = useState(true);
+    const [dataset, setDataset] = useState(DATASET); // { guns, mods }
+    const [loadingData, setLoadingData] = useState(!DATASET);
 
     useEffect(() => {
         localStorage.setItem('eft_preset_weapon', JSON.stringify(save));
     }, [save]);
+
+    // โหลด dataset (static JSON) ครั้งเดียวตอน mount
+    useEffect(() => {
+        let alive = true;
+        loadDataset()
+            .then((d) => { if (alive) { setDataset(d); setLoadingData(false); } })
+            .catch((e) => { if (alive) { console.error('Load dataset failed:', e); setLoadingData(false); } });
+        return () => { alive = false; };
+    }, []);
+
+    // เลือกปืนจากผลค้นหา -> ประกอบต้นไม้อะไหล่จาก dataset (ในเครื่อง ไม่ยิงเน็ต)
+    const handleSelectWeapon = (weapon) => {
+        setBuildState({});
+        const gun = dataset?.guns?.find((g) => g.id === weapon.id) || weapon;
+        setSelectedWeapon(buildWeapon(gun, dataset?.mods || {}));
+    };
 
     const handleEquip = (slotId, item) => {
         setBuildState(prev => {
@@ -1159,25 +831,17 @@ export default function WeaponBuild() {
         return newBuildState;
     };
 
-    const getSavePreset = async (weapon, build) => {
+    const getSavePreset = (weapon, build) => {
         let baseWeapon = null;
-        setSelectedWeapon();
         setIsLoading(true);
         if (!selectedWeapon || selectedWeapon.id !== weapon.id) {
-            try {
-                const data = await fetchGraphQL(weapon?.shortName);
-
-                if (data && data.items) {
-                    setSelectedWeapon(data.items?.[0]);
-                    baseWeapon = data.items?.[0];
-                } else {
-                    if (!data) console.error("Failed to fetch data from Tarkov.dev");
-                }
-            } catch (error) {
-                console.error("API Error:", error);
-            }
+            const gun = dataset?.guns?.find((g) => g.id === weapon.id);
+            baseWeapon = buildWeapon(gun, dataset?.mods || {});
+            setSelectedWeapon(baseWeapon);
         }
         else baseWeapon = selectedWeapon
+
+        if (!baseWeapon) { setIsLoading(false); return; }
 
         const buildState = getAllBuildState(baseWeapon?.properties?.slots, build)
         const matchMap = new Map(
@@ -1230,7 +894,7 @@ export default function WeaponBuild() {
                         </h1>
                     </header>
 
-                    <WeaponSearch onSelect={setSelectedWeapon} onBuildState={setBuildState} />
+                    <WeaponSearch guns={dataset?.guns || []} loadingData={loadingData} onSelect={handleSelectWeapon} onBuildState={setBuildState} />
 
                     {selectedWeapon ? (
                         <div className="row g-4 animate-fade-in">
@@ -1260,10 +924,19 @@ export default function WeaponBuild() {
                             </div>
 
                             <div className="col-lg-8">
+                                <WeaponPreview baseWeapon={selectedWeapon} buildState={buildState} />
                                 <div className="card bg-dark border-secondary">
-                                    <div className="card-header bg-transparent border-secondary text-light fw-bold d-flex align-items-center">
+                                    <div
+                                        className="card-header bg-transparent border-secondary text-light fw-bold d-flex align-items-center"
+                                        style={{ cursor: 'pointer' }}
+                                        onClick={() => setShowParts(!showParts)}
+                                    >
                                         <Icons.Info size={18} className="me-2 text-warning" /> WEAPON PARTS
+                                        <span className="ms-auto text-muted">
+                                            {showParts ? <Icons.ChevronUp size={18} /> : <Icons.ChevronDown size={18} />}
+                                        </span>
                                     </div>
+                                    {showParts && (
                                     <div className="card-body" style={{ minHeight: '500px' }}>
                                         {selectedWeapon.properties?.slots ? (
                                             <SlotBuilder
@@ -1277,6 +950,7 @@ export default function WeaponBuild() {
                                             </div>
                                         )}
                                     </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -1285,7 +959,7 @@ export default function WeaponBuild() {
                             <div className='d-flex justify-content-center mb-3'>
                                 <Icons.Package size={64} className="opacity-25" />
                             </div>
-                            <p className="lead text-muted">{isLoading ? ("Loading Preset ...") : ("Select a weapon above to initialize the Gunsmith bench.")}</p>
+                            <p className="lead text-muted">{isLoading ? ("Loading weapon ...") : ("Select a weapon above to initialize the Gunsmith bench.")}</p>
                         </div>
                     )}
                 </div>

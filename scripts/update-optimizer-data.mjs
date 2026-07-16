@@ -23,12 +23,23 @@ const API = 'https://api.tarkov.dev/graphql';
 const OUT = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'public', 'optimizer_data.json');
 
 // slots ใช้ร่วมกันได้ระหว่าง gun / mod — allowed = list ของ item id ที่ใส่ได้
+// เก็บ id ของ slot ด้วย (WeaponBuild ใช้เป็น key ของ buildState / preset)
 const SLOT_FRAGMENT = `
   slots {
+    id
     name
     nameId
     required
     filters { allowedItems { id } }
+  }`;
+
+// ราคาแบบละเอียด (หลายสกุลเงิน + พ่อค้า) สำหรับหน้า WeaponBuild
+const BUYFOR_FRAGMENT = `
+  buyFor {
+    price
+    currency
+    priceRUB
+    vendor { name }
   }`;
 
 const QUERY = `
@@ -40,7 +51,7 @@ query OptimizerData {
     weight
     iconLink
     image512pxLink
-    buyFor { priceRUB }
+    ${BUYFOR_FRAGMENT}
     properties {
       __typename
       ... on ItemPropertiesWeapon {
@@ -48,6 +59,7 @@ query OptimizerData {
         ergonomics
         recoilVertical
         recoilHorizontal
+        fireRate
         defaultPreset { image512pxLink iconLink }
         ${SLOT_FRAGMENT}
       }
@@ -60,7 +72,7 @@ query OptimizerData {
     types
     weight
     iconLink
-    buyFor { priceRUB }
+    ${BUYFOR_FRAGMENT}
     conflictingItems { id }
     properties {
       __typename
@@ -111,11 +123,18 @@ const toPct = (v) => (v ? Math.round(v * 10000) / 100 : 0);
 
 const mapSlots = (slots) =>
   (slots || []).map((s) => ({
+    id: s.id,
     name: s.name,
     nameId: s.nameId,
     required: !!s.required,
     allowed: (s.filters?.allowedItems || []).map((a) => a.id),
   }));
+
+// buyFor แบบเต็มไว้ให้ WeaponBuild (หลายสกุลเงิน + พ่อค้า)
+const mapBuyFor = (buyFor) =>
+  (buyFor || [])
+    .filter((b) => b && b.priceRUB != null)
+    .map((b) => ({ price: b.price, currency: b.currency, priceRUB: b.priceRUB, vendor: { name: b.vendor?.name } }));
 
 async function main() {
   console.log('→ ดึงข้อมูลจาก tarkov.dev ...');
@@ -136,8 +155,10 @@ async function main() {
         ergo: p.ergonomics ?? 0,
         recoilV: p.recoilVertical ?? 0,
         recoilH: p.recoilHorizontal ?? 0,
+        fireRate: p.fireRate ?? 0,
         weight: g.weight ?? 0,
         price: buyPrice(g.buyFor),
+        buyFor: mapBuyFor(g.buyFor),
         slots: mapSlots(p.slots),
       };
     })
@@ -159,6 +180,7 @@ async function main() {
       weight: m.weight ?? 0,
       capacity: p.capacity ?? null,
       price: buyPrice(m.buyFor),
+      buyFor: mapBuyFor(m.buyFor),
       conflicts: (m.conflictingItems || []).map((c) => c.id),
       slots: mapSlots(p.slots),
     };
