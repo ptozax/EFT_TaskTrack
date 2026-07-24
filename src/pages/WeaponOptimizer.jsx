@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   DATA_URL,
   rub,
   computeBuild,
   exportCardImage,
   openCardTab,
+  stashBuildForEdit,
   BuildRows,
   ModPicker,
   GMO_CSS,
@@ -19,6 +21,7 @@ import {
 
 /* ------------------------------ main page -------------------------------- */
 export default function WeaponOptimizer() {
+  const navigate = useNavigate();
   const [data, setData] = useState(null); // {guns, mods}
   const [loadErr, setLoadErr] = useState('');
 
@@ -267,6 +270,13 @@ export default function WeaponOptimizer() {
             </button>
             <button className="gmo-go2" onClick={() => openCardTab(build)} disabled={!build}>
               📤 Open card in a new tab
+            </button>
+            <button
+              className="gmo-go2"
+              onClick={() => { if (stashBuildForEdit(build)) navigate('/WeaponBuild'); }}
+              disabled={!build}
+            >
+              ✏️ Edit build in Weapon Build
             </button>
           </div>
 

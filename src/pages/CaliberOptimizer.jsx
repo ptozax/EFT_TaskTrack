@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   DATA_URL,
   rub,
   findCheapestBuild,
   exportCardImage,
   openCardTab,
+  stashBuildForEdit,
   BuildRows,
   ModPicker,
   GMO_CSS,
@@ -18,6 +20,7 @@ import {
  * ========================================================================= */
 
 export default function CaliberOptimizer() {
+  const navigate = useNavigate();
   const [data, setData] = useState(null); // {guns, mods}
   const [loadErr, setLoadErr] = useState('');
 
@@ -193,6 +196,9 @@ export default function CaliberOptimizer() {
                 {exportingId === gun.id ? '⏳ Generating image…' : '📥 Download card (PNG)'}
               </button>
               <button onClick={() => openCardTab(b)}>📤 Open card in a new tab</button>
+              <button onClick={() => { if (stashBuildForEdit(b)) navigate('/WeaponBuild'); }}>
+                ✏️ Edit build in Weapon Build
+              </button>
             </div>
             <div className="gmo-build">
               {b.msgs.map((m, i) => (

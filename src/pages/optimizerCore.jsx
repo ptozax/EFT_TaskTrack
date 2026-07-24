@@ -153,7 +153,7 @@ export function optimizeSlots(slots, budgetRef, C, chosenIds, MODS, W, reaches) 
     if (!best) continue;
     chosenIds.add(best.m.id);
     if (best.sub) addPickIds(best.sub.picks, chosenIds); // re-register the winning sub-tree
-    picks.push({ slot: slot.name, mod: best.m, children: best.sub ? best.sub.picks : [] });
+    picks.push({ slotId: slot.id, slot: slot.name, mod: best.m, children: best.sub ? best.sub.picks : [] });
     score += best.totScore;
     cost += best.totCost;
     ergo += best.m.ergo || 0;
@@ -565,6 +565,34 @@ export function buildCardDoc(B) {
 </div></body></html>`;
 
   return doc;
+}
+
+// key ที่ optimizer ใช้ฝาก build ให้หน้า WeaponBuild อ่านต่อ (แก้ build)
+export const EDIT_BUILD_KEY = 'eft_edit_build';
+
+// แปลง build ของ optimizer -> payload รูปแบบเดียวกับ preset ของ WeaponBuild แล้วเก็บลง localStorage
+// จากนั้นเปิดหน้า WeaponBuild ให้อ่านไปโหลดต่อ (คงต้นไม้อะไหล่ตาม slotId ที่คงที่)
+export function stashBuildForEdit(B) {
+  if (!B || !B.gun) return false;
+  const build_state = {};
+  const flat = (picks) => {
+    (picks || []).forEach((p) => {
+      if (p.slotId) build_state[p.slotId] = { id: p.mod.id, name: p.mod.name };
+      if (p.children && p.children.length) flat(p.children);
+    });
+  };
+  flat(B.res?.picks);
+  const payload = {
+    base_weapon: { id: B.gun.id, name: B.gun.name, iconLink: B.gun.icon, shortName: B.gun.shortName },
+    build_state,
+  };
+  try {
+    localStorage.setItem(EDIT_BUILD_KEY, JSON.stringify(payload));
+    return true;
+  } catch (e) {
+    console.error('stashBuildForEdit failed:', e);
+    return false;
+  }
 }
 
 // Fallback: open the card in a new tab so the user can screenshot it manually.

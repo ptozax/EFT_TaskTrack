@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Icons, hideoutStyles as styles, kappaStyles as styless, COLORS } from '../Component/EftComponent';
-import { DATA_URL } from './optimizerCore';
+import { DATA_URL, exportCardImage, EDIT_BUILD_KEY } from './optimizerCore';
 
 // ---- โหลด dataset (static JSON ที่ preprocess ไว้แล้ว) ครั้งเดียว แล้ว cache ----
 // วิธีเดียวกับ WeaponOptimizer: ไม่ยิง API สด -> โหลดไว = ประกอบต้นไม้อะไหล่ในเครื่องด้วย id lookup
@@ -47,6 +47,7 @@ const buildModResolver = (mods) => {
             id: s.id,
             name: s.name,
             nameId: s.nameId,
+            required: s.required,
             filters: { allowedItems: (s.allowed || []).map(resolve).filter(Boolean) },
         }));
         return obj;
@@ -80,6 +81,7 @@ const buildWeapon = (gun, mods) => {
                 id: s.id,
                 name: s.name,
                 nameId: s.nameId,
+                required: s.required,
                 filters: { allowedItems: (s.allowed || []).map(resolve).filter(Boolean) },
             })),
         },
@@ -131,6 +133,56 @@ const itemBuyLabel = (item) => {
     }
     if (item?.basePrice) return formatMoney(item.basePrice, 'RUB');
     return null;
+};
+
+// แปลงต้นไม้อะไหล่ที่ใส่ -> โครง picks (mod + slot + children) ให้การ์ดของ Optimizer วาดได้
+const buildPicks = (slots, buildState) => {
+    const picks = [];
+    (slots || []).forEach((slot) => {
+        const item = buildState[slot.id];
+        if (!item) return;
+        picks.push({
+            slot: slot.name.replace('mod_', '').replace(/_/g, ' '),
+            mod: {
+                icon: item.iconLink,
+                shortName: item.shortName,
+                name: item.name,
+                recoil: item.properties?.recoil || 0,
+                ergo: item.properties?.ergonomics || 0,
+                price: getBestBuy(item)?.priceRUB ?? item.basePrice ?? null,
+            },
+            children: buildPicks(item.properties?.slots, buildState),
+        });
+    });
+    return picks;
+};
+
+// แปลงบิลด์ของ WeaponBuild -> shape B ที่ exportCardImage/buildCardDoc ต้องการ (การ์ด PNG แบบ Optimizer)
+const buildCardData = (baseWeapon, buildState) => {
+    const s = computeWeaponStats(baseWeapon, buildState);
+    const picks = buildPicks(baseWeapon.properties?.slots, buildState);
+    return {
+        gun: {
+            name: baseWeapon.name,
+            shortName: baseWeapon.shortName,
+            caliber: baseWeapon.properties?.caliber,
+            image: baseWeapon.gridImageLink || baseWeapon.iconLink,
+            icon: baseWeapon.iconLink,
+        },
+        objective: 'Custom build',
+        baseErgo: Math.round(s.baseErgo),
+        finalErgo: Math.round(s.ergonomics),
+        baseRecV: s.baseVert,
+        finalRecV: s.verticalRecoil,
+        baseRecH: s.baseHoriz,
+        finalRecH: s.horizontalRecoil,
+        totalCost: s.totalPriceRUB,
+        res: {
+            recoilPct: s.recoilMod, // % รวม (ติดลบ = ลดแรงดีด) การ์ดจะโชว์ -X%
+            cap: null,              // WeaponBuild ไม่ได้ track ความจุแม็ก -> โชว์ —
+            picks,
+        },
+    };
 };
 
 // --- Components ---
@@ -280,14 +332,24 @@ const collectEquippedParts = (slots, buildState, acc = []) => {
 };
 
 // --- Build Preview Component (เรียงชิ้นส่วนแบบแกลเลอรี) ---
-const WeaponPreview = ({ baseWeapon, buildState }) => {
+const WeaponPreview = ({ baseWeapon, buildState, onClear }) => {
     const [open, setOpen] = useState(true);
+    const [exporting, setExporting] = useState(false);
     const parts = useMemo(
         () => collectEquippedParts(baseWeapon?.properties?.slots, buildState),
         [baseWeapon, buildState]
     );
 
     if (!baseWeapon) return null;
+
+    const handleExport = async () => {
+        setExporting(true);
+        try {
+            await exportCardImage(buildCardData(baseWeapon, buildState));
+        } finally {
+            setExporting(false);
+        }
+    };
 
     return (
         <div className="card bg-dark border-secondary mb-4">
@@ -299,8 +361,30 @@ const WeaponPreview = ({ baseWeapon, buildState }) => {
                 <h6 className="mb-0 text-white fw-bold small d-flex align-items-center">
                     <Icons.Component size={16} className="me-2 text-warning" /> BUILD PREVIEW
                 </h6>
-                <span className="ms-auto badge bg-secondary me-2">{parts.length} parts</span>
-                {open ? <Icons.ChevronUp size={16} className="text-muted" /> : <Icons.ChevronDown size={16} className="text-muted" />}
+                <div className="ms-auto d-flex align-items-center gap-2">
+                    {open && (
+                        <>
+                            <button
+                                className="btn btn-sm btn-outline-warning py-0 px-2"
+                                style={{ fontSize: '0.7rem' }}
+                                disabled={exporting}
+                                onClick={(e) => { e.stopPropagation(); handleExport(); }}
+                            >
+                                {exporting ? '...' : 'Export'}
+                            </button>
+                            <button
+                                className="btn btn-sm btn-outline-danger py-0 px-2"
+                                style={{ fontSize: '0.7rem' }}
+                                disabled={parts.length === 0}
+                                onClick={(e) => { e.stopPropagation(); onClear?.(); }}
+                            >
+                                Clear
+                            </button>
+                        </>
+                    )}
+                    <span className="badge bg-secondary">{parts.length} parts</span>
+                    {open ? <Icons.ChevronUp size={16} className="text-muted" /> : <Icons.ChevronDown size={16} className="text-muted" />}
+                </div>
             </div>
             {open && (
             <div className="card-body" style={{ backgroundColor: '#0d0d0d' }}>
@@ -356,90 +440,68 @@ const WeaponPreview = ({ baseWeapon, buildState }) => {
     );
 };
 
+// คำนวณ stats ทั้งหมดของบิลด์ (ใช้ทั้งการ์ด WeaponStats และตอน export รูป)
+const computeWeaponStats = (baseWeapon, buildState) => {
+    if (!baseWeapon || !baseWeapon.properties) return null;
+
+    let totalWeight = baseWeapon.weight || 0;
+    const baseErgo = baseWeapon.properties.defaultErgonomics || baseWeapon.properties.ergonomics || 0;
+    let totalErgo = baseErgo;
+    let recoilMod = 0; // % reduction (negative value usually)
+    let partsPriceRUB = 0; // ราคาอะไหล่รวม (เทียบรูเบิล)
+    const spend = {}; // ยอดที่ต้องจ่ายจริง แยกตามสกุลเงิน เช่น { RUB: x, USD: y }
+
+    // spend[currency] = { amount, rub } — ยอดจริงในสกุลนั้น + ค่าเทียบรูเบิล
+    const addSpend = (currency, amount, rub) => {
+        const e = spend[currency] || { amount: 0, rub: 0 };
+        e.amount += amount;
+        e.rub += rub;
+        spend[currency] = e;
+    };
+
+    // ราคาตัวปืนเปล่า — ใช้ราคาซื้อจริงที่ถูกสุด (fallback basePrice)
+    const baseBuy = getBestBuy(baseWeapon);
+    const basePriceRUB = baseBuy ? baseBuy.priceRUB : (baseWeapon.basePrice || 0);
+    if (baseBuy) {
+        addSpend(baseBuy.currency, baseBuy.price, baseBuy.priceRUB);
+    } else if (baseWeapon.basePrice) {
+        addSpend('RUB', baseWeapon.basePrice, baseWeapon.basePrice);
+    }
+
+    baseWeapon.properties.slots.forEach(slot => {
+        const total = calTotalStats(slot.id, buildState);
+        totalWeight += total.weight;
+        totalErgo += total.ergo;
+        recoilMod += total.recoilMod;
+        partsPriceRUB += total.priceRUB;
+        Object.entries(total.spend).forEach(([cur, v]) => addSpend(cur, v.amount, v.rub));
+    });
+
+    // --- Recoil Calculation Logic --- สูตร: Base Recoil * (1 + Sum of Mod Recoil %)
+    const baseVert = baseWeapon.properties.defaultRecoilVertical || baseWeapon.properties.recoilVertical || 0;
+    const baseHoriz = baseWeapon.properties.defaultRecoilHorizontal || baseWeapon.properties.recoilHorizontal || 0;
+    const finalVert = Math.max(0, Math.round(baseVert * (1 + (recoilMod / 100))));
+    const finalHoriz = Math.max(0, Math.round(baseHoriz * (1 + (recoilMod / 100))));
+
+    return {
+        weight: totalWeight.toFixed(3),
+        ergonomics: Number(Math.max(0, totalErgo).toFixed(1)),
+        verticalRecoil: finalVert,
+        horizontalRecoil: finalHoriz,
+        fireRate: baseWeapon.properties.fireRate || 0,
+        basePriceRUB,
+        partsPriceRUB,
+        totalPriceRUB: basePriceRUB + partsPriceRUB,
+        spend,
+        caliber: baseWeapon.properties.caliber,
+        // ค่า base ไว้ทำ delta ในการ์ด export
+        baseErgo, baseVert, baseHoriz, recoilMod,
+    };
+};
+
 // --- Stats Component (New) ---
 const WeaponStats = ({ baseWeapon, buildState }) => {
-    // Logic คำนวณ Stats
-
-    const stats = useMemo(() => {
-        if (!baseWeapon || !baseWeapon.properties) return null;
-
-        let totalWeight = baseWeapon.weight || 0;
-        let totalErgo = baseWeapon.properties.defaultErgonomics || baseWeapon.properties.ergonomics || 0;
-        let recoilMod = 0; // % reduction (negative value usually)
-        let partsPriceRUB = 0; // ราคาอะไหล่รวม (เทียบรูเบิล)
-        const spend = {}; // ยอดที่ต้องจ่ายจริง แยกตามสกุลเงิน เช่น { RUB: x, USD: y }
-
-        // spend[currency] = { amount, rub } — ยอดจริงในสกุลนั้น + ค่าเทียบรูเบิล
-        const addSpend = (currency, amount, rub) => {
-            const e = spend[currency] || { amount: 0, rub: 0 };
-            e.amount += amount;
-            e.rub += rub;
-            spend[currency] = e;
-        };
-
-        // ราคาตัวปืนเปล่า — ใช้ราคาซื้อจริงที่ถูกสุด (fallback basePrice)
-        const baseBuy = getBestBuy(baseWeapon);
-        const basePriceRUB = baseBuy ? baseBuy.priceRUB : (baseWeapon.basePrice || 0);
-        if (baseBuy) {
-            addSpend(baseBuy.currency, baseBuy.price, baseBuy.priceRUB);
-        } else if (baseWeapon.basePrice) {
-            addSpend('RUB', baseWeapon.basePrice, baseWeapon.basePrice);
-        }
-
-        // วนลูปของแต่งทั้งหมดใน buildState
-        // Object.values(buildState).forEach(item => {
-        //     if (!item) return;
-
-        //     // Weight (kg)
-        //     if (item.weight) totalWeight += item.weight;
-
-        //     // Mod Properties
-        //     if (item.properties) {
-        //         // Ergonomics (บวกเพิ่มตรงๆ)
-        //         if (item.properties.ergonomics) totalErgo += item.properties.ergonomics;
-
-        //         // Recoil (สะสม % modifier)
-        //         // API ส่งมาเป็น float เช่น -0.02 หมายถึงลดแรงดีด 2%
-        //         if (item.properties.recoil) recoilMod += item.properties.recoil;
-        //     }
-        // });
-
-        baseWeapon.properties.slots.forEach(slot => {
-            const total = calTotalStats(slot.id, buildState);
-
-            totalWeight += total.weight;
-            totalErgo += total.ergo;
-            recoilMod += total.recoilMod;
-            partsPriceRUB += total.priceRUB;
-            Object.entries(total.spend).forEach(([cur, v]) => {
-                addSpend(cur, v.amount, v.rub);
-            });
-        });
-
-
-
-        // --- Recoil Calculation Logic ---
-        // สูตร: Base Recoil * (1 + Sum of Mod Recoil %)
-        // ตัวอย่าง: ปืน 100 * (1 + (-0.15)) = 85
-        const baseVert = baseWeapon.properties.defaultRecoilVertical || baseWeapon.properties.recoilVertical || 0;
-        const baseHoriz = baseWeapon.properties.defaultRecoilHorizontal || baseWeapon.properties.recoilHorizontal || 0;
-
-        const finalVert = Math.max(0, Math.round(baseVert * (1 + (recoilMod / 100))));
-        const finalHoriz = Math.max(0, Math.round(baseHoriz * (1 + (recoilMod / 100))));
-
-        return {
-            weight: totalWeight.toFixed(3),
-            ergonomics: Math.max(0, totalErgo.toFixed(1)),
-            verticalRecoil: finalVert,
-            horizontalRecoil: finalHoriz,
-            fireRate: baseWeapon.properties.fireRate || 0,
-            basePriceRUB: basePriceRUB,
-            partsPriceRUB: partsPriceRUB,
-            totalPriceRUB: basePriceRUB + partsPriceRUB,
-            spend: spend, // ยอดจริงแยกตามสกุลเงิน
-            caliber: baseWeapon.properties.caliber
-        };
-    }, [baseWeapon, buildState]);
+    const stats = useMemo(() => computeWeaponStats(baseWeapon, buildState), [baseWeapon, buildState]);
 
     if (!stats) return null;
 
@@ -567,11 +629,17 @@ const SlotBuilder = ({ slots, buildState, onEquip, depth = 0 }) => {
 // 3. ตัวจัดการแต่ละ Slot
 const SlotItem = ({ slot, equippedItem, onEquip, depth, buildState }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const allowedItems = getAllowedItems(slot.filters);
+    const allowedItems = useMemo(() => getAllowedItems(slot.filters), [slot.filters]);
     const displaySlotName = slot.name.replace('mod_', '').replace(/_/g, ' ').toUpperCase();
 
     const [search, setSearch] = useState("");
-    const [searchResults, setResults] = useState([]);
+    // id ของปุ่มในลิสต์ ใส่ prefix slot.id กัน id ซ้ำข้าม slot ที่เปิดพร้อมกัน
+    const optionDomId = (itemId) => `${slot.id}-${itemId}`;
+
+    const searchResults = useMemo(
+        () => allowedItems.filter((i) => i.name.toLowerCase().includes(search.toLowerCase())),
+        [search, allowedItems]
+    );
 
     const scrollToElement = (id) => {
         const element = document.getElementById(id);
@@ -579,12 +647,8 @@ const SlotItem = ({ slot, equippedItem, onEquip, depth, buildState }) => {
     };
 
     useEffect(() => {
-        if (isOpen) scrollToElement(equippedItem?.id);
+        if (isOpen && equippedItem?.id) scrollToElement(optionDomId(equippedItem.id));
     }, [isOpen]);
-
-    useEffect(() => {
-        setResults(allowedItems.filter((i) => i.name.toLowerCase().includes(search.toLowerCase())));
-    }, [search]);
 
     // Helper to check conflicts
     const getConflictInfo = (candidateItem) => {
@@ -620,6 +684,7 @@ const SlotItem = ({ slot, equippedItem, onEquip, depth, buildState }) => {
                     <div className="d-flex flex-column">
                         <div className="d-flex align-items-center gap-2">
                             <span className="badge bg-secondary text-light" style={{ fontSize: '0.65rem' }}>{displaySlotName}</span>
+                            {slot.required && <span className="badge bg-warning text-dark" style={{ fontSize: '0.6rem' }}>REQUIRED</span>}
                             {depth > 0 && <span className="badge border border-secondary text-secondary" style={{ fontSize: '0.6rem' }}>SUB</span>}
                         </div>
 
@@ -650,11 +715,11 @@ const SlotItem = ({ slot, equippedItem, onEquip, depth, buildState }) => {
                         placeholder="🔍 Search item..."
                         onClick={(e) => e.stopPropagation()}
                         value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        onChange={(e) => { setSearch(e.target.value); setIsOpen(true); }}
                     />
                 </div>
                 <div className="text-muted ps-2">
-                    {isOpen ? <Icons.ChevronDown size={16} /> : <Icons.ChevronUp size={16} />}
+                    {isOpen ? <Icons.ChevronUp size={16} /> : <Icons.ChevronDown size={16} />}
                 </div>
             </div>
 
@@ -673,7 +738,7 @@ const SlotItem = ({ slot, equippedItem, onEquip, depth, buildState }) => {
                             const isEquipped = equippedItem?.id === item.id;
                             return (
                                 <button
-                                    id={item.id}
+                                    id={optionDomId(item.id)}
                                     key={item.id}
                                     disabled={!!conflictMsg}
                                     onClick={() => { onEquip(slot.id, item); setIsOpen(false); setSearch(""); }}
@@ -788,86 +853,87 @@ export default function WeaponBuild() {
 
     const savePresets = (name, isAdd) => {
         if (isAdd) {
-            const preset = {
-                preset_name: name,
-                base_weapon: selectedWeapon,
-                build_state: buildState
-            }
-            const newObject = Object.fromEntries(
-                Object.entries(buildState).map(([key, value]) => [
-                    key,
-                    { id: value.id, name: value.name }
-                ])
+            const trimmed = (name || '').trim();
+            if (!trimmed || !selectedWeapon) return; // ต้องมีชื่อ + มีปืนที่เลือกอยู่
+
+            // เก็บเฉพาะ id + name ต่อช่อง (พอ re-resolve ตอนโหลด) — localStorage เล็ก
+            const build_state = Object.fromEntries(
+                Object.entries(buildState).map(([slotId, item]) => [slotId, { id: item.id, name: item.name }])
             );
             const presetToSave = {
-                preset_name: name,
-                base_weapon: { id: selectedWeapon.id, name: selectedWeapon.name, iconLink: selectedWeapon.iconLink, shortName: selectedWeapon.shortName },
-                build_state: newObject
-            }
-            console.log(preset);
-            console.log(presetToSave);
-            setSave(prev => [...prev, presetToSave])
+                preset_name: trimmed,
+                base_weapon: {
+                    id: selectedWeapon.id,
+                    name: selectedWeapon.name,
+                    iconLink: selectedWeapon.iconLink,
+                    shortName: selectedWeapon.shortName,
+                },
+                build_state,
+            };
+
+            // ชื่อซ้ำ = อัปเดตทับ (กันชื่อซ้ำ -> key ซ้ำ / ลบพลาด)
+            setSave((prev) => [...prev.filter((p) => p.preset_name !== trimmed), presetToSave]);
 
             setPresetName("");
             setIsPopup(false);
         }
         else {
-            setSave(prev => prev.filter(p => p.preset_name !== name));
+            setSave((prev) => prev.filter((p) => p.preset_name !== name));
         }
-    }
-
-    const getAllBuildState = (slots, oldBuildState, newBuildState = new Set()) => {
-
-        slots.map(slot => {
-            const currentAllowItems = slot.filters?.allowedItems || [];
-            const updatedAllowItems = currentAllowItems.find(item => item?.id === oldBuildState[slot.id]?.id);
-
-            if (updatedAllowItems) newBuildState.add(updatedAllowItems);
-            if (updatedAllowItems?.properties?.slots) {
-                getAllBuildState(updatedAllowItems.properties?.slots, oldBuildState, newBuildState)
-            }
-        })
-
-        return newBuildState;
     };
 
     const getSavePreset = (weapon, build) => {
-        let baseWeapon = null;
         setIsLoading(true);
+
+        // ใช้ปืนที่เลือกอยู่ถ้าตรงกัน ไม่งั้นประกอบใหม่จาก dataset
+        let baseWeapon = selectedWeapon;
         if (!selectedWeapon || selectedWeapon.id !== weapon.id) {
             const gun = dataset?.guns?.find((g) => g.id === weapon.id);
             baseWeapon = buildWeapon(gun, dataset?.mods || {});
             setSelectedWeapon(baseWeapon);
         }
-        else baseWeapon = selectedWeapon
 
-        if (!baseWeapon) { setIsLoading(false); return; }
+        if (!baseWeapon) {
+            console.warn('Preset weapon not found in dataset:', weapon?.id);
+            setSelectedWeapon(null);
+            setBuildState({});
+            setIsLoading(false);
+            return;
+        }
 
-        const buildState = getAllBuildState(baseWeapon?.properties?.slots, build)
-        const matchMap = new Map(
-            Object.entries(build).map(([slotId, val]) => [
-                `${val.id}::${val.name}`,
-                { slotId, ...val }
-            ])
-        );
+        // เดิน tree: ช่องไหนมีของบันทึกไว้ (build[slot.id]) -> หา item ในช่องนั้นด้วย id แล้ว set ตาม slot.id
+        // slot.id คงที่ (GUID จากเกม) จึง match ตรงช่อง รองรับมอดตัวเดียวกันในหลายช่อง และไม่มี key ปนเลข index
+        const result = {};
+        const walk = (slots) => {
+            (slots || []).forEach((slot) => {
+                const saved = build[slot.id];
+                if (!saved) return;
+                const item = (slot.filters?.allowedItems || []).find((a) => a.id === saved.id);
+                if (item) {
+                    result[slot.id] = item;
+                    walk(item.properties?.slots); // ลงช่องย่อยของชิ้นที่ใส่
+                }
+            });
+        };
+        walk(baseWeapon.properties?.slots);
 
-        const result = [...buildState].reduce((acc, item, i) => {
-            const key = `${item.id}::${item.name}`;
-            if (matchMap.has(key)) {
-                const { slotId, ...rest } = matchMap.get(key);
-                acc[slotId] = { ...rest, ...item };
-            } else {
-                acc[i] = item;
-            }
-            return acc;
-        }, {});
         setBuildState(result);
         setIsLoading(false);
+    };
 
-        // console.log(baseWeapon);
-        // console.log(result);
-
-    }
+    // ถ้ามาจากปุ่ม "Edit build" ในหน้า optimizer -> อ่าน build ที่ฝากไว้แล้วโหลด (ทำครั้งเดียวตอน dataset พร้อม)
+    useEffect(() => {
+        if (!dataset) return;
+        const raw = localStorage.getItem(EDIT_BUILD_KEY);
+        if (!raw) return;
+        localStorage.removeItem(EDIT_BUILD_KEY);
+        try {
+            const h = JSON.parse(raw);
+            if (h?.base_weapon?.id) getSavePreset(h.base_weapon, h.build_state || {});
+        } catch (e) {
+            console.error('load edit build failed:', e);
+        }
+    }, [dataset]);
 
     return (
         <>
@@ -924,7 +990,7 @@ export default function WeaponBuild() {
                             </div>
 
                             <div className="col-lg-8">
-                                <WeaponPreview baseWeapon={selectedWeapon} buildState={buildState} />
+                                <WeaponPreview baseWeapon={selectedWeapon} buildState={buildState} onClear={() => setBuildState({})} />
                                 <div className="card bg-dark border-secondary">
                                     <div
                                         className="card-header bg-transparent border-secondary text-light fw-bold d-flex align-items-center"
@@ -1021,13 +1087,22 @@ export default function WeaponBuild() {
                                     type="text"
                                     className="form-control bg-dark text-light border-secondary"
                                     value={presetName}
-                                    onChange={(e) => setPresetName(e.target.value)} />
+                                    autoFocus
+                                    placeholder="Preset name"
+                                    onChange={(e) => setPresetName(e.target.value)}
+                                    onKeyDown={(e) => { if (e.key === 'Enter' && presetName.trim()) savePresets(presetName, true); }} />
                             </div>
+                            {save.some((p) => p.preset_name === presetName.trim()) && presetName.trim() && (
+                                <div className="text-warning small mt-2 text-center">Name exists — will overwrite</div>
+                            )}
                             <div style={styless.modalButtonsContainerStyle}>
                                 <button onClick={() => setIsPopup(false)} style={styless.modalCancelButtonStyle}>
                                     Cancel
                                 </button>
-                                <button onClick={() => savePresets(presetName, true)} style={styless.modalConfirmButtonStyle}>
+                                <button
+                                    onClick={() => savePresets(presetName, true)}
+                                    disabled={!presetName.trim()}
+                                    style={{ ...styless.modalConfirmButtonStyle, opacity: presetName.trim() ? 1 : 0.5, cursor: presetName.trim() ? 'pointer' : 'not-allowed' }}>
                                     Save
                                 </button>
                             </div>
