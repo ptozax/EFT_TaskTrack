@@ -117,7 +117,6 @@ const AddQuest = () => {
 
   const addQuest = (quest) => {
     const mode = addModeRef.current;
-    console.log("REAL MODE:", mode);
 
     if (!mode) {
       const saved = getSavedQuests();
@@ -133,7 +132,6 @@ const AddQuest = () => {
 
       const completedQuests = JSON.parse(localStorage.getItem(COMPLETE_KEY) || "[]"); //load
       const newCompleted = QuestComponent.getPreviousQuestsList(quest.id, completedQuests); // find success
-      console.log("New Completed Quests List:", newCompleted);
 
 
       const uniqueSet = new Set([...completedQuests, ...newCompleted]); // a+b

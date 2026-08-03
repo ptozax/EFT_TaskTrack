@@ -7,8 +7,8 @@ import Badge from 'react-bootstrap/Badge';
 
 import { NavLink } from 'react-router-dom';
 
-import { GiHomeGarage, GiPc, GiTreeGrowth, GiTrophy, GiMachineGunMagazine, GiProgression } from 'react-icons/gi';
-import { FaGem, FaMap, FaQrcode, FaTools, FaExchangeAlt } from 'react-icons/fa';
+import { GiHomeGarage, GiPc, GiTreeGrowth, GiTrophy, GiMachineGunMagazine, GiProgression, GiBullets, GiBulletImpacts, GiKevlarVest, GiGunStock } from 'react-icons/gi';
+import { FaGem, FaMap, FaQrcode, FaTools, FaExchangeAlt, FaCamera, FaStore } from 'react-icons/fa';
 import { kappaStyles as styles, COLORS } from './EftComponent';
 import BEAR from '/BEAR_Icon.webp';
 import USEC from '/USEC_Emblem.webp';
@@ -29,11 +29,13 @@ function AppNavbar() {
         },
         {
             key: "#/Tools", href: "", icon: FaTools, text: "Tools", subLinks: [
-                { key: "#/Balistic", href: "/Balistic", icon: GiMachineGunMagazine, text: "Balistic" },
-                { key: "#/ItemPrice", href: "/ItemPrice", icon: FaExchangeAlt, text: "Item Price" },
-                { key: "#/WeaponBuild", href: "/WeaponBuild", icon: FaExchangeAlt, text: "Weapon Build" },
+                { key: "#/Balistic", href: "/Balistic", icon: GiBullets, text: "Balistic" },
+                { key: "#/ItemPrice", href: "/ItemPrice", icon: FaCamera, text: "Item Price" },
+                { key: "#/PriceList", href: "/PriceList", icon: FaStore, text: "Price List" },
+                { key: "#/GearPreview", href: "/GearPreview", icon: GiKevlarVest, text: "Gear Preview" },
+                { key: "#/WeaponBuild", href: "/WeaponBuild", icon: GiGunStock, text: "Weapon Build" },
                 { key: "#/WeaponOptimizer", href: "/WeaponOptimizer", icon: GiMachineGunMagazine, text: "Weapon Optimizer" },
-                { key: "#/CaliberOptimizer", href: "/CaliberOptimizer", icon: GiMachineGunMagazine, text: "Caliber Optimizer" }]
+                { key: "#/CaliberOptimizer", href: "/CaliberOptimizer", icon: GiBulletImpacts, text: "Caliber Optimizer" }]
         },
 
     ];
@@ -79,7 +81,7 @@ function AppNavbar() {
 
     const onChangeSelectReset = (value) => {
         if (value === "All") {
-            setObjectiveLocations([]);
+            setSelectReset([]);
             return;
         }
         setSelectReset((prev) =>

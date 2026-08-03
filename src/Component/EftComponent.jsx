@@ -540,6 +540,22 @@ export const mapStyles = {
         color: 'black',
         cursor: 'help'
     },
+    mapLabel: {
+        marginTop: '2px',
+        maxWidth: '90px',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        fontSize: '8px',
+        fontWeight: 700,
+        color: '#fff',
+        background: 'rgba(3, 7, 18, 0.82)',
+        border: '1px solid #64748b',
+        borderRadius: '4px',
+        padding: '0 4px',
+        lineHeight: '13px',
+        textAlign: 'center',
+    },
     keysMarker: {
         position: 'absolute',
         width: '7%',

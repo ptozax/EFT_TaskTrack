@@ -139,7 +139,6 @@ const Kappa = () => {
     useEffect(() => {
         const handleStorageChange = () => {
             try {
-                console.log("Storage changed detected! at Kappa");
 
                 const savedCompleted = localStorage.getItem('eft_completed_quests');
                 setCompletedIds(savedCompleted ? JSON.parse(savedCompleted) : []);

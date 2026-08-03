@@ -36,65 +36,16 @@ const ItemPrice = () => {
 
 
 
-  const getCurrentPrice = async (id) => {
-    setLoading(true);
-    const savegameplayMode = JSON.parse(localStorage.getItem('eft_gameplay_mode'));
-
-    const query = `
-      query MyQuery {
-        item(
-          id: "${id}",
-          gameMode: ${savegameplayMode === 'pve' ? 'pve' : 'regular'}
-        ) {
-          id
-          name
-          sellFor {
-            currency
-            price
-            priceRUB
-            source
-          }
-        }
-      }
-  `;
-
-    // 2. Fetch with params converted to string
-    try {
-      const response = await fetch('https://api.tarkov.dev/graphql', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({ query }),
-      });
-
-      const result = await response.json();
-
-      if (result.data && result.data.item) {
-        // console.log(result.data.item);
-        setItemList(currentItems =>
-          currentItems.map(item => {
-            // 1. Find the item by ID
-            if (item.id === result.data.item.id) {
-              // 2. Create a *new* object with the updates
-              return { ...item, sellFor: result.data.item.sellFor };
-            }
-            // 3. If it's not the one we want, return it unchanged
-            return item;
-          })
-        );
-        setUpdatingIds(prev => {
-          const newSet = new Set(prev);
-          newSet.add(result.data.item.id);
-          return newSet;
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    } finally {
-      setLoading(false);
-    }
+  // อ่านราคาจาก items.json (สด จาก update-items) โดยตรง — ไม่พึ่ง GraphQL (ที่ล่มอยู่)
+  const getCurrentPrice = (id) => {
+    const data = items.find((i) => i.id === id);
+    if (!data) return;
+    setItemList((currentItems) =>
+      currentItems.map((item) =>
+        item.id === id ? { ...item, sellFor: data.sellFor, buyFor: data.buyFor } : item
+      )
+    );
+    setUpdatingIds((prev) => new Set(prev).add(id));
   };
 
   const startCapture = async () => {
@@ -372,7 +323,6 @@ const ItemPrice = () => {
   }
 
   const toggleRemoveItem = (id) => {
-    console.log(id);
 
     setItemList(prev => (prev.filter(item => item.id !== id)));
   }
@@ -565,6 +515,11 @@ const ItemPrice = () => {
 
                     const fleaMarket = item?.sellFor.find((t) => t.source === "fleaMarket");
 
+                    // ราคาซื้อที่ถูกที่สุด (จากพ่อค้า/Flea) — ต่ำสุด = ดีสุดเวลาซื้อ
+                    const bestBuy = (item?.buyFor || [])
+                      .filter((b) => b.priceRUB > 0)
+                      .sort((a, b) => a.priceRUB - b.priceRUB)[0];
+
                     // หาค่าราคาที่สูงที่สุดเพื่อกำหนด Tier
                     const maxPrice = Math.max(trader?.priceRUB || 0, fleaMarket?.priceRUB || 0);
                     const tier = getTierColor(maxPrice);
@@ -630,6 +585,16 @@ const ItemPrice = () => {
                                     <span className="fw-bold">
                                       {fleaMarket?.price?.toLocaleString()} {fleaMarket?.currency}
                                     </span>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Buy Price (แหล่งซื้อถูกสุด) */}
+                              {bestBuy && (
+                                <div className="p-2 rounded mt-2" style={{ background: 'rgba(40, 167, 69, 0.15)', borderLeft: '4px solid #28a745' }}>
+                                  <div className="d-flex justify-content-between align-items-center">
+                                    <small className="text-success fw-bold text-uppercase">BUY · {bestBuy.source}</small>
+                                    <span className="fw-bold">{bestBuy.price?.toLocaleString()} {bestBuy.currency}</span>
                                   </div>
                                 </div>
                               )}

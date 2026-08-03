@@ -113,7 +113,7 @@ query { items {
   inspectImageLink
   lastLowPrice
   sellFor { currency price priceRUB source }
-  buyFor  { currency price priceRUB source }
+  buyFor  { currency price priceRUB source vendor { ... on TraderOffer { minTraderLevel buyLimit } } }
 } }`;
 
 const HIDEOUT_QUERY = `

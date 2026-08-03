@@ -35,6 +35,30 @@ const getRandomColor = () => {
 const getObjectiveKey = (questId, objectiveId) =>
   `${questId}|${objectiveId}`;
 
+/* ---------------- SIDEBAR UI STYLES ---------------- */
+const UI = {
+  card: {
+    background: 'linear-gradient(180deg,#131f38 0%,#0e1830 100%)',
+    border: '1px solid #24324f',
+    borderRadius: '14px',
+    padding: '16px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+  },
+  cardTitle: {
+    fontSize: '11px', fontWeight: 800, color: '#7c8db0',
+    textTransform: 'uppercase', letterSpacing: '0.12em',
+    marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px',
+  },
+  pill: (active, color) => ({
+    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+    padding: '8px 6px', borderRadius: '10px', cursor: 'pointer', userSelect: 'none',
+    fontSize: '12px', fontWeight: 700, transition: 'all .15s ease',
+    border: `1px solid ${active ? color : '#2a3550'}`,
+    background: active ? `${color}22` : '#0e1730',
+    color: active ? color : '#64748b',
+  }),
+};
+
 /* ---------------- COMPONENT ---------------- */
 const MapPage = () => {
   /* ------------------ STATE SAVE ----------------------- */
@@ -78,6 +102,21 @@ const MapPage = () => {
   const [showKeys, setShowKeys] = useState(false);
   const [showCalibration, setShowCalibration] = useState(false);
 
+  // faction filter ของ extract (pmc / scav / shared)
+  const [extractFactions, setExtractFactions] = useState({ pmc: true, scav: true, shared: true });
+  const [showLabels, setShowLabels] = useState(true); // ป้ายชื่อทางออก/transit
+
+  // custom pins (ปักหมุดเอง) — เก็บต่อแผนที่ใน localStorage
+  const PINS_KEY = 'eft_map_pins';
+  const [pinMode, setPinMode] = useState(false);
+  const [customPins, setCustomPins] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(PINS_KEY)) || {}; } catch { return {}; }
+  });
+
+  // ค้นหาบนแผนที่ + ไฮไลต์จุดที่เลือก
+  const [mapSearch, setMapSearch] = useState('');
+  const [highlight, setHighlight] = useState(null); // { x, y } เป็น %
+
   const [mapCalibrations, setMapCalibrations] = useState(
     maps.reduce((acc, map) => ({
       ...acc,
@@ -115,7 +154,6 @@ const MapPage = () => {
   useEffect(() => {
     const handleStorageChange = () => {
       try {
-        console.log("Storage changed detected! at MAP");
 
         const savedQuests = localStorage.getItem(STORAGE_KEY);
         const savedChecklist = localStorage.getItem(OBJECTIVE_CHECK_KEY);
@@ -267,6 +305,87 @@ const MapPage = () => {
     return offset + (val * scale * direction);
   };
 
+  // สี + ไอคอนตาม faction ของ extract
+  const FACTION_COLORS = { pmc: '#10b981', scav: '#f97316', shared: '#3b82f6' };
+  const factionColor = (f) => FACTION_COLORS[f] || FACTION_COLORS.scav;
+  const factionImg = (f) => `https://tarkov.dev/maps/interactive/extract_${f === 'pmc' ? 'pmc' : f === 'shared' ? 'shared' : 'scav'}.png`;
+
+  // แปลง game position -> % บนภาพ (ใช้ transform ชุดเดียวกับ marker อื่น)
+  const posToPerc = (pos) => {
+    let fx = pos.x, fv = pos.z;
+    if (calib.swapXZ) { const t = fx; fx = fv; fv = t; }
+    return {
+      x: gameToPerc(fx, calib.offsetX, calib.scaleX, calib.flipX),
+      y: gameToPerc(fv, calib.offsetZ, calib.scaleZ, calib.flipZ),
+    };
+  };
+
+  // % ของจุดที่คลิกเทียบกับภาพ (เหมือน handleMouseMove)
+  const pctFromEvent = (e) => {
+    const rect = imageRef.current.getBoundingClientRect();
+    return {
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    };
+  };
+
+  // เลื่อนแผนที่ให้จุด (x%,y%) มาอยู่กลางจอ (ชดเชย zoom + rotation)
+  const centerOn = (xPerc, yPerc) => {
+    const img = imageRef.current; if (!img) return;
+    const dx = ((xPerc - 50) / 100) * img.clientWidth * zoom;
+    const dy = ((yPerc - 50) / 100) * img.clientHeight * zoom;
+    const rad = (rotation * Math.PI) / 180;
+    setOffset({
+      x: -(dx * Math.cos(rad) - dy * Math.sin(rad)),
+      y: -(dx * Math.sin(rad) + dy * Math.cos(rad)),
+    });
+  };
+
+  const pinsHere = customPins[currentMapName] || [];
+  const addPin = (xPerc, yPerc) => {
+    const label = (typeof window !== 'undefined' && window.prompt('Pin label (optional):', '')) || '';
+    setCustomPins(prev => {
+      const next = { ...prev, [currentMapName]: [...(prev[currentMapName] || []), { id: Date.now(), x: xPerc, y: yPerc, label }] };
+      localStorage.setItem(PINS_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
+  const removePin = (id) => {
+    setCustomPins(prev => {
+      const next = { ...prev, [currentMapName]: (prev[currentMapName] || []).filter(p => p.id !== id) };
+      localStorage.setItem(PINS_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  // ผลค้นหา extract / transit / key บนแผนที่ปัจจุบัน
+  const searchResults = React.useMemo(() => {
+    const q = mapSearch.trim().toLowerCase();
+    if (!q) return [];
+    const out = [];
+    currentFeatures.extracts?.forEach(e => { if (e.name?.toLowerCase().includes(q)) out.push({ type: 'Extract', name: e.name, pos: e.position, color: factionColor(e.faction) }); });
+    currentFeatures.transits?.forEach(t => { if ((t.description || 'transit').toLowerCase().includes(q)) out.push({ type: 'Transit', name: t.description || 'Transit', pos: t.position, color: '#f91616' }); });
+    currentFeatures.locks?.forEach(k => { if (k.key?.name?.toLowerCase().includes(q)) out.push({ type: 'Key', name: k.key.name, pos: k.position, color: '#eab308' }); });
+    return out.slice(0, 20);
+  }, [mapSearch, currentFeatures]);
+
+  const jumpTo = (pos, ensure) => {
+    if (ensure === 'key') setShowKeys(true);
+    const { x, y } = posToPerc(pos);
+    setZoom(z => Math.max(z, 2));
+    // เผื่อ zoom เพิ่งเปลี่ยน ใช้ค่า zoom ปัจจุบันคำนวณ center แบบ manual
+    const img = imageRef.current;
+    if (img) {
+      const z = Math.max(zoom, 2);
+      const dx = ((x - 50) / 100) * img.clientWidth * z;
+      const dy = ((y - 50) / 100) * img.clientHeight * z;
+      const rad = (rotation * Math.PI) / 180;
+      setOffset({ x: -(dx * Math.cos(rad) - dy * Math.sin(rad)), y: -(dx * Math.sin(rad) + dy * Math.cos(rad)) });
+    }
+    setHighlight({ x, y });
+    setTimeout(() => setHighlight(null), 3000);
+  };
+
   const handleMouseMove = (e) => {
     if (!imageRef.current) return;
     const rect = imageRef.current.getBoundingClientRect();
@@ -415,21 +534,22 @@ const MapPage = () => {
         padding: isSidebarOpen ? '24px' : '0',
         opacity: isSidebarOpen ? 1 : 0,
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-          <header style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <h1 style={{ fontSize: '20px', fontWeight: '800' }}>🗺️ Interactive Quest Map</h1>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+          <header style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ width: '4px', height: '26px', borderRadius: '4px', background: 'linear-gradient(#eab308,#f59e0b)' }} />
+            <h1 style={{ fontSize: '18px', fontWeight: '800', margin: 0, letterSpacing: '.02em' }}>Quest Map</h1>
           </header>
           <button
-            style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}
+            style={{ background: '#0e1730', border: '1px solid #24324f', borderRadius: '8px', color: '#94a3b8', cursor: 'pointer', padding: '4px 6px', display: 'flex' }}
             onClick={() => setIsSidebarOpen(false)}
             title="Close Sidebar"
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
           </button>
         </div>
 
-        <section>
-          <label style={styles.label}>Map Region</label>
+        <section style={UI.card}>
+          <div style={UI.cardTitle}>📍 Map Region</div>
           <select
             style={styles.select}
             value={selectedMapId}
@@ -448,32 +568,104 @@ const MapPage = () => {
         </section>
 
         {/* Map Feature Toggles */}
-        <section>
-          <label style={styles.label}>Map Features</label>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-            <label style={styles.checkboxRow}>
-              <input type="checkbox" checked={showExtracts} onChange={e => setShowExtracts(e.target.checked)} />
-              Extracts
-            </label>
-            <label style={styles.checkboxRow}>
-              <input type="checkbox" checked={showTransits} onChange={e => setShowTransits(e.target.checked)} />
-              Transits
-            </label>
-            <label style={styles.checkboxRow}>
-              <input type="checkbox" checked={showKeys} onChange={e => setShowKeys(e.target.checked)} />
-              Keys
-            </label>
+        <section style={UI.card}>
+          <div style={UI.cardTitle}>🧭 Layers</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+            {[
+              { label: 'Extracts', on: showExtracts, set: setShowExtracts, color: '#10b981' },
+              { label: 'Transits', on: showTransits, set: setShowTransits, color: '#f91616' },
+              { label: 'Keys', on: showKeys, set: setShowKeys, color: '#eab308' },
+            ].map(f => (
+              <div key={f.label} onClick={() => f.set(!f.on)} style={UI.pill(f.on, f.color)}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: f.color, opacity: f.on ? 1 : 0.4 }} />
+                {f.label}
+              </div>
+            ))}
           </div>
+
+          {/* Labels toggle (ชื่อทางออก/transit) */}
+          <div onClick={() => setShowLabels(v => !v)} style={{ ...UI.pill(showLabels, '#38bdf8'), marginTop: '8px' }}>
+            🏷️ Exit labels {showLabels ? 'ON' : 'OFF'}
+          </div>
+
+          {/* Extract faction filter */}
+          {showExtracts && (
+            <>
+              <div style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '.1em', margin: '14px 0 8px' }}>Extract faction</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                {['pmc', 'scav', 'shared'].map(f => (
+                  <div
+                    key={f}
+                    onClick={() => setExtractFactions(prev => ({ ...prev, [f]: !prev[f] }))}
+                    style={UI.pill(extractFactions[f], FACTION_COLORS[f])}
+                  >
+                    <span style={{ width: '9px', height: '9px', borderRadius: '50%', background: FACTION_COLORS[f], opacity: extractFactions[f] ? 1 : 0.4 }} />
+                    {f.toUpperCase()}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Custom pin toggle */}
+          <button
+            onClick={() => setPinMode(v => !v)}
+            style={{
+              marginTop: '14px', width: '100%', padding: '9px', borderRadius: '10px', cursor: 'pointer',
+              border: `1px solid ${pinMode ? '#facc15' : '#2a3550'}`,
+              background: pinMode ? '#facc15' : '#0e1730',
+              color: pinMode ? '#000' : '#cbd5e1', fontWeight: 700, fontSize: '13px', transition: 'all .15s ease',
+            }}
+            title="Toggle then click the map to drop a pin"
+          >
+            📍 {pinMode ? 'Pin mode ON — click the map' : 'Add custom pin'}
+          </button>
+          {pinsHere.length > 0 && (
+            <div style={{ fontSize: '11px', color: '#7c8db0', marginTop: '6px', textAlign: 'center' }}>
+              {pinsHere.length} pin(s) here · click a pin to remove
+            </div>
+          )}
+        </section>
+
+        {/* Search on map */}
+        <section style={UI.card}>
+          <div style={UI.cardTitle}>🔍 Search on map</div>
+          <input
+            style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #2a3550', background: '#0e1730', color: '#e2e8f0', fontSize: '13px', outline: 'none' }}
+            placeholder="extract / key / transit..."
+            value={mapSearch}
+            onChange={e => setMapSearch(e.target.value)}
+          />
+          {searchResults.length > 0 && (
+            <div style={{ marginTop: '8px', maxHeight: '220px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+              {searchResults.map((r, i) => (
+                <div
+                  key={i}
+                  onClick={() => jumpTo(r.pos, r.type === 'Key' ? 'key' : null)}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 9px', borderRadius: '8px', background: '#0e1730', border: '1px solid #24324f', cursor: 'pointer', fontSize: '12px', transition: 'background .15s ease' }}
+                  onMouseEnter={e => e.currentTarget.style.background = '#1b2946'}
+                  onMouseLeave={e => e.currentTarget.style.background = '#0e1730'}
+                >
+                  <span style={{ width: '9px', height: '9px', borderRadius: '50%', background: r.color, flexShrink: 0, boxShadow: `0 0 6px ${r.color}` }} />
+                  <span style={{ color: '#64748b', flexShrink: 0, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '.05em', width: '48px' }}>{r.type}</span>
+                  <span style={{ color: '#e2e8f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {mapSearch.trim() && searchResults.length === 0 && (
+            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>No match on this map</div>
+          )}
         </section>
 
         {questKeys.length > 0 && (
-          <section>
-            <div style={{ ...styles.label, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', cursor: 'pointer', }}
+          <section style={UI.card}>
+            <div style={{ ...UI.cardTitle, marginBottom: showQuestKey ? '12px' : 0, justifyContent: 'space-between', cursor: 'pointer' }}
               onClick={() => setShowQuestKey(!showQuestKey)}>
-              Key Lists ({questKeys.length})
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexGrow: 1, justifyContent: 'flex-end', minWidth: '100px', color: 'white' }}>
-                {showQuestKey ? <Icons.ChevronUp size={20} /> : <Icons.ChevronDown size={20} />}
-              </div>
+              <span>🔑 Key Lists ({questKeys.length})</span>
+              <span style={{ color: '#7c8db0', display: 'flex' }}>
+                {showQuestKey ? <Icons.ChevronUp size={18} /> : <Icons.ChevronDown size={18} />}
+              </span>
             </div>
             {showQuestKey && (
               <div style={{
@@ -530,8 +722,13 @@ const MapPage = () => {
 
         )}
 
-        <section style={{ flex: 1 }}>
-          <label style={styles.label}>Tracked ({trackedQuests.length})</label>
+        <section style={{ ...UI.card, flex: 1 }}>
+          <div style={UI.cardTitle}>🎯 Tracked Quests ({trackedQuests.length})</div>
+          {trackedQuests.length === 0 && (
+            <div style={{ fontSize: '12px', color: '#64748b', textAlign: 'center', padding: '12px 0' }}>
+              No quests tracked yet
+            </div>
+          )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {trackedQuests.map((tq) => {
               const fullQuest = quests.find(qd => qd.name === tq.name);
@@ -693,7 +890,11 @@ const MapPage = () => {
         <div
           style={{ width: '100%', height: '100%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: isDragging ? 'grabbing' : 'grab' }}
           onMouseMove={handleMouseMove}
-          onMouseDown={(e) => { if (e.button === 0) { setIsDragging(true); setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y }); } }}
+          onMouseDown={(e) => {
+            if (e.button !== 0) return;
+            if (pinMode) { const { x, y } = pctFromEvent(e); addPin(x, y); return; }
+            setIsDragging(true); setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
+          }}
           onWheel={(e) => setZoom(prev => Math.max(0.5, Math.min(10, prev + (e.deltaY > 0 ? -0.1 : 0.1))))}
         >
           <div style={{
@@ -728,6 +929,7 @@ const MapPage = () => {
             <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 25 }} viewBox="0 0 100 100" preserveAspectRatio="none">
               {showExtracts && !isLoading && currentFeatures.extracts.map((ext, idx) => {
                 if (!ext.outline || ext.outline.length === 0) return null;
+                if (extractFactions[ext.faction] === false) return null;
 
                 const pointsStr = ext.outline.map(pt => {
                   let finalX = pt.x;
@@ -744,16 +946,14 @@ const MapPage = () => {
                   return `${xPerc},${yPerc}`;
                 }).join(' ');
 
-                const isPMC = ext.faction === 'pmc';
-                const strokeColor = isPMC ? '#10b981' : '#f97316';
-                const fillColor = isPMC ? 'rgba(16, 185, 129, 0.2)' : 'rgba(249, 115, 22, 0.2)';
+                const col = factionColor(ext.faction);
 
                 return (
                   <polygon
                     key={`outline-${idx}`}
                     points={pointsStr}
-                    fill={fillColor}
-                    stroke={strokeColor}
+                    fill={`${col}33`}
+                    stroke={col}
                     strokeWidth={0.2 * markerScale}
                     vectorEffect="non-scaling-stroke"
                   />
@@ -763,6 +963,7 @@ const MapPage = () => {
 
             {/* Extracts Markers (Labels) */}
             {showExtracts && !isLoading && currentFeatures.extracts.map((ext, idx) => {
+              if (extractFactions[ext.faction] === false) return null;
               let finalX = ext.position.x;
               let finalVertical = ext.position.z;
               if (calib.swapXZ) {
@@ -770,22 +971,28 @@ const MapPage = () => {
                 finalX = finalVertical;
                 finalVertical = temp;
               }
-
-              const isPMC = ext.faction === 'pmc';
+              const col = factionColor(ext.faction);
 
               return (
-                <div key={`ext-${idx}`} >
+                <div key={`ext-${idx}`} style={{
+                  position: 'absolute',
+                  left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
+                  top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
+                  transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg)`,
+                  zIndex: 28, display: 'flex', flexDirection: 'column', alignItems: 'center', pointerEvents: 'none',
+                }}>
                   <img
-                    src={isPMC ? `https://tarkov.dev/maps/interactive/extract_pmc.png` : `https://tarkov.dev/maps/interactive/extract_scav.png`}
+                    src={factionImg(ext.faction)}
                     onLoad={() => setIsLoading(false)}
+                    onError={(e) => { e.target.src = 'https://tarkov.dev/maps/interactive/extract_scav.png'; }}
                     title={`${ext.name} (${ext.faction})`}
-                    style={{
-                      ...styles.extractMarker,
-                      left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
-                      top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
-                      transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg)`,
-                    }}
+                    style={{ width: '20px', height: '20px', filter: 'drop-shadow(0 1px 2px #000)' }}
                   />
+                  {showLabels && (
+                    <div style={{ ...styles.mapLabel, borderColor: col }} title={`${ext.name} (${ext.faction})`}>
+                      {ext.name}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -832,20 +1039,27 @@ const MapPage = () => {
                 finalX = finalVertical;
                 finalVertical = temp;
               }
+              const label = trans.description || 'Transit';
 
               return (
-                <div key={`trans-${idx}`} >
+                <div key={`trans-${idx}`} style={{
+                  position: 'absolute',
+                  left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
+                  top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
+                  transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg)`,
+                  zIndex: 28, display: 'flex', flexDirection: 'column', alignItems: 'center', pointerEvents: 'none',
+                }}>
                   <img
                     src={`https://tarkov.dev/maps/interactive/extract_transit.png`}
                     onLoad={() => setIsLoading(false)}
-                    title={trans.description || 'Transit'}
-                    style={{
-                      ...styles.extractMarker,
-                      left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
-                      top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
-                      transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg)`,
-                    }}
+                    title={label}
+                    style={{ width: '20px', height: '20px', filter: 'drop-shadow(0 1px 2px #000)' }}
                   />
+                  {showLabels && (
+                    <div style={{ ...styles.mapLabel, borderColor: '#f91616' }} title={label}>
+                      {label}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -963,9 +1177,39 @@ const MapPage = () => {
                 });
               });
             })}
+
+            {/* Custom Pins (ปักหมุดเอง) */}
+            {!isLoading && pinsHere.map((pin) => (
+              <div key={`pin-${pin.id}`} style={{
+                position: 'absolute',
+                left: `${pin.x}%`, top: `${pin.y}%`,
+                transform: `translate(-50%, -100%) scale(${markerScale}) rotate(${-rotation}deg)`,
+                zIndex: 40, cursor: 'pointer', textAlign: 'center', pointerEvents: 'auto',
+              }}
+                title={pin.label || 'Pin'}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); if (window.confirm(`Remove pin${pin.label ? ` "${pin.label}"` : ''}?`)) removePin(pin.id); }}
+              >
+                <div style={{ fontSize: '18px', lineHeight: 1, filter: 'drop-shadow(0 1px 2px #000)' }}>📍</div>
+                {pin.label && <div style={{ fontSize: '9px', color: '#fff', background: 'rgba(0,0,0,0.7)', borderRadius: '3px', padding: '0 3px', whiteSpace: 'nowrap' }}>{pin.label}</div>}
+              </div>
+            ))}
+
+            {/* Search highlight ring */}
+            {highlight && (
+              <div style={{
+                position: 'absolute', left: `${highlight.x}%`, top: `${highlight.y}%`,
+                width: `${24 * markerScale}px`, height: `${24 * markerScale}px`,
+                border: '3px solid #facc15', borderRadius: '50%',
+                boxShadow: '0 0 12px #facc15',
+                transform: 'translate(-50%, -50%)', zIndex: 45, pointerEvents: 'none',
+                animation: 'pulseRing 1s ease-out infinite',
+              }} />
+            )}
           </div>
         </div>
       </main>
+      <style>{`@keyframes pulseRing { 0%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:.3;transform:translate(-50%,-50%) scale(1.6)} }`}</style>
     </div>
   );
 };
