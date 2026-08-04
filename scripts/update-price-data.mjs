@@ -26,7 +26,7 @@ const SRC = resolve(ROOT, 'src', 'data', 'items.json');
 const OUT = resolve(ROOT, 'public', 'price_data.json');
 // flat file (แหล่งเดียวกับเว็บ tarkov.dev) — ใช้แทน GraphQL ที่ล่มอยู่
 const BARTERS_URL = 'https://json.tarkov.dev/regular/barters';
-const TRADERS_URL = 'https://json.tarkov.dev/regular/traders';
+const TRADERS_URL = 'https://1.tarkov.dev/regular/traders';
 
 // currency item ids — ใช้แยก "cash purchase" ออกจาก barter จริง
 const CURRENCY_IDS = new Set([

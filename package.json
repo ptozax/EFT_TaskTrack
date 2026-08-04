@@ -14,8 +14,8 @@
     "update-price": "node scripts/update-price-data.mjs",
     "update-gear": "node scripts/update-gear-data.mjs",
     "update-data": "node scripts/update-data.mjs",
-    "update": "npm run update-items && npm run update-price && npm run update-gear",
-    "update-graphql": "npm run update-data && npm run update-optimizer",
+    "update": "npm run update-items && npm run update-price && npm run update-gear && npm run update-optimizer",
+    "update-all": "npm run update && npm run update-data",
     "lint": "eslint .",
     "preview": "vite preview"
   },

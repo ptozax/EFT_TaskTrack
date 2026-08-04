@@ -774,9 +774,9 @@ export const GMO_CSS = `
 .gmo{--bg:#0b1120;--panel:#1e293b;--panel2:#273449;--line:#334155;--txt:#e2e8f0;--dim:#94a3b8;--acc:#eab308;--acc2:#f59e0b;--good:#22c55e;--bad:#ef4444;
   background:var(--bg);color:var(--txt);font-family:"Segoe UI",Tahoma,sans-serif;font-size:14px;min-height:calc(100vh - 56px)}
 .gmo *{box-sizing:border-box}
-.gmo-header{padding:16px 22px;border-bottom:1px solid var(--line);background:var(--panel)}
-.gmo-header h1{margin:0;font-size:19px;color:var(--acc);letter-spacing:.5px}
-.gmo-header p{margin:4px 0 0;color:var(--dim);font-size:12px}
+.gmo-header{padding:18px 24px;border-bottom:1px solid var(--line);background:linear-gradient(120deg,#1b2740 0%,#0e1830 70%);border-left:4px solid var(--acc)}
+.gmo-header h1{margin:0;font-size:25px;font-weight:800;font-style:italic;color:#f1f5f9;letter-spacing:.3px}
+.gmo-header p{margin:6px 0 0;color:var(--dim);font-size:12.5px;max-width:760px}
 .gmo-wrap{display:grid;grid-template-columns:340px 1fr;gap:0;min-height:calc(100vh - 118px)}
 @media(max-width:820px){.gmo-wrap{grid-template-columns:1fr}}
 .gmo-side{background:var(--panel);border-right:1px solid var(--line);padding:18px}
@@ -790,24 +790,38 @@ export const GMO_CSS = `
 .gmo-seg{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
 .gmo-seg button{flex:1;min-width:70px;padding:8px 6px;background:var(--panel2);border:1px solid var(--line);color:var(--dim);border-radius:6px;cursor:pointer;font-size:12px}
 .gmo-seg button.on{background:var(--acc);color:#0b1120;border-color:var(--acc);font-weight:600}
-.gmo-go{width:100%;margin-top:20px;padding:12px;background:var(--acc);color:#0b1120;border:none;border-radius:7px;font-size:15px;font-weight:700;cursor:pointer}
+.gmo-go{width:100%;padding:12px;background:var(--acc);color:#0b1120;border:none;border-radius:7px;font-size:15px;font-weight:700;cursor:pointer}
 .gmo-go:hover:not(:disabled){filter:brightness(1.08)}
 .gmo-go:disabled{opacity:.4;cursor:not-allowed}
 .gmo-go2{width:100%;margin-top:10px;padding:11px;background:transparent;color:var(--acc);border:1px solid var(--acc);border-radius:7px;font-size:14px;font-weight:600;cursor:pointer}
 .gmo-go2:hover:not(:disabled){background:var(--acc);color:#0b1120}
 .gmo-go2:disabled{opacity:.4;cursor:not-allowed}
-.gmo-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:18px}
-.gmo-stats .stat{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
-.gmo-stats .k{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
-.gmo-stats .v{font-size:22px;font-weight:700;margin-top:3px}
+/* ---- top action toolbar ---- */
+.gmo-toolbar{display:flex;gap:6px;flex-wrap:nowrap;align-items:stretch;padding:1px 5px 1px}
+.gmo-tool{height:48px;min-width:48px;padding:0 14px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:20px;font-weight:700;border-radius:12px;cursor:pointer;background:linear-gradient(180deg,#243247,#1a2536);color:#e2e8f0;border:1px solid #334155;box-shadow:0 2px 6px rgba(0,0,0,.35);transition:transform .12s,border-color .12s,box-shadow .12s,filter .12s}
+.gmo-tool:hover:not(:disabled){border-color:var(--acc);transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.45)}
+.gmo-tool:active:not(:disabled){transform:translateY(0);box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.gmo-tool:disabled{opacity:.4;cursor:not-allowed}
+.lbl{font-size:0.6rem;font-weight:700}
+/* uniform tile: icon on top + label inside, equal size */
+.gmo-tool.tile{flex:1 1 0;width:auto;min-width:0;height:60px;flex-direction:column;padding:8px 3px;gap:5px;font-size:23px;line-height:1}
+.gmo-tool.tile .lbl{font-size:10.5px;font-weight:600;line-height:1.12;text-align:center;white-space:normal}
+.gmo-tool.primary{background:linear-gradient(180deg,#3b300f,#241c08);color:#f6ce4b;border-color:#eab308;box-shadow:0 0 0 1px rgba(234,179,8,.25) inset,0 0 12px rgba(234,179,8,.22),0 2px 6px rgba(0,0,0,.35)}
+.gmo-tool.primary:hover:not(:disabled){filter:brightness(1.12);border-color:#f6ce4b;box-shadow:0 0 0 1px rgba(246,206,75,.4) inset,0 0 18px rgba(234,179,8,.4)}
+.gmo-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:18px}
+.gmo-stats .stat{background:linear-gradient(180deg,#1e293b,#172033);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,.28);transition:.15s}
+.gmo-stats .stat:hover{border-color:var(--acc);transform:translateY(-2px)}
+.gmo-stats .k{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px}
+.gmo-stats .v{font-size:24px;font-weight:800;margin-top:4px}
 .gmo .stat-d{font-size:12px;margin-top:2px}
 .gmo .up{color:var(--good)}.gmo .down{color:var(--bad)}
-.gmo-build{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.gmo-build{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.28)}
 .gmo-row{display:flex;align-items:center;gap:12px;padding:9px 14px;border-top:1px solid var(--line)}
 .gmo-row:first-child{border-top:none}
 .gmo-row.basegun{background:var(--panel2)}
 .gmo-row.basegun img{width:96px;height:52px}
-.gmo-gunlist{margin-top:6px;max-height:360px;overflow-y:auto;background:var(--panel2);border:1px solid var(--line);border-radius:7px}
+.gmo-gunlist{margin-top:6px;max-height:360px;overflow-y:auto;background:var(--panel2);border:1px solid var(--line);border-radius:10px}
+.gmo-gunlist .gitem{transition:background .12s}
 .gmo-gunlist .gitem{display:flex;align-items:center;gap:10px;padding:7px 9px;cursor:pointer;border-top:1px solid var(--line)}
 .gmo-gunlist .gitem:first-child{border-top:none}
 .gmo-gunlist .gitem:hover{background:var(--panel)}
@@ -857,11 +871,11 @@ export const GMO_CSS = `
 .gmo-footer{color:var(--dim);font-size:11px;padding:14px 22px;border-top:1px solid var(--line);margin-top:14px}
 
 /* ---- Caliber Optimizer: ranking table + progress ---- */
-.gmo-progress{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px 18px;margin-bottom:18px}
+.gmo-progress{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,.28)}
 .gmo-progress .plabel{font-size:13px;color:var(--txt);margin-bottom:8px}
 .gmo-progress .ptrack{height:10px;border-radius:6px;background:var(--panel2);overflow:hidden;border:1px solid var(--line)}
 .gmo-progress .pfill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:6px;transition:width .15s}
-.gmo-rank{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.gmo-rank{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.28)}
 .gmo-rank-head{display:flex;align-items:center;gap:12px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--panel2);font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
 .gmo-grouphdr{padding:10px 14px;font-size:12px;color:var(--acc);text-transform:uppercase;letter-spacing:.5px;background:var(--panel2);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .gmo-grouphdr.dim{color:var(--dim)}

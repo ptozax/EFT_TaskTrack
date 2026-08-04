@@ -244,6 +244,9 @@ export default function CaliberOptimizer() {
       {data && (
         <div className="gmo-wrap">
           <div className="gmo-side">
+            <button className="gmo-go" onClick={run} disabled={!canRun}>
+              {running ? '⏳ Calculating…' : '🔍 Find best-value gun'}
+            </button>
             <label>Select caliber</label>
             <div className="gmo-gunlist">
               {calibers.length ? (
@@ -362,10 +365,6 @@ export default function CaliberOptimizer() {
               💡 Total price = gun price + mods cost • Guns that can never reach the target are listed at the bottom, each
               with its lowest achievable recoil so you can still compare • If you turn off "Only purchasable mods", mods without a price count as ₽0 — the price ranking may be off
             </div>
-
-            <button className="gmo-go" onClick={run} disabled={!canRun}>
-              {running ? '⏳ Calculating…' : '🔍 Find best-value gun'}
-            </button>
           </div>
 
           <div className="gmo-main">

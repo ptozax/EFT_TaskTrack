@@ -136,6 +136,25 @@ export default function WeaponOptimizer() {
       {data && (
         <div className="gmo-wrap">
           <div className="gmo-side">
+            {/* action toolbar */}
+            <div className="gmo-toolbar">
+              <button className="gmo-tool tile primary" onClick={run} disabled={!gunId} title="Find best build">
+                🔧<span className="lbl">Find build</span>
+              </button>
+              <button
+                className="gmo-tool tile"
+                onClick={async () => { setExporting(true); try { await exportCardImage(build); } finally { setExporting(false); } }}
+                disabled={!build || exporting} title="Download build card (PNG)"
+              >
+                {exporting ? '⏳' : '📥'}<span className="lbl">Download</span>
+              </button>
+              <button className="gmo-tool tile" onClick={() => openCardTab(build)} disabled={!build} title="Open card in a new tab">
+                📤<span className="lbl">Open card</span>
+              </button>
+              <button className="gmo-tool tile" onClick={() => { if (stashBuildForEdit(build)) navigate('/WeaponBuild'); }} disabled={!build} title="Edit build in Weapon Build">
+                ✏️<span className="lbl">Edit build</span>
+              </button>
+            </div>
             <label>Search / select a gun</label>
             <input
               type="text"
@@ -251,33 +270,6 @@ export default function WeaponOptimizer() {
               Only purchasable mods (with a price)
             </label>
 
-            <button className="gmo-go" onClick={run} disabled={!gunId}>
-              🔧 Find best build
-            </button>
-            <button
-              className="gmo-go2"
-              onClick={async () => {
-                setExporting(true);
-                try {
-                  await exportCardImage(build);
-                } finally {
-                  setExporting(false);
-                }
-              }}
-              disabled={!build || exporting}
-            >
-              {exporting ? '⏳ Generating image…' : '📥 Download build card (PNG)'}
-            </button>
-            <button className="gmo-go2" onClick={() => openCardTab(build)} disabled={!build}>
-              📤 Open card in a new tab
-            </button>
-            <button
-              className="gmo-go2"
-              onClick={() => { if (stashBuildForEdit(build)) navigate('/WeaponBuild'); }}
-              disabled={!build}
-            >
-              ✏️ Edit build in Weapon Build
-            </button>
           </div>
 
           <div className="gmo-main">

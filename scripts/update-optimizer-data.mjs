@@ -1,187 +1,163 @@
 #!/usr/bin/env node
 /* =========================================================================
  * update-optimizer-data.mjs
- * ดึงข้อมูลปืน + มอด จาก tarkov.dev GraphQL แล้วเขียนลง public/optimizer_data.json
- * ให้ตรงกับ shape ที่ src/pages/WeaponOptimizer.jsx ใช้งาน
+ * ดึงข้อมูลปืน + มอด จาก json.tarkov.dev (flat file — สดกว่า/ไม่พึ่ง GraphQL)
+ * แล้วเขียนลง public/optimizer_data.json ให้ตรง shape ที่ WeaponOptimizer /
+ * WeaponBuild / CaliberOptimizer ใช้งาน
  *
  * รูปแบบผลลัพธ์:
  *   {
- *     guns: [ { id, name, shortName, caliber, icon, ergo, recoilV, recoilH, weight, price,
- *               slots:[{ name, nameId, required, allowed:[modId,...] }] } ],
- *     mods: { [id]: { id, name, shortName, types, icon, ergo, recoil, acc, weight,
- *                     capacity, price, conflicts:[id,...], slots:[...] } }
+ *     guns: [ { id, name, shortName, caliber, icon, image, ergo, recoilV, recoilH,
+ *               fireRate, moa, weight, price, buyFor:[...], slots:[{id,name,nameId,required,allowed:[modId,...]}] } ],
+ *     mods: { [id]: { id, name, shortName, types, icon, ergo, recoil, acc, moa, weight,
+ *                     capacity, price, buyFor:[...], conflicts:[id,...], slots:[...] } }
  *   }
  *
- * วิธีใช้:  node scripts/update-optimizer-data.mjs
+ * ต้องใช้ Node 18+ (global fetch)  ->  nvm use 22 && node scripts/update-optimizer-data.mjs
  * ========================================================================= */
 
 import { writeFile, mkdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const API = 'https://api.tarkov.dev/graphql';
+const BASE = 'https://json.tarkov.dev/regular';
 const OUT = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'public', 'optimizer_data.json');
 
-// slots ใช้ร่วมกันได้ระหว่าง gun / mod — allowed = list ของ item id ที่ใส่ได้
-// เก็บ id ของ slot ด้วย (WeaponBuild ใช้เป็น key ของ buildState / preset)
-const SLOT_FRAGMENT = `
-  slots {
-    id
-    name
-    nameId
-    required
-    filters { allowedItems { id } }
-  }`;
-
-// ราคาแบบละเอียด (หลายสกุลเงิน + พ่อค้า) สำหรับหน้า WeaponBuild
-const BUYFOR_FRAGMENT = `
-  buyFor {
-    price
-    currency
-    priceRUB
-    vendor { name }
-  }`;
-
-const QUERY = `
-query OptimizerData {
-  guns: items(types: gun) {
-    id
-    name
-    shortName
-    weight
-    iconLink
-    image512pxLink
-    ${BUYFOR_FRAGMENT}
-    properties {
-      __typename
-      ... on ItemPropertiesWeapon {
-        caliber
-        ergonomics
-        recoilVertical
-        recoilHorizontal
-        fireRate
-        defaultPreset { image512pxLink iconLink }
-        ${SLOT_FRAGMENT}
-      }
-    }
-  }
-  mods: items(types: mods) {
-    id
-    name
-    shortName
-    types
-    weight
-    iconLink
-    ${BUYFOR_FRAGMENT}
-    conflictingItems { id }
-    properties {
-      __typename
-      ... on ItemPropertiesWeaponMod { ergonomics recoilModifier accuracyModifier ${SLOT_FRAGMENT} }
-      ... on ItemPropertiesMagazine   { ergonomics recoilModifier capacity ${SLOT_FRAGMENT} }
-      ... on ItemPropertiesScope       { ergonomics recoilModifier ${SLOT_FRAGMENT} }
-      ... on ItemPropertiesBarrel      { ergonomics recoilModifier ${SLOT_FRAGMENT} }
-    }
-  }
-}`;
-
-// typenames ที่ถือเป็น "มอด" ที่ optimizer ใช้ได้ (ตัด NightVision / null ทิ้ง)
-const MOD_TYPENAMES = new Set([
+// propertiesType ที่ถือเป็น "มอด" ที่ optimizer ใช้ได้
+const MOD_PTYPES = new Set([
   'ItemPropertiesWeaponMod',
   'ItemPropertiesMagazine',
   'ItemPropertiesScope',
   'ItemPropertiesBarrel',
 ]);
 
-async function fetchData(retries = 3) {
+async function fetchJson(url, retries = 3) {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const res = await fetch(API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ query: QUERY }),
-      });
+      const res = await fetch(url, { headers: { Accept: 'application/json' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = await res.json();
-      if (json.errors) throw new Error('GraphQL: ' + JSON.stringify(json.errors));
-      return json.data;
+      return await res.json();
     } catch (err) {
-      console.warn(`  ! attempt ${attempt}/${retries} failed: ${err.message}`);
+      console.warn(`  ! ${url} attempt ${attempt}/${retries}: ${err.message}`);
       if (attempt === retries) throw err;
-      await new Promise((r) => setTimeout(r, 1500 * attempt));
+      await new Promise((r) => setTimeout(r, 2000 * attempt));
     }
   }
 }
 
-// ราคาที่ถูกที่สุดที่ "ซื้อได้" (RUB) — null ถ้าซื้อไม่ได้เลย (เช่นของ noFlea + ไม่มี trader)
+// ราคาที่ถูกที่สุดที่ "ซื้อได้" (RUB) — null ถ้าซื้อไม่ได้เลย
 const buyPrice = (buyFor) => {
   const prices = (buyFor || []).map((b) => b.priceRUB).filter((p) => p != null && p > 0);
   return prices.length ? Math.min(...prices) : null;
 };
 
-// recoilModifier จาก API เป็นสัดส่วน (-0.26) -> เก็บเป็นเปอร์เซ็นต์ (-26) ทศนิยม 2 ตำแหน่ง
+// recoilModifier เป็นสัดส่วน (-0.26) -> เก็บเป็นเปอร์เซ็นต์ (-26) ทศนิยม 2 ตำแหน่ง
 const toPct = (v) => (v ? Math.round(v * 10000) / 100 : 0);
+
+// slot.name ใน flat เป็นตัวพิมพ์ใหญ่ (MOD_PISTOL_GRIP) — ทำเป็นชื่ออ่านง่ายจาก nameId
+const prettySlot = (nameId, fallback) => {
+  if (!nameId) return fallback || '';
+  return nameId
+    .replace(/^mod_/, '')
+    .split('_')
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+};
 
 const mapSlots = (slots) =>
   (slots || []).map((s) => ({
     id: s.id,
-    name: s.name,
+    name: prettySlot(s.nameId, s.name),
     nameId: s.nameId,
     required: !!s.required,
-    allowed: (s.filters?.allowedItems || []).map((a) => a.id),
+    allowed: s.filters?.allowedItems || [], // flat = array ของ id string อยู่แล้ว
   }));
 
-// buyFor แบบเต็มไว้ให้ WeaponBuild (หลายสกุลเงิน + พ่อค้า)
-const mapBuyFor = (buyFor) =>
-  (buyFor || [])
-    .filter((b) => b && b.priceRUB != null)
-    .map((b) => ({ price: b.price, currency: b.currency, priceRUB: b.priceRUB, vendor: { name: b.vendor?.name } }));
-
 async function main() {
-  console.log('→ ดึงข้อมูลจาก tarkov.dev ...');
-  const data = await fetchData();
+  console.log('→ ดึง items / items_en / traders จาก flat file ...');
+  const [itemsJson, enJson, tradersJson] = await Promise.all([
+    fetchJson(`${BASE}/items`),
+    fetchJson(`${BASE}/items_en`),
+    fetchJson(`${BASE}/traders`),
+  ]);
 
-  const guns = data.guns
-    .filter((g) => g.properties?.__typename === 'ItemPropertiesWeapon')
+  const items = itemsJson.data.items; // { id: item }
+  const tr = enJson.data; // { "<key>": "English" }
+  const name = (key) => tr[key] ?? key;
+
+  // t.name ใน flat เป็น translation key -> ใช้ normalizedName แล้ว title-case (mechanic -> Mechanic)
+  const titleCase = (s) =>
+    (s || '').split(/[-\s]/).map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w)).join(' ');
+  const traderName = {};
+  Object.values(tradersJson.data.traders || tradersJson.data).forEach((t) => {
+    if (t?.id) traderName[t.id] = titleCase(t.normalizedName) || t.id;
+  });
+
+  // buyFor: ประกอบจาก buyFromTrader (+ flea ถ้าเทรดใน flea ได้) — shape เดิมของ WeaponBuild
+  const mapBuyFor = (it) => {
+    const out = (it.buyFromTrader || [])
+      .filter((o) => o && o.priceRUB != null)
+      .map((o) => ({
+        price: o.price,
+        currency: o.currency,
+        priceRUB: o.priceRUB,
+        vendor: { name: traderName[o.trader] || o.trader },
+      }));
+    const noFlea = (it.types || []).includes('noFlea');
+    if (!noFlea && it.avg24hPrice > 0) {
+      out.push({ price: it.avg24hPrice, currency: 'RUB', priceRUB: it.avg24hPrice, vendor: { name: 'Flea Market' } });
+    }
+    return out;
+  };
+
+  const guns = Object.values(items)
+    .filter((g) => g.properties?.propertiesType === 'ItemPropertiesWeapon')
     .map((g) => {
       const p = g.properties;
+      const preset = p.defaultPreset ? items[p.defaultPreset] : null;
+      const buyFor = mapBuyFor(g);
       return {
         id: g.id,
-        name: g.name,
-        shortName: g.shortName,
+        name: name(g.name),
+        shortName: name(g.shortName),
         caliber: p.caliber ? p.caliber.replace(/^Caliber/, '') : null,
         icon: g.iconLink || null,
-        // hi-res assembled "standard build" image (default preset), with fallbacks
-        image: p.defaultPreset?.image512pxLink || g.image512pxLink || g.iconLink || null,
+        // hi-res assembled "standard build" image (default preset) พร้อม fallback
+        image: preset?.image512pxLink || g.image512pxLink || g.iconLink || null,
         ergo: p.ergonomics ?? 0,
         recoilV: p.recoilVertical ?? 0,
         recoilH: p.recoilHorizontal ?? 0,
         fireRate: p.fireRate ?? 0,
+        moa: p.centerOfImpact ?? null,
         weight: g.weight ?? 0,
-        price: buyPrice(g.buyFor),
-        buyFor: mapBuyFor(g.buyFor),
+        price: buyPrice(buyFor),
+        buyFor,
         slots: mapSlots(p.slots),
       };
     })
     .sort((a, b) => a.name.localeCompare(b.name));
 
   const mods = {};
-  for (const m of data.mods) {
+  for (const m of Object.values(items)) {
     const p = m.properties;
-    if (!p || !MOD_TYPENAMES.has(p.__typename)) continue;
+    if (!p || !MOD_PTYPES.has(p.propertiesType)) continue;
+    const buyFor = mapBuyFor(m);
     mods[m.id] = {
       id: m.id,
-      name: m.name,
-      shortName: m.shortName,
+      name: name(m.name),
+      shortName: name(m.shortName),
       types: m.types || [],
       icon: m.iconLink || null,
       ergo: p.ergonomics ?? 0,
       recoil: toPct(p.recoilModifier),
       acc: p.accuracyModifier ?? 0,
+      moa: p.centerOfImpact ?? null, // barrel เท่านั้นที่มี — ใช้แทนค่า base MOA เมื่อติดตั้ง
       weight: m.weight ?? 0,
       capacity: p.capacity ?? null,
-      price: buyPrice(m.buyFor),
-      buyFor: mapBuyFor(m.buyFor),
-      conflicts: (m.conflictingItems || []).map((c) => c.id),
+      price: buyPrice(buyFor),
+      buyFor,
+      conflicts: m.conflictingItems || [], // flat = array ของ id string อยู่แล้ว
       slots: mapSlots(p.slots),
     };
   }
@@ -190,8 +166,9 @@ async function main() {
   await mkdir(dirname(OUT), { recursive: true });
   await writeFile(OUT, JSON.stringify(out));
 
+  const barrels = Object.values(mods).filter((m) => m.moa != null).length;
   console.log(`✓ เขียนไฟล์ ${OUT}`);
-  console.log(`  guns: ${guns.length}  |  mods: ${Object.keys(mods).length}`);
+  console.log(`  guns: ${guns.length}  |  mods: ${Object.keys(mods).length}  |  barrels(moa): ${barrels}`);
 }
 
 main().catch((err) => {

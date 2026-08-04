@@ -40,7 +40,7 @@ const buildModResolver = (mods) => {
             basePrice: m.price,
             buyFor: m.buyFor || [],
             conflictingItems: (m.conflicts || []).map((cid) => ({ id: cid })),
-            properties: { ergonomics: m.ergo, recoil: m.recoil, slots: [] },
+            properties: { ergonomics: m.ergo, recoil: m.recoil, accuracy: m.acc, moa: m.moa, slots: [] },
         };
         cache.set(id, obj); // ตั้ง cache ก่อน resolve slots เพื่อตัด cycle
         obj.properties.slots = (m.slots || []).map((s) => ({
@@ -77,6 +77,7 @@ const buildWeapon = (gun, mods) => {
             defaultRecoilVertical: gun.recoilV,
             defaultRecoilHorizontal: gun.recoilH,
             fireRate: gun.fireRate,
+            moa: gun.moa,
             slots: (gun.slots || []).map((s) => ({
                 id: s.id,
                 name: s.name,
@@ -269,7 +270,7 @@ const WeaponSearch = ({ guns, loadingData, onSelect, onBuildState }) => {
     );
 };
 
-const calTotalStats = (slotId, buildState, total = { weight: 0, ergo: 0, recoilMod: 0, priceRUB: 0, spend: {} }) => {
+const calTotalStats = (slotId, buildState, total = { weight: 0, ergo: 0, recoilMod: 0, accMod: 0, barrelMoa: null, priceRUB: 0, spend: {} }) => {
     const item = buildState[slotId];
 
     // 1. If no item is in this slot, return the current total accumulation
@@ -302,6 +303,13 @@ const calTotalStats = (slotId, buildState, total = { weight: 0, ergo: 0, recoilM
         }
         if (item.properties.recoil) {
             total.recoilMod += item.properties.recoil;
+        }
+        if (item.properties.accuracy) {
+            total.accMod += item.properties.accuracy; // accuracyModifier (สัดส่วน; บวก = แม่นขึ้น)
+        }
+        // barrel ที่ใส่จะ "แทน" ค่า MOA ฐานของปืน (centerOfImpact ของ barrel)
+        if (item.properties.moa != null) {
+            total.barrelMoa = item.properties.moa;
         }
 
         // 4. Recursive Step: Check for slots ON this item (e.g., a handguard with rails)
@@ -448,6 +456,8 @@ const computeWeaponStats = (baseWeapon, buildState) => {
     const baseErgo = baseWeapon.properties.defaultErgonomics || baseWeapon.properties.ergonomics || 0;
     let totalErgo = baseErgo;
     let recoilMod = 0; // % reduction (negative value usually)
+    let accMod = 0; // รวม accuracyModifier ของมอด (สัดส่วน; บวก = แม่นขึ้น)
+    let barrelMoa = null; // MOA ฐานจาก barrel ที่ใส่ (centerOfImpact ของ barrel)
     let partsPriceRUB = 0; // ราคาอะไหล่รวม (เทียบรูเบิล)
     const spend = {}; // ยอดที่ต้องจ่ายจริง แยกตามสกุลเงิน เช่น { RUB: x, USD: y }
 
@@ -473,6 +483,8 @@ const computeWeaponStats = (baseWeapon, buildState) => {
         totalWeight += total.weight;
         totalErgo += total.ergo;
         recoilMod += total.recoilMod;
+        accMod += total.accMod;
+        if (total.barrelMoa != null) barrelMoa = total.barrelMoa;
         partsPriceRUB += total.priceRUB;
         Object.entries(total.spend).forEach(([cur, v]) => addSpend(cur, v.amount, v.rub));
     });
@@ -483,11 +495,23 @@ const computeWeaponStats = (baseWeapon, buildState) => {
     const finalVert = Math.max(0, Math.round(baseVert * (1 + (recoilMod / 100))));
     const finalHoriz = Math.max(0, Math.round(baseHoriz * (1 + (recoilMod / 100))));
 
+    // --- MOA (accuracy) --- barrel ที่ใส่แทนค่า centerOfImpact ฐาน (ไม่งั้นใช้ของปืน) แล้วคูณ accuracyModifier ของมอดอื่น
+    // ค่าดิบใน data คือ centerOfImpact -> แปลงเป็น MOA ที่เกมแสดง: MOA = COI * 100 / 2.9089 (1 MOA = 2.9089cm @100m)
+    // ยืนยันกับ wiki: barrel M4 14.5" COI 0.053 -> 1.82 MOA ตรงเป๊ะ
+    // finalCOI = baseCOI * (1 - Σacc) ; acc บวก = แม่นขึ้น = MOA ลดลง
+    const COI_TO_MOA = 100 / 2.9089;
+    const toMoa = (coi) => (coi != null ? Number((coi * COI_TO_MOA).toFixed(2)) : null);
+    const weaponMoa = baseWeapon.properties.moa;
+    const baseCoi = barrelMoa != null ? barrelMoa : weaponMoa;
+    const finalMoa = toMoa(baseCoi != null ? Math.max(0, baseCoi * (1 - accMod)) : null);
+
     return {
         weight: totalWeight.toFixed(3),
         ergonomics: Number(Math.max(0, totalErgo).toFixed(1)),
         verticalRecoil: finalVert,
         horizontalRecoil: finalHoriz,
+        moa: finalMoa,
+        baseMoa: toMoa(baseCoi), // อ้างอิง = MOA ฐาน (barrel) ก่อนใส่มอด accuracy -> ลูกศรโชว์ผลของมอด
         fireRate: baseWeapon.properties.fireRate || 0,
         basePriceRUB,
         partsPriceRUB,
@@ -537,13 +561,26 @@ const WeaponStats = ({ baseWeapon, buildState }) => {
                 <StatRow label="Weight" value={stats.weight} unit="kg" icon={Icons.Weight} barColor="bg-secondary" max={10} />
 
                 <div className="row mt-3 border-top border-secondary pt-3 g-2">
-                    <div className="col-6">
+                    <div className="col-4">
                         <div className="p-2 bg-dark rounded border border-secondary text-center">
                             <div className="text-muted small text-uppercase" style={{ fontSize: '0.65rem' }}>Fire Rate</div>
                             <div className="fw-bold text-white">{stats.fireRate} <span className="small text-muted">rpm</span></div>
                         </div>
                     </div>
-                    <div className="col-6">
+                    <div className="col-4">
+                        <div className="p-2 bg-dark rounded border border-secondary text-center" title="Accuracy — lower MOA = tighter groups">
+                            <div className="text-muted small text-uppercase" style={{ fontSize: '0.65rem' }}>MOA</div>
+                            <div className="fw-bold text-white">
+                                {stats.moa != null ? stats.moa : '—'}
+                                {stats.moa != null && stats.baseMoa != null && stats.moa !== stats.baseMoa && (
+                                    <span className="small ms-1" style={{ color: stats.moa < stats.baseMoa ? '#22c55e' : '#ef4444' }}>
+                                        {stats.moa < stats.baseMoa ? '▼' : '▲'}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="col-4">
                         <div className="p-2 bg-dark rounded border border-secondary text-center">
                             <div className="text-muted small text-uppercase" style={{ fontSize: '0.65rem' }}>Caliber</div>
                             <div className="fw-bold text-white small">{stats.caliber}</div>
