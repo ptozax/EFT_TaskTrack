@@ -6262,13 +6262,13 @@
         "staminaBurnPerDamage": 0.15,
         "item": {
             "id": "6a07208057b2695f9d001e63",
-            "image512pxLink": "https://assets.tarkov.dev/unknown-item-512.webp",
-            "image8xLink": "https://assets.tarkov.dev/unknown-item-512.webp",
-            "imageLink": "https://assets.tarkov.dev/unknown-item-inspect.webp",
-            "inspectImageLink": "https://assets.tarkov.dev/unknown-item-inspect.webp",
+            "image512pxLink": "https://assets.tarkov.dev/6a07208057b2695f9d001e63-512.webp",
+            "image8xLink": "https://assets.tarkov.dev/6a07208057b2695f9d001e63-8x.webp",
+            "imageLink": "https://assets.tarkov.dev/6a07208057b2695f9d001e63-image.webp",
+            "inspectImageLink": "https://assets.tarkov.dev/6a07208057b2695f9d001e63-image.webp",
             "name": "5.8x42mm DBP191",
             "normalizedName": "58x42mm-dbp191",
-            "iconLink": "https://assets.tarkov.dev/unknown-item-icon.jpg"
+            "iconLink": "https://assets.tarkov.dev/6a07208057b2695f9d001e63-icon.webp"
         }
     },
     {
@@ -6294,13 +6294,13 @@
         "staminaBurnPerDamage": 0.15,
         "item": {
             "id": "6a42661705016139300b2085",
-            "image512pxLink": "https://assets.tarkov.dev/unknown-item-512.webp",
-            "image8xLink": "https://assets.tarkov.dev/unknown-item-512.webp",
-            "imageLink": "https://assets.tarkov.dev/unknown-item-inspect.webp",
-            "inspectImageLink": "https://assets.tarkov.dev/unknown-item-inspect.webp",
+            "image512pxLink": "https://assets.tarkov.dev/6a42661705016139300b2085-512.webp",
+            "image8xLink": "https://assets.tarkov.dev/6a42661705016139300b2085-8x.webp",
+            "imageLink": "https://assets.tarkov.dev/6a42661705016139300b2085-image.webp",
+            "inspectImageLink": "https://assets.tarkov.dev/6a42661705016139300b2085-image.webp",
             "name": "5.8x42mm DBX95",
             "normalizedName": "58x42mm-dbx95",
-            "iconLink": "https://assets.tarkov.dev/unknown-item-icon.jpg"
+            "iconLink": "https://assets.tarkov.dev/6a42661705016139300b2085-icon.webp"
         }
     },
     {
@@ -6326,13 +6326,13 @@
         "staminaBurnPerDamage": 0.175,
         "item": {
             "id": "6a42662fcb506840dd053827",
-            "image512pxLink": "https://assets.tarkov.dev/unknown-item-512.webp",
-            "image8xLink": "https://assets.tarkov.dev/unknown-item-512.webp",
-            "imageLink": "https://assets.tarkov.dev/unknown-item-inspect.webp",
-            "inspectImageLink": "https://assets.tarkov.dev/unknown-item-inspect.webp",
+            "image512pxLink": "https://assets.tarkov.dev/6a42662fcb506840dd053827-512.webp",
+            "image8xLink": "https://assets.tarkov.dev/6a42662fcb506840dd053827-8x.webp",
+            "imageLink": "https://assets.tarkov.dev/6a42662fcb506840dd053827-image.webp",
+            "inspectImageLink": "https://assets.tarkov.dev/6a42662fcb506840dd053827-image.webp",
             "name": "5.8x42mm DVC12",
             "normalizedName": "58x42mm-dvc12",
-            "iconLink": "https://assets.tarkov.dev/unknown-item-icon.jpg"
+            "iconLink": "https://assets.tarkov.dev/6a42662fcb506840dd053827-icon.webp"
         }
     },
     {
@@ -6358,13 +6358,13 @@
         "staminaBurnPerDamage": 0.175,
         "item": {
             "id": "6a426637ddc63098d100ae67",
-            "image512pxLink": "https://assets.tarkov.dev/unknown-item-512.webp",
-            "image8xLink": "https://assets.tarkov.dev/unknown-item-512.webp",
-            "imageLink": "https://assets.tarkov.dev/unknown-item-inspect.webp",
-            "inspectImageLink": "https://assets.tarkov.dev/unknown-item-inspect.webp",
+            "image512pxLink": "https://assets.tarkov.dev/6a426637ddc63098d100ae67-512.webp",
+            "image8xLink": "https://assets.tarkov.dev/6a426637ddc63098d100ae67-8x.webp",
+            "imageLink": "https://assets.tarkov.dev/6a426637ddc63098d100ae67-image.webp",
+            "inspectImageLink": "https://assets.tarkov.dev/6a426637ddc63098d100ae67-image.webp",
             "name": "5.8x42mm DVX12",
             "normalizedName": "58x42mm-dvx12",
-            "iconLink": "https://assets.tarkov.dev/unknown-item-icon.jpg"
+            "iconLink": "https://assets.tarkov.dev/6a426637ddc63098d100ae67-icon.webp"
         }
     },
     {

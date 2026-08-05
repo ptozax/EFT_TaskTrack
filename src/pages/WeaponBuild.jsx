@@ -304,12 +304,12 @@ const calTotalStats = (slotId, buildState, total = { weight: 0, ergo: 0, recoilM
         if (item.properties.recoil) {
             total.recoilMod += item.properties.recoil;
         }
-        if (item.properties.accuracy) {
-            total.accMod += item.properties.accuracy; // accuracyModifier (สัดส่วน; บวก = แม่นขึ้น)
-        }
-        // barrel ที่ใส่จะ "แทน" ค่า MOA ฐานของปืน (centerOfImpact ของ barrel)
+        // barrel ที่ใส่จะ "แทน" ค่า centerOfImpact ฐานของปืน (MOA) — acc ของ barrel เองสะท้อนใน COI อยู่แล้ว
+        // จึงไม่นับ accuracyModifier ของ barrel ซ้ำ (ยืนยันกับเกม: Hanson 13.7" COI 0.045 -> 1.55 MOA พอดี ไม่ลดด้วย acc 0.05)
         if (item.properties.moa != null) {
             total.barrelMoa = item.properties.moa;
+        } else if (item.properties.accuracy) {
+            total.accMod += item.properties.accuracy; // accuracyModifier ของมอดอื่น (บวก = แม่นขึ้น = MOA ลดลง)
         }
 
         // 4. Recursive Step: Check for slots ON this item (e.g., a handguard with rails)
@@ -1002,7 +1002,7 @@ export default function WeaponBuild() {
                     {selectedWeapon ? (
                         <div className="row g-4 animate-fade-in">
                             <div className="col-lg-4">
-                                <div className="card bg-dark border-secondary sticky-top" style={{ top: '80px' }}>
+                                <div className="card bg-dark border-secondary sticky-top" style={{ top: '80px',zIndex: '0' }}>
                                     <div className="card-body text-center p-4">
                                         <div className='position-absolute top-0 end-0 m-3 cursor-pointer'
                                             onClick={() => setIsPopup(true)}>
@@ -1019,9 +1019,9 @@ export default function WeaponBuild() {
                                         <div>
 
                                         </div>
-                                        <div className="alert alert-warning mt-3 mb-0 py-2 small bg-opacity-10 border-warning text-warning">
+                                        {/* <div className="alert alert-warning mt-3 mb-0 py-2 small bg-opacity-10 border-warning text-warning">
                                             Select parts on the right to modify
-                                        </div>
+                                        </div> */}
                                     </div>
                                 </div>
                             </div>
