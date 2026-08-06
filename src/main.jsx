@@ -7,6 +7,12 @@ import './index.css';
 
 import Home from './home/home.jsx';
 import AppNavbar from './Component/AppNavbar.jsx';
+import SyncIndicator from './Component/SyncIndicator.jsx';
+import { preloadAll } from './data/gameStore';
+
+// เริ่มดึงข้อมูล "สด" จาก json.tarkov.dev ทันทีที่เข้าเว็บ (ขนานกับการเรนเดอร์)
+// หน้าเว็บโชว์ static ก่อน แล้วสลับเป็น live เมื่อโหลด+transform เสร็จ (fallback = static ถ้าล้มเหลว)
+preloadAll();
 
 // lazy-load แต่ละหน้า -> โหลดเฉพาะหน้าที่เปิด (lib หนักอย่าง leaflet/tesseract/d3 ถูกแยก chunk ตามหน้า)
 const AddQuest = lazy(() => import("./pages/AddQuest.jsx"));
@@ -55,6 +61,7 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Router>
       <AppNavbar />
+      <SyncIndicator />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/:pageId" element={<HandlePage />} />

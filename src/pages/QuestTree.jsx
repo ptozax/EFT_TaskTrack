@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import tasks from "../data/tasks";
+import tasksStatic from "../data/tasks";
+import { useLiveData } from '../data/gameStore';
 import * as d3 from 'd3';
 import dagre from 'dagre';
 import { mapStyles as styles2, TRADER_THEMES } from '../Component/EftComponent.jsx';
@@ -11,6 +12,7 @@ const COMPLETE_KEY = "eft_completed_quests";
 const STORAGE_KEY = "eft_selected_quests";
 
 const QuestTree = () => {
+  const tasks = useLiveData(tasksStatic, 'tasks'); // สดจาก tarkov.dev ถ้าโหลดเสร็จ ไม่งั้น static
     const [selectedTrader, setSelectedTrader] = useState("All");
     const [searchTerm, setSearchTerm] = useState("");
     const svgRef = useRef(null);

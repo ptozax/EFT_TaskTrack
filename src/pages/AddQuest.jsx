@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Tesseract from "tesseract.js";
-import quests from "../data/tasks";
+import questsStatic from "../data/tasks";
+import { useLiveData } from '../data/gameStore';
 import { h1 } from "framer-motion/client";
 import * as QuestComponent from '../Component/QuestComponent';
 
@@ -11,6 +12,7 @@ const OBJECTIVE_KEY = "eft_objective_checklist";
 const COMPLETE_KEY = "eft_completed_quests";
 
 const AddQuest = () => {
+  const quests = useLiveData(questsStatic, 'tasks'); // สดจาก tarkov.dev ถ้าโหลดเสร็จ ไม่งั้น static
   const [search, setSearch] = useState("");
   const [imageText, setImageText] = useState("");
   const [loading, setLoading] = useState(false);

@@ -1,7 +1,8 @@
 // pages/MapPage.jsx
 import React, { useEffect, useState, useRef, Fragment } from 'react';
-import quests from "../data/tasks";
-import mapFeatures from "../data/maps";
+import questsStatic from "../data/tasks";
+import mapFeaturesStatic from "../data/maps";
+import { useLiveData } from '../data/gameStore';
 import { mapStyles as styles, Icons } from '../Component/EftComponent';
 import * as QuestComponent from '../Component/QuestComponent';
 
@@ -61,6 +62,8 @@ const UI = {
 
 /* ---------------- COMPONENT ---------------- */
 const MapPage = () => {
+  const quests = useLiveData(questsStatic, 'tasks'); // สดจาก tarkov.dev ถ้าโหลดเสร็จ ไม่งั้น static
+  const mapFeatures = useLiveData(mapFeaturesStatic, 'maps');
   /* ------------------ STATE SAVE ----------------------- */
   const [selectedQuests, setSelectedQuests] = useState(() => {
     const savedQuests = localStorage.getItem(STORAGE_KEY);

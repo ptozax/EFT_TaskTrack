@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "../Component/home.css"
-import quests from "../data/tasks";
+import questsStatic from "../data/tasks";
+import { useLiveData } from '../data/gameStore';
 import * as QuestComponent from '../Component/QuestComponent';
 import { TRADER_THEMES } from '../Component/EftComponent';
 
@@ -10,6 +11,7 @@ const OBJECTIVE_CHECK_KEY = "eft_objective_checklist";
 const COMPLETE_KEY = "eft_completed_quests";
 
 const Home = () => {
+  const quests = useLiveData(questsStatic, 'tasks'); // สดจาก tarkov.dev ถ้าโหลดเสร็จ ไม่งั้น static
   /* ---------------- SAVE STATE ---------------- */
   const [selectedQuests, setSelectedQuests] = useState(() => {
     const savedQuests = localStorage.getItem(STORAGE_KEY);

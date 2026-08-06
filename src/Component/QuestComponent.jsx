@@ -1,5 +1,8 @@
 import React from 'react';
-import quests from "../data/tasks";
+import staticTasks from "../data/tasks";
+import { getLive } from '../data/gameStore';
+// อ่านข้อมูลเควส "สด" จาก store ถ้ามี ไม่งั้น fallback ไฟล์ static ที่ bundle ไว้
+const TASKS = () => getLive('tasks') || staticTasks;
 
 const CHEMICAL_ALTERNATIVE_IDS = ['597a0f5686f774273b74f676', '597a160786f77477531d39d2', '597a171586f77405ba6887d3'];
 const ONE_LESS_LOOSE_END_ALTERNATIVE_IDS = ['669fa38fad7f1eac2607ed46', '669fa3910c828825de06d69f'];
@@ -175,7 +178,7 @@ export const getNextQuestLists = (completedQuests, triggeringQuestId = null) => 
     });
 
     // 3. Filter the Quests
-    const availableQuests = quests.filter(q => {
+    const availableQuests = TASKS().filter(q => {
         // A. Basic filtering
         if (!["Any", factionName].includes(q.factionName)) return false; 
         if (historyIds.has(q.id)) return false;
@@ -256,7 +259,7 @@ export const getNextQuestLists = (completedQuests, triggeringQuestId = null) => 
                 if (availableQuests.find(q => q.id === unlockId)) return;
 
                 // If safe, FIND the quest object and push it
-                const questObj = quests.find(q => q.id === unlockId && ["Any", factionName].includes(q.factionName));
+                const questObj = TASKS().find(q => q.id === unlockId && ["Any", factionName].includes(q.factionName));
                 if (questObj) {
                     availableQuests.push(questObj);
                 }
@@ -278,7 +281,7 @@ export const getAllRequirements = (questId, visitedIds = new Set()) => {
     visitedIds.add(questId);
 
     // 3. Find the quest object
-    const quest = quests.find(q => q.id === questId);
+    const quest = TASKS().find(q => q.id === questId);
 
     // 4. Base Case: If quest doesn't exist or has no requirements, return what we have
     if (!quest || !quest.taskRequirements || quest.taskRequirements.length === 0) {

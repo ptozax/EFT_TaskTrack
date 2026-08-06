@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Icons } from '../Component/EftComponent';
+import { getData } from '../data/gameStore';
 
 const DATA_URL = `${import.meta.env.BASE_URL}gear_data.json`;
 
@@ -96,9 +97,8 @@ export default function GearPreview() {
 
     useEffect(() => {
         let alive = true;
-        fetch(DATA_URL)
-            .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-            .then((d) => { if (alive) setData(d); })
+        getData('gear', DATA_URL) // live จาก tarkov.dev ก่อน, fallback ไฟล์ public
+            .then((d) => { if (alive && d) setData(d); })
             .catch((e) => alive && setLoadErr(String(e)));
         return () => { alive = false; };
     }, []);

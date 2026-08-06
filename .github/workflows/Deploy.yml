@@ -24,6 +24,11 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      # refresh data ก่อน build ทุกครั้งที่ deploy โค้ดใหม่ -> bundle fallback สดเสมอ (ไม่ใช่ของเก่าที่ commit ไว้)
+      # ถ้า tarkov.dev ล่มชั่วคราว จะ build ต่อด้วย data ที่ commit ไว้ (ไม่ทำให้ deploy พัง)
+      - name: Refresh data from tarkov.dev
+        run: npm run update-all || echo "refresh ล้มเหลว — build ด้วย data ที่ commit ไว้แทน"
+
       - name: Build Project
         run: npm run build
 

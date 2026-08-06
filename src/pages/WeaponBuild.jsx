@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Icons, hideoutStyles as styles, kappaStyles as styless, COLORS } from '../Component/EftComponent';
 import { DATA_URL, exportCardImage, EDIT_BUILD_KEY } from './optimizerCore';
+import { getData } from '../data/gameStore';
 
 // ---- โหลด dataset (static JSON ที่ preprocess ไว้แล้ว) ครั้งเดียว แล้ว cache ----
 // วิธีเดียวกับ WeaponOptimizer: ไม่ยิง API สด -> โหลดไว = ประกอบต้นไม้อะไหล่ในเครื่องด้วย id lookup
@@ -10,11 +11,7 @@ let datasetPromise = null;
 const loadDataset = () => {
     if (DATASET) return Promise.resolve(DATASET);
     if (!datasetPromise) {
-        datasetPromise = fetch(DATA_URL)
-            .then((r) => {
-                if (!r.ok) throw new Error(`HTTP ${r.status}`);
-                return r.json();
-            })
+        datasetPromise = getData('optimizer', DATA_URL) // live จาก tarkov.dev ก่อน, fallback ไฟล์ public
             .then((d) => {
                 DATASET = d;
                 return d;

@@ -1,9 +1,11 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { theme, hideoutStyles as styles, Icons } from '../Component/EftComponent';
 import * as QuestComponent from '../Component/QuestComponent';
-import hideout from '../data/hideout.json';
+import hideoutStatic from '../data/hideout.json';
+import { useLiveData } from '../data/gameStore';
 
 const Hideout = () => {
+    const hideout = useLiveData(hideoutStatic, 'hideout'); // สดจาก tarkov.dev ถ้าโหลดเสร็จ ไม่งั้น static
     const groupedModules = useMemo(() => {
         const modules = {};
         hideout.forEach(mod => {

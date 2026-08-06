@@ -4,6 +4,9 @@ import {
   DATA_URL,
   rub,
   computeBuild,
+} from './optimizerCore.jsx';
+import { getData } from '../data/gameStore';
+import {
   exportCardImage,
   openCardTab,
   stashBuildForEdit,
@@ -43,11 +46,7 @@ export default function WeaponOptimizer() {
   // load precomputed dataset once
   useEffect(() => {
     let alive = true;
-    fetch(DATA_URL)
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
+    getData('optimizer', DATA_URL) // live จาก tarkov.dev ก่อน, fallback ไฟล์ public
       .then((d) => {
         if (alive) setData(d);
       })

@@ -4,11 +4,13 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import Tesseract from "tesseract.js";
 import iconImgR from "/Top_R.png";
 import iconImgL from "/Top_L.png";
-import items from "../data/items.json";
+import itemsStatic from "../data/items.json";
+import { useLiveData } from '../data/gameStore';
 import { FiRefreshCcw } from "react-icons/fi";
 import { Icons } from "../Component/EftComponent";
 
 const ItemPrice = () => {
+  const items = useLiveData(itemsStatic, 'items'); // สดจาก tarkov.dev ถ้าโหลดเสร็จ ไม่งั้น static
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const intervalRef = useRef(null);

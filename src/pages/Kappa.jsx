@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import quests from "../data/tasks";
+import questsStatic from "../data/tasks";
+import { useLiveData } from '../data/gameStore';
 import { kappaStyles as styles, Icons, COLORS } from '../Component/EftComponent';
 import * as QuestComponent from '../Component/QuestComponent';
 // --- Components ---
@@ -126,6 +127,7 @@ const TraderSection = ({ traderName, quests, completedIds, onToggle }) => {
 };
 
 const Kappa = () => {
+    const quests = useLiveData(questsStatic, 'tasks'); // สดจาก tarkov.dev ถ้าโหลดเสร็จ ไม่งั้น static
     // --- State Management ---
     const [completedIds, setCompletedIds] = useState(() => {
         const savedCompleted = localStorage.getItem('eft_completed_quests');

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import ammo from '../data/ammo.json';
+import ammoStatic from '../data/ammo.json';
+import { useLiveData } from '../data/gameStore';
 import { AmmoStyles as styles, Icons } from '../Component/EftComponent';
 
 // Helper Component for Table Rows to handle Hover state properly with inline styles
@@ -186,6 +187,7 @@ const Legend = () => (
 );
 
 const Ammo = () => {
+    const ammo = useLiveData(ammoStatic, 'ammo'); // สดจาก tarkov.dev ถ้าโหลดเสร็จ ไม่งั้น static
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCaliber, setSelectedCaliber] = useState('All');
     const [sortConfig, setSortConfig] = useState({ key: 'penetrationPower', direction: 'desc' });
