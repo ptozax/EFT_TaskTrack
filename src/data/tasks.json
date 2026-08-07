@@ -9133,146 +9133,6 @@
           {
             "id": "exit777",
             "position": {
-              "x": -41.5100021,
-              "y": -12.633,
-              "z": 122.67
-            },
-            "outline": [
-              {
-                "x": -47.15104,
-                "y": -12.633,
-                "z": 113.687866
-              },
-              {
-                "x": -32.52787,
-                "y": -12.633,
-                "z": 117.028961
-              },
-              {
-                "x": -35.86896,
-                "y": -12.633,
-                "z": 131.65213
-              },
-              {
-                "x": -50.4921341,
-                "y": -12.633,
-                "z": 128.311035
-              }
-            ],
-            "top": -11.133,
-            "bottom": -14.133,
-            "map": {
-              "id": "56f40101d2720b2a4d8b45d6"
-            }
-          },
-          {
-            "id": "exit777",
-            "position": {
-              "x": 463.18,
-              "y": -1.46,
-              "z": -112.36
-            },
-            "outline": [
-              {
-                "x": 457.8446,
-                "y": -1.46,
-                "z": -114.028442
-              },
-              {
-                "x": 467.715973,
-                "y": -1.46,
-                "z": -115.627243
-              },
-              {
-                "x": 468.515381,
-                "y": -1.46,
-                "z": -110.691559
-              },
-              {
-                "x": 458.644,
-                "y": -1.46,
-                "z": -109.092758
-              }
-            ],
-            "top": 0.03999996,
-            "bottom": -2.96,
-            "map": {
-              "id": "56f40101d2720b2a4d8b45d6"
-            }
-          },
-          {
-            "id": "exit777",
-            "position": {
-              "x": -41.5100021,
-              "y": -12.633,
-              "z": 122.67
-            },
-            "outline": [
-              {
-                "x": -47.15104,
-                "y": -12.633,
-                "z": 113.687866
-              },
-              {
-                "x": -32.52787,
-                "y": -12.633,
-                "z": 117.028961
-              },
-              {
-                "x": -35.86896,
-                "y": -12.633,
-                "z": 131.65213
-              },
-              {
-                "x": -50.4921341,
-                "y": -12.633,
-                "z": 128.311035
-              }
-            ],
-            "top": -11.133,
-            "bottom": -14.133,
-            "map": {
-              "id": "56f40101d2720b2a4d8b45d6"
-            }
-          },
-          {
-            "id": "exit777",
-            "position": {
-              "x": 463.18,
-              "y": -1.46,
-              "z": -112.36
-            },
-            "outline": [
-              {
-                "x": 457.8446,
-                "y": -1.46,
-                "z": -114.028442
-              },
-              {
-                "x": 467.715973,
-                "y": -1.46,
-                "z": -115.627243
-              },
-              {
-                "x": 468.515381,
-                "y": -1.46,
-                "z": -110.691559
-              },
-              {
-                "x": 458.644,
-                "y": -1.46,
-                "z": -109.092758
-              }
-            ],
-            "top": 0.03999996,
-            "bottom": -2.96,
-            "map": {
-              "id": "56f40101d2720b2a4d8b45d6"
-            }
-          },
-          {
-            "id": "exit777",
-            "position": {
               "x": 19.443,
               "y": 1.07,
               "z": 0.495
@@ -9303,6 +9163,146 @@
             "bottom": -0.429999948,
             "map": {
               "id": "6733700029c367a3d40b02af"
+            }
+          },
+          {
+            "id": "exit777",
+            "position": {
+              "x": -41.5100021,
+              "y": -12.633,
+              "z": 122.67
+            },
+            "outline": [
+              {
+                "x": -47.15104,
+                "y": -12.633,
+                "z": 113.687866
+              },
+              {
+                "x": -32.52787,
+                "y": -12.633,
+                "z": 117.028961
+              },
+              {
+                "x": -35.86896,
+                "y": -12.633,
+                "z": 131.65213
+              },
+              {
+                "x": -50.4921341,
+                "y": -12.633,
+                "z": 128.311035
+              }
+            ],
+            "top": -11.133,
+            "bottom": -14.133,
+            "map": {
+              "id": "56f40101d2720b2a4d8b45d6"
+            }
+          },
+          {
+            "id": "exit777",
+            "position": {
+              "x": 463.18,
+              "y": -1.46,
+              "z": -112.36
+            },
+            "outline": [
+              {
+                "x": 457.8446,
+                "y": -1.46,
+                "z": -114.028442
+              },
+              {
+                "x": 467.715973,
+                "y": -1.46,
+                "z": -115.627243
+              },
+              {
+                "x": 468.515381,
+                "y": -1.46,
+                "z": -110.691559
+              },
+              {
+                "x": 458.644,
+                "y": -1.46,
+                "z": -109.092758
+              }
+            ],
+            "top": 0.03999996,
+            "bottom": -2.96,
+            "map": {
+              "id": "56f40101d2720b2a4d8b45d6"
+            }
+          },
+          {
+            "id": "exit777",
+            "position": {
+              "x": -41.5100021,
+              "y": -12.633,
+              "z": 122.67
+            },
+            "outline": [
+              {
+                "x": -47.15104,
+                "y": -12.633,
+                "z": 113.687866
+              },
+              {
+                "x": -32.52787,
+                "y": -12.633,
+                "z": 117.028961
+              },
+              {
+                "x": -35.86896,
+                "y": -12.633,
+                "z": 131.65213
+              },
+              {
+                "x": -50.4921341,
+                "y": -12.633,
+                "z": 128.311035
+              }
+            ],
+            "top": -11.133,
+            "bottom": -14.133,
+            "map": {
+              "id": "56f40101d2720b2a4d8b45d6"
+            }
+          },
+          {
+            "id": "exit777",
+            "position": {
+              "x": 463.18,
+              "y": -1.46,
+              "z": -112.36
+            },
+            "outline": [
+              {
+                "x": 457.8446,
+                "y": -1.46,
+                "z": -114.028442
+              },
+              {
+                "x": 467.715973,
+                "y": -1.46,
+                "z": -115.627243
+              },
+              {
+                "x": 468.515381,
+                "y": -1.46,
+                "z": -110.691559
+              },
+              {
+                "x": 458.644,
+                "y": -1.46,
+                "z": -109.092758
+              }
+            ],
+            "top": 0.03999996,
+            "bottom": -2.96,
+            "map": {
+              "id": "56f40101d2720b2a4d8b45d6"
             }
           }
         ]
@@ -76564,16 +76564,16 @@
         "__typename": "TaskObjectiveShoot",
         "maps": [
           {
-            "id": "6a294a5b5eb5f9a1700417b7",
-            "name": "The Lab (Dark)"
-          },
-          {
             "id": "5b0fc42d86f7744a585f9105",
             "name": "The Lab"
           },
           {
             "id": "5704e5fad2720bc05b8b4567",
             "name": "Reserve"
+          },
+          {
+            "id": "6a294a5b5eb5f9a1700417b7",
+            "name": "The Lab (Dark)"
           }
         ],
         "shotType": "kill",
@@ -76675,16 +76675,16 @@
         "__typename": "TaskObjectiveShoot",
         "maps": [
           {
-            "id": "6a294a5b5eb5f9a1700417b7",
-            "name": "The Lab (Dark)"
-          },
-          {
             "id": "5b0fc42d86f7744a585f9105",
             "name": "The Lab"
           },
           {
             "id": "5704e5fad2720bc05b8b4567",
             "name": "Reserve"
+          },
+          {
+            "id": "6a294a5b5eb5f9a1700417b7",
+            "name": "The Lab (Dark)"
           }
         ],
         "shotType": "kill",
@@ -85673,10 +85673,6 @@
             "name": "Shoreline"
           },
           {
-            "id": "59fc81d786f774390775787e",
-            "name": "Night Factory"
-          },
-          {
             "id": "65b8d6f5cdde2479cb2a3125",
             "name": "Ground Zero 21+"
           },
@@ -85687,6 +85683,10 @@
           {
             "id": "56f40101d2720b2a4d8b45d6",
             "name": "Customs"
+          },
+          {
+            "id": "59fc81d786f774390775787e",
+            "name": "Night Factory"
           }
         ],
         "shotType": "kill",
@@ -86167,10 +86167,6 @@
             "name": "Shoreline"
           },
           {
-            "id": "59fc81d786f774390775787e",
-            "name": "Night Factory"
-          },
-          {
             "id": "65b8d6f5cdde2479cb2a3125",
             "name": "Ground Zero 21+"
           },
@@ -86181,6 +86177,10 @@
           {
             "id": "56f40101d2720b2a4d8b45d6",
             "name": "Customs"
+          },
+          {
+            "id": "59fc81d786f774390775787e",
+            "name": "Night Factory"
           }
         ],
         "shotType": "kill",
@@ -92814,16 +92814,16 @@
         "__typename": "TaskObjectiveShoot",
         "maps": [
           {
-            "id": "6a294a5b5eb5f9a1700417b7",
-            "name": "The Lab (Dark)"
-          },
-          {
             "id": "5b0fc42d86f7744a585f9105",
             "name": "The Lab"
           },
           {
             "id": "5704e5fad2720bc05b8b4567",
             "name": "Reserve"
+          },
+          {
+            "id": "6a294a5b5eb5f9a1700417b7",
+            "name": "The Lab (Dark)"
           }
         ],
         "shotType": "kill",
@@ -98704,12 +98704,12 @@
         "__typename": "TaskObjectiveShoot",
         "maps": [
           {
-            "id": "5704e4dad2720bb55b8b4567",
-            "name": "Lighthouse"
-          },
-          {
             "id": "69af492a4819ea4ba10a69c5",
             "name": "Icebreaker"
+          },
+          {
+            "id": "5704e4dad2720bb55b8b4567",
+            "name": "Lighthouse"
           }
         ],
         "shotType": "kill",
@@ -98811,12 +98811,12 @@
         "__typename": "TaskObjectiveShoot",
         "maps": [
           {
-            "id": "5704e4dad2720bb55b8b4567",
-            "name": "Lighthouse"
-          },
-          {
             "id": "69af492a4819ea4ba10a69c5",
             "name": "Icebreaker"
+          },
+          {
+            "id": "5704e4dad2720bb55b8b4567",
+            "name": "Lighthouse"
           }
         ],
         "shotType": "kill",
@@ -102290,24 +102290,24 @@
         "__typename": "TaskObjectiveShoot",
         "maps": [
           {
-            "id": "5704e4dad2720bb55b8b4567",
-            "name": "Lighthouse"
-          },
-          {
             "id": "5704e554d2720bac5b8b456e",
             "name": "Shoreline"
-          },
-          {
-            "id": "69af492a4819ea4ba10a69c5",
-            "name": "Icebreaker"
           },
           {
             "id": "5704e3c2d2720bac5b8b4567",
             "name": "Woods"
           },
           {
+            "id": "69af492a4819ea4ba10a69c5",
+            "name": "Icebreaker"
+          },
+          {
             "id": "56f40101d2720b2a4d8b45d6",
             "name": "Customs"
+          },
+          {
+            "id": "5704e4dad2720bb55b8b4567",
+            "name": "Lighthouse"
           }
         ],
         "shotType": "kill",
@@ -102335,10 +102335,6 @@
         "__typename": "TaskObjectiveShoot",
         "maps": [
           {
-            "id": "5704e4dad2720bb55b8b4567",
-            "name": "Lighthouse"
-          },
-          {
             "id": "5704e554d2720bac5b8b456e",
             "name": "Shoreline"
           },
@@ -102349,6 +102345,10 @@
           {
             "id": "56f40101d2720b2a4d8b45d6",
             "name": "Customs"
+          },
+          {
+            "id": "5704e4dad2720bb55b8b4567",
+            "name": "Lighthouse"
           }
         ],
         "shotType": "kill",
@@ -102376,10 +102376,6 @@
         "__typename": "TaskObjectiveShoot",
         "maps": [
           {
-            "id": "5704e4dad2720bb55b8b4567",
-            "name": "Lighthouse"
-          },
-          {
             "id": "5704e554d2720bac5b8b456e",
             "name": "Shoreline"
           },
@@ -102390,6 +102386,10 @@
           {
             "id": "56f40101d2720b2a4d8b45d6",
             "name": "Customs"
+          },
+          {
+            "id": "5704e4dad2720bb55b8b4567",
+            "name": "Lighthouse"
           }
         ],
         "shotType": "kill",
@@ -114806,12 +114806,12 @@
         "__typename": "TaskObjectiveShoot",
         "maps": [
           {
-            "id": "59fc81d786f774390775787e",
-            "name": "Night Factory"
-          },
-          {
             "id": "5714dbc024597771384a510d",
             "name": "Interchange"
+          },
+          {
+            "id": "59fc81d786f774390775787e",
+            "name": "Night Factory"
           },
           {
             "id": "55f2d3fd4bdc2d5f408b4567",
@@ -121379,16 +121379,16 @@
         "__typename": "TaskObjectiveShoot",
         "maps": [
           {
-            "id": "6a294a5b5eb5f9a1700417b7",
-            "name": "The Lab (Dark)"
-          },
-          {
             "id": "5b0fc42d86f7744a585f9105",
             "name": "The Lab"
           },
           {
             "id": "5704e5fad2720bc05b8b4567",
             "name": "Reserve"
+          },
+          {
+            "id": "6a294a5b5eb5f9a1700417b7",
+            "name": "The Lab (Dark)"
           }
         ],
         "shotType": "kill",
@@ -130921,10 +130921,6 @@
         "__typename": "TaskObjectiveShoot",
         "maps": [
           {
-            "id": "5704e4dad2720bb55b8b4567",
-            "name": "Lighthouse"
-          },
-          {
             "id": "5704e554d2720bac5b8b456e",
             "name": "Shoreline"
           },
@@ -130935,6 +130931,10 @@
           {
             "id": "56f40101d2720b2a4d8b45d6",
             "name": "Customs"
+          },
+          {
+            "id": "5704e4dad2720bb55b8b4567",
+            "name": "Lighthouse"
           },
           {
             "id": "69af492a4819ea4ba10a69c5",
