@@ -7435,26 +7435,6 @@
         "__typename": "TaskObjectiveShoot",
         "maps": [
           {
-            "id": "69af492a4819ea4ba10a69c5",
-            "name": "Icebreaker"
-          },
-          {
-            "id": "5704e3c2d2720bac5b8b4567",
-            "name": "Woods"
-          },
-          {
-            "id": "68236e8153654e8c1200798a",
-            "name": "Ground Zero Tutorial"
-          },
-          {
-            "id": "5704e554d2720bac5b8b456e",
-            "name": "Shoreline"
-          },
-          {
-            "id": "5714dc692459777137212e12",
-            "name": "Streets of Tarkov"
-          },
-          {
             "id": "55f2d3fd4bdc2d5f408b4567",
             "name": "Factory"
           },
@@ -7471,12 +7451,32 @@
             "name": "Customs"
           },
           {
+            "id": "69af492a4819ea4ba10a69c5",
+            "name": "Icebreaker"
+          },
+          {
+            "id": "5704e3c2d2720bac5b8b4567",
+            "name": "Woods"
+          },
+          {
             "id": "59fc81d786f774390775787e",
             "name": "Night Factory"
           },
           {
+            "id": "68236e8153654e8c1200798a",
+            "name": "Ground Zero Tutorial"
+          },
+          {
             "id": "5704e4dad2720bb55b8b4567",
             "name": "Lighthouse"
+          },
+          {
+            "id": "5704e554d2720bac5b8b456e",
+            "name": "Shoreline"
+          },
+          {
+            "id": "5714dc692459777137212e12",
+            "name": "Streets of Tarkov"
           }
         ],
         "shotType": "kill",
@@ -25830,8 +25830,16 @@
         "__typename": "TaskObjectiveShoot",
         "maps": [
           {
+            "id": "56f40101d2720b2a4d8b45d6",
+            "name": "Customs"
+          },
+          {
             "id": "5704e3c2d2720bac5b8b4567",
             "name": "Woods"
+          },
+          {
+            "id": "59fc81d786f774390775787e",
+            "name": "Night Factory"
           },
           {
             "id": "65b8d6f5cdde2479cb2a3125",
@@ -25840,14 +25848,6 @@
           {
             "id": "5704e554d2720bac5b8b456e",
             "name": "Shoreline"
-          },
-          {
-            "id": "56f40101d2720b2a4d8b45d6",
-            "name": "Customs"
-          },
-          {
-            "id": "59fc81d786f774390775787e",
-            "name": "Night Factory"
           }
         ],
         "shotType": "kill",
@@ -32127,8 +32127,16 @@
         "__typename": "TaskObjectiveShoot",
         "maps": [
           {
+            "id": "56f40101d2720b2a4d8b45d6",
+            "name": "Customs"
+          },
+          {
             "id": "5704e3c2d2720bac5b8b4567",
             "name": "Woods"
+          },
+          {
+            "id": "59fc81d786f774390775787e",
+            "name": "Night Factory"
           },
           {
             "id": "65b8d6f5cdde2479cb2a3125",
@@ -32137,14 +32145,6 @@
           {
             "id": "5704e554d2720bac5b8b456e",
             "name": "Shoreline"
-          },
-          {
-            "id": "56f40101d2720b2a4d8b45d6",
-            "name": "Customs"
-          },
-          {
-            "id": "59fc81d786f774390775787e",
-            "name": "Night Factory"
           }
         ],
         "shotType": "kill",
@@ -33297,6 +33297,10 @@
         "__typename": "TaskObjectiveShoot",
         "maps": [
           {
+            "id": "56f40101d2720b2a4d8b45d6",
+            "name": "Customs"
+          },
+          {
             "id": "69af492a4819ea4ba10a69c5",
             "name": "Icebreaker"
           },
@@ -33305,16 +33309,12 @@
             "name": "Woods"
           },
           {
-            "id": "5704e554d2720bac5b8b456e",
-            "name": "Shoreline"
-          },
-          {
-            "id": "56f40101d2720b2a4d8b45d6",
-            "name": "Customs"
-          },
-          {
             "id": "5704e4dad2720bb55b8b4567",
             "name": "Lighthouse"
+          },
+          {
+            "id": "5704e554d2720bac5b8b456e",
+            "name": "Shoreline"
           }
         ],
         "shotType": "kill",
@@ -33342,20 +33342,20 @@
         "__typename": "TaskObjectiveShoot",
         "maps": [
           {
-            "id": "5704e3c2d2720bac5b8b4567",
-            "name": "Woods"
-          },
-          {
-            "id": "5704e554d2720bac5b8b456e",
-            "name": "Shoreline"
-          },
-          {
             "id": "56f40101d2720b2a4d8b45d6",
             "name": "Customs"
           },
           {
+            "id": "5704e3c2d2720bac5b8b4567",
+            "name": "Woods"
+          },
+          {
             "id": "5704e4dad2720bb55b8b4567",
             "name": "Lighthouse"
+          },
+          {
+            "id": "5704e554d2720bac5b8b456e",
+            "name": "Shoreline"
           }
         ],
         "shotType": "kill",
@@ -33383,20 +33383,20 @@
         "__typename": "TaskObjectiveShoot",
         "maps": [
           {
-            "id": "5704e3c2d2720bac5b8b4567",
-            "name": "Woods"
-          },
-          {
-            "id": "5704e554d2720bac5b8b456e",
-            "name": "Shoreline"
-          },
-          {
             "id": "56f40101d2720b2a4d8b45d6",
             "name": "Customs"
           },
           {
+            "id": "5704e3c2d2720bac5b8b4567",
+            "name": "Woods"
+          },
+          {
             "id": "5704e4dad2720bb55b8b4567",
             "name": "Lighthouse"
+          },
+          {
+            "id": "5704e554d2720bac5b8b456e",
+            "name": "Shoreline"
           }
         ],
         "shotType": "kill",
@@ -39842,26 +39842,6 @@
         "__typename": "TaskObjectiveShoot",
         "maps": [
           {
-            "id": "69af492a4819ea4ba10a69c5",
-            "name": "Icebreaker"
-          },
-          {
-            "id": "5704e3c2d2720bac5b8b4567",
-            "name": "Woods"
-          },
-          {
-            "id": "68236e8153654e8c1200798a",
-            "name": "Ground Zero Tutorial"
-          },
-          {
-            "id": "5704e554d2720bac5b8b456e",
-            "name": "Shoreline"
-          },
-          {
-            "id": "5714dc692459777137212e12",
-            "name": "Streets of Tarkov"
-          },
-          {
             "id": "55f2d3fd4bdc2d5f408b4567",
             "name": "Factory"
           },
@@ -39878,12 +39858,32 @@
             "name": "Customs"
           },
           {
+            "id": "69af492a4819ea4ba10a69c5",
+            "name": "Icebreaker"
+          },
+          {
+            "id": "5704e3c2d2720bac5b8b4567",
+            "name": "Woods"
+          },
+          {
             "id": "59fc81d786f774390775787e",
             "name": "Night Factory"
           },
           {
+            "id": "68236e8153654e8c1200798a",
+            "name": "Ground Zero Tutorial"
+          },
+          {
             "id": "5704e4dad2720bb55b8b4567",
             "name": "Lighthouse"
+          },
+          {
+            "id": "5704e554d2720bac5b8b456e",
+            "name": "Shoreline"
+          },
+          {
+            "id": "5714dc692459777137212e12",
+            "name": "Streets of Tarkov"
           }
         ],
         "shotType": "kill",
@@ -40582,12 +40582,12 @@
             "name": "Woods"
           },
           {
-            "id": "5704e554d2720bac5b8b456e",
-            "name": "Shoreline"
-          },
-          {
             "id": "5704e4dad2720bb55b8b4567",
             "name": "Lighthouse"
+          },
+          {
+            "id": "5704e554d2720bac5b8b456e",
+            "name": "Shoreline"
           },
           {
             "id": "55f2d3fd4bdc2d5f408b4567",
@@ -70779,22 +70779,6 @@
             "name": "Streets of Tarkov"
           },
           {
-            "id": "69af492a4819ea4ba10a69c5",
-            "name": "Icebreaker"
-          },
-          {
-            "id": "5704e3c2d2720bac5b8b4567",
-            "name": "Woods"
-          },
-          {
-            "id": "68236e8153654e8c1200798a",
-            "name": "Ground Zero Tutorial"
-          },
-          {
-            "id": "5704e554d2720bac5b8b456e",
-            "name": "Shoreline"
-          },
-          {
             "id": "55f2d3fd4bdc2d5f408b4567",
             "name": "Factory"
           },
@@ -70811,12 +70795,28 @@
             "name": "Customs"
           },
           {
+            "id": "69af492a4819ea4ba10a69c5",
+            "name": "Icebreaker"
+          },
+          {
+            "id": "5704e3c2d2720bac5b8b4567",
+            "name": "Woods"
+          },
+          {
             "id": "59fc81d786f774390775787e",
             "name": "Night Factory"
           },
           {
+            "id": "68236e8153654e8c1200798a",
+            "name": "Ground Zero Tutorial"
+          },
+          {
             "id": "5704e4dad2720bb55b8b4567",
             "name": "Lighthouse"
+          },
+          {
+            "id": "5704e554d2720bac5b8b456e",
+            "name": "Shoreline"
           }
         ],
         "shotType": "kill",
@@ -80190,26 +80190,6 @@
         "__typename": "TaskObjectiveShoot",
         "maps": [
           {
-            "id": "69af492a4819ea4ba10a69c5",
-            "name": "Icebreaker"
-          },
-          {
-            "id": "5704e3c2d2720bac5b8b4567",
-            "name": "Woods"
-          },
-          {
-            "id": "68236e8153654e8c1200798a",
-            "name": "Ground Zero Tutorial"
-          },
-          {
-            "id": "5704e554d2720bac5b8b456e",
-            "name": "Shoreline"
-          },
-          {
-            "id": "5714dc692459777137212e12",
-            "name": "Streets of Tarkov"
-          },
-          {
             "id": "55f2d3fd4bdc2d5f408b4567",
             "name": "Factory"
           },
@@ -80226,12 +80206,32 @@
             "name": "Customs"
           },
           {
+            "id": "69af492a4819ea4ba10a69c5",
+            "name": "Icebreaker"
+          },
+          {
+            "id": "5704e3c2d2720bac5b8b4567",
+            "name": "Woods"
+          },
+          {
             "id": "59fc81d786f774390775787e",
             "name": "Night Factory"
           },
           {
+            "id": "68236e8153654e8c1200798a",
+            "name": "Ground Zero Tutorial"
+          },
+          {
             "id": "5704e4dad2720bb55b8b4567",
             "name": "Lighthouse"
+          },
+          {
+            "id": "5704e554d2720bac5b8b456e",
+            "name": "Shoreline"
+          },
+          {
+            "id": "5714dc692459777137212e12",
+            "name": "Streets of Tarkov"
           }
         ],
         "shotType": "kill",
@@ -80403,8 +80403,16 @@
         "__typename": "TaskObjectiveShoot",
         "maps": [
           {
+            "id": "56f40101d2720b2a4d8b45d6",
+            "name": "Customs"
+          },
+          {
             "id": "5704e3c2d2720bac5b8b4567",
             "name": "Woods"
+          },
+          {
+            "id": "59fc81d786f774390775787e",
+            "name": "Night Factory"
           },
           {
             "id": "65b8d6f5cdde2479cb2a3125",
@@ -80413,14 +80421,6 @@
           {
             "id": "5704e554d2720bac5b8b456e",
             "name": "Shoreline"
-          },
-          {
-            "id": "56f40101d2720b2a4d8b45d6",
-            "name": "Customs"
-          },
-          {
-            "id": "59fc81d786f774390775787e",
-            "name": "Night Factory"
           }
         ],
         "shotType": "kill",
@@ -109285,16 +109285,20 @@
         "__typename": "TaskObjectiveShoot",
         "maps": [
           {
+            "id": "56f40101d2720b2a4d8b45d6",
+            "name": "Customs"
+          },
+          {
             "id": "5704e3c2d2720bac5b8b4567",
             "name": "Woods"
           },
           {
-            "id": "5704e554d2720bac5b8b456e",
-            "name": "Shoreline"
+            "id": "5704e4dad2720bb55b8b4567",
+            "name": "Lighthouse"
           },
           {
-            "id": "56f40101d2720b2a4d8b45d6",
-            "name": "Customs"
+            "id": "5704e554d2720bac5b8b456e",
+            "name": "Shoreline"
           },
           {
             "id": "5704e4dad2720bb55b8b4567",
