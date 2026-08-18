@@ -13,7 +13,7 @@
 import { useEffect, useState } from 'react';
 import {
   transformItems, transformPriceData, transformGear, transformOptimizer,
-  transformAmmo, transformMaps, transformHideout, transformTasks,
+  transformAmmo, transformMaps, transformHideout, transformTasks, transformLoot,
 } from './transforms.js';
 
 const BASE = 'https://json.tarkov.dev/regular';
@@ -86,6 +86,7 @@ async function doLoad() {
   if (items && itemsEn && traders) safeSet('optimizer', () => transformOptimizer(items, itemsEn, traders));
   if (items && itemsEn) safeSet('ammo', () => transformAmmo(items, itemsEn));
   if (maps && mapsEn && items && itemsEn) safeSet('maps', () => transformMaps(maps, mapsEn, items, itemsEn));
+  if (maps) safeSet('loot', () => transformLoot(maps));
   if (hideout && hideoutEn && items && itemsEn) safeSet('hideout', () => transformHideout(hideout, hideoutEn, items, itemsEn));
   if (tasks && tasksEn && mapsEn && traders && items && itemsEn)
     safeSet('tasks', () => transformTasks(tasks, tasksEn, mapsEn, traders, items, itemsEn));

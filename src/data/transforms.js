@@ -322,6 +322,28 @@ export function transformHideout(hideoutJson, hideoutEnJson, itemsJson, itemsEnJ
 }
 
 /* ========================================================================= *
+ * loot_data.json  (MapPage — Item Tracker: จุด loot ตายตัวจาก lootLoose)
+ *   ผลลัพธ์: { [mapId]: { [itemId]: [{x,y,z}, ...] } }
+ *   หมายเหตุ: มีเฉพาะ item ที่มี "fixed spawn" (lootLoose) — item ที่สุ่มเกิดในกล่อง
+ *   (เช่น battle-pass items) ไม่มีพิกัด จึงไม่อยู่ในนี้ (track ในลิสต์ได้แต่ไม่มีหมุด)
+ * ========================================================================= */
+export function transformLoot(mapsJson) {
+  const M = mapsJson.data.maps;
+  const out = {};
+  for (const m of Object.values(M)) {
+    const byItem = {};
+    for (const l of m.lootLoose || []) {
+      if (!l.position) continue;
+      for (const it of l.items || []) {
+        (byItem[it] = byItem[it] || []).push(l.position);
+      }
+    }
+    if (Object.keys(byItem).length) out[m.id] = byItem;
+  }
+  return out;
+}
+
+/* ========================================================================= *
  * tasks.json  (QuestTree / MapPage / Kappa / home / AddQuest)
  * ========================================================================= */
 const TYPENAME = {

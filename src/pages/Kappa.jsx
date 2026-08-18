@@ -18,7 +18,8 @@ const TraderSection = ({ traderName, quests, completedIds, onToggle }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
     const total = quests.length;
-    const completedCount = quests.filter(quest => completedIds.find(q => q.id === quest.id)).length;
+    // นับเฉพาะที่ status === 'complete' (เควสที่ fail = ติ๊กแดง ไม่นับว่าเสร็จ)
+    const completedCount = quests.filter(quest => completedIds.find(q => q.id === quest.id && q.status === 'complete')).length;
     const isAllComplete = total > 0 && total === completedCount;
 
     return (
@@ -163,19 +164,34 @@ const Kappa = () => {
     }, [completedIds, isRefresh]);
 
     const toggleQuest = (id) => {
-        const newCompleted = QuestComponent.getPreviousQuestsList(id, completedIds);
-
-        const nextQuestList = QuestComponent.getNextQuestLists(completedIds, id);
-        // console.log(newCompleted, nextQuestList);
-
-        if (newCompleted.length > 0) {
+        const already = completedIds.find(q => q.id === id);
+        if (already) {
+            // ปลดเควส: เอาเควสนี้ + เควสที่ใช้เควสนี้เป็น prerequisite (cascade ออกทั้งสาย)
             setCompletedIds(prev => {
-                const uniqueSet = new Set([...prev, ...newCompleted]);
-                return Array.from(uniqueSet);
+                const remove = new Set([id]);
+                let changed = true;
+                while (changed) {
+                    changed = false;
+                    for (const q of quests) {
+                        if (remove.has(q.id)) continue;
+                        if (!prev.some(c => c.id === q.id)) continue;      // แตะเฉพาะที่มีสถานะอยู่
+                        if ((q.taskRequirements || []).some(r => remove.has(r.task.id))) {
+                            remove.add(q.id); changed = true;
+                        }
+                    }
+                }
+                return prev.filter(q => !remove.has(q.id));
             });
-        }
-        if (newCompleted.length === 0 && nextQuestList.length > 0) {
-            setCompletedIds(prev => prev.filter(q => q.id !== id));
+        } else {
+            // ทำเควสเสร็จ: เพิ่มเควสนี้ + prerequisites (dedup ตาม id)
+            const additions = QuestComponent.getPreviousQuestsList(id, completedIds);
+            if (additions.length) {
+                setCompletedIds(prev => {
+                    const byId = new Map(prev.map(q => [q.id, q]));
+                    additions.forEach(q => byId.set(q.id, q));
+                    return Array.from(byId.values());
+                });
+            }
         }
     };
 
@@ -187,7 +203,7 @@ const Kappa = () => {
             if (!showCompleted && completedIds.find(q => q.id === quest.id)) return false;
             return true;
         });
-    }, [searchTerm, showCompleted, completedIds]);
+    }, [quests, searchTerm, showCompleted, completedIds]);
 
     const questsByTrader = useMemo(() => {
         const groups = {};
@@ -202,7 +218,11 @@ const Kappa = () => {
     }, [filteredQuests]);
 
     const totalKappaQuests = quests.filter(q => q.kappaRequired).length;
-    const totalCompleted = completedIds.length;
+    // นับเฉพาะเควส Kappa ที่ status === 'complete' (ไม่รวมเควสหน้าอื่น / เควสที่ fail)
+    const totalCompleted = quests.filter(
+        (q) => q.kappaRequired && completedIds.some((c) => c.id === q.id && c.status === 'complete')
+    ).length;
+    const kappaPercent = totalKappaQuests ? Math.round((totalCompleted / totalKappaQuests) * 100) : 0;
     const traderNames = Object.keys(questsByTrader);
 
     return (
@@ -236,7 +256,7 @@ const Kappa = () => {
                             <div style={{ flexGrow: 1 }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '0.25rem', color: COLORS.textSecondary }}>
                                     <span>Kappa Progress</span>
-                                    <span>{Math.round((totalCompleted / totalKappaQuests) * 100)}%</span>
+                                    <span>{kappaPercent}%</span>
                                 </div>
                                 <ProgressBar current={totalCompleted} total={totalKappaQuests} color={COLORS.accent} />
                             </div>

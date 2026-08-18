@@ -2,9 +2,11 @@
 import React, { useEffect, useState, useRef, Fragment } from 'react';
 import questsStatic from "../data/tasks";
 import mapFeaturesStatic from "../data/maps";
-import { useLiveData } from '../data/gameStore';
+import itemsStatic from "../data/items.json";
+import { useLiveData, getData } from '../data/gameStore';
 import { mapStyles as styles, Icons } from '../Component/EftComponent';
 import * as QuestComponent from '../Component/QuestComponent';
+import ItemTracker from './ItemTracker';
 
 /* ---------------- STORAGE KEYS ---------------- */
 const OBJECTIVE_CHECK_KEY = "eft_objective_checklist";
@@ -17,11 +19,11 @@ const HIDDEN_KEY = "eft_select_quest_hidden";
 const maps = [
   { id: 0, map_name: "Factory", svg: "Factory", offsetX: 51.1, offsetZ: 54.3, scaleX: 0.76, scaleZ: 0.7, flipX: true, flipZ: true, swapXZ: true },
   { id: 1, map_name: "Customs", svg: "Customs", offsetX: 65.2, offsetZ: 56.3, scaleX: 0.094, scaleZ: 0.18, flipX: true, flipZ: false, swapXZ: false },
-  { id: 2, map_name: "Woods", svg: "Woods", offsetX: 48.5, offsetZ: 67.3, scaleX: 0.0759, scaleZ: 0.0729, flipX: true, flipZ: false, swapXZ: false },
-  { id: 3, map_name: "Shoreline", svg: "Shoreline", offsetX: 32.5, offsetZ: 39.8, scaleX: 0.0636, scaleZ: 0.0917, flipX: true, flipZ: false, swapXZ: false },
-  { id: 4, map_name: "Interchange", svg: "Interchange", offsetX: 59.333, offsetZ: 49.238, scaleX: 0.1123, scaleZ: 0.1083, flipX: true, flipZ: false, swapXZ: false },
+  { id: 2, map_name: "Woods", svg: "Woods", offsetX: 45.913, offsetZ: 67.404, scaleX: 0.0711, scaleZ: 0.0737, flipX: true, flipZ: false, swapXZ: false },
+  { id: 3, map_name: "Shoreline", svg: "Shoreline", offsetX: 32.308, offsetZ: 40.174, scaleX: 0.0641, scaleZ: 0.0968, flipX: true, flipZ: false, swapXZ: false },
+  { id: 4, map_name: "Interchange", svg: "Interchange", offsetX: 58.002, offsetZ: 50.922, scaleX: 0.097, scaleZ: 0.1152, flipX: true, flipZ: false, swapXZ: false },
   { id: 5, map_name: "The Lab", svg: "labs", offsetX: 161.3, offsetZ: 111, scaleX: 0.33, scaleZ: 0.33, flipX: false, flipZ: false, swapXZ: true },
-  { id: 6, map_name: "Reserve", svg: "Reserve", offsetX: 48.6, offsetZ: 50.856, scaleX: 0.163, scaleZ: 0.1797, flipX: true, flipZ: false, swapXZ: false },
+  { id: 6, map_name: "Reserve", svg: "Reserve", offsetX: 48.818, offsetZ: 54.562, scaleX: 0.1689, scaleZ: 0.1862, flipX: true, flipZ: false, swapXZ: false },
   { id: 7, map_name: "Lighthouse", svg: "Lighthouse", offsetX: 48.3, offsetZ: 58, scaleX: 0.0955, scaleZ: 0.058, flipX: true, flipZ: false, swapXZ: false },
   { id: 8, map_name: "Streets of Tarkov", svg: "StreetsOfTarkov", offsetX: 53.6, offsetZ: 35.67, scaleX: 0.1657, scaleZ: 0.1206, flipX: true, flipZ: false, swapXZ: false },
   { id: 9, map_name: "Ground Zero", svg: "GroundZero", offsetX: 71.5, offsetZ: 25.5, scaleX: 0.28, scaleZ: 0.2, flipX: true, flipZ: false, swapXZ: false },
@@ -116,9 +118,21 @@ const MapPage = () => {
     try { return JSON.parse(localStorage.getItem(PINS_KEY)) || {}; } catch { return {}; }
   });
 
-  // ค้นหาบนแผนที่ + ไฮไลต์จุดที่เลือก
-  const [mapSearch, setMapSearch] = useState('');
-  const [highlight, setHighlight] = useState(null); // { x, y } เป็น %
+  // --- Item Tracker (loot spawn) ---
+  const ITEMS_KEY = 'eft_tracked_items';
+  const LOOT_URL = `${import.meta.env.BASE_URL}loot_data.json`;
+  const allItems = useLiveData(itemsStatic, 'items');       // รายการ item ทั้งหมด (ค้น/meta)
+  const [loot, setLoot] = useState(null);                    // { mapId: { itemId: [pos] } }
+  const [trackedItems, setTrackedItems] = useState(() => {   // [{id, hidden}]
+    try { return JSON.parse(localStorage.getItem(ITEMS_KEY)) || []; } catch { return []; }
+  });
+  useEffect(() => { localStorage.setItem(ITEMS_KEY, JSON.stringify(trackedItems)); }, [trackedItems]);
+  useEffect(() => { getData('loot', LOOT_URL).then((d) => d && setLoot(d)).catch(() => {}); }, []);
+
+  // หุบ/แสดง section ย่อยของ sidebar
+  const [openSec, setOpenSec] = useState({ region: true, layers: false, quests: true });
+  const toggleSec = (k) => setOpenSec((s) => ({ ...s, [k]: !s[k] }));
+
 
   const [mapCalibrations, setMapCalibrations] = useState(
     maps.reduce((acc, map) => ({
@@ -345,6 +359,30 @@ const MapPage = () => {
   };
 
   const pinsHere = customPins[currentMapName] || [];
+
+  // --- Item Tracker: map ปัจจุบัน -> tarkov id, สีต่อ item, หมุด loot ---
+  const tarkovMapId = React.useMemo(
+    () => (mapFeatures || []).find((m) => m.name === currentMapName)?.id || null,
+    [mapFeatures, currentMapName]
+  );
+  const colorForItem = (id) => `hsl(${([...String(id)].reduce((a, c) => a + c.charCodeAt(0), 0) * 47) % 360}, 85%, 60%)`;
+  const trackedNames = React.useMemo(() => {
+    const byId = new Map((allItems || []).map((x) => [x.id, x.name]));
+    return Object.fromEntries(trackedItems.map((t) => [t.id, byId.get(t.id) || t.id]));
+  }, [allItems, trackedItems]);
+  const itemPinsHere = React.useMemo(() => {
+    if (!loot || !tarkovMapId) return [];
+    const mapLoot = loot[tarkovMapId] || {};
+    const out = [];
+    for (const t of trackedItems) {
+      if (t.hidden) continue;
+      for (let i = 0; i < (mapLoot[t.id] || []).length; i++) {
+        const p = posToPerc(mapLoot[t.id][i]);
+        out.push({ key: `${t.id}-${i}`, x: p.x, y: p.y, color: colorForItem(t.id), name: trackedNames[t.id], expanded: !!t.expanded });
+      }
+    }
+    return out;
+  }, [loot, tarkovMapId, trackedItems, calib, trackedNames]);
   const addPin = (xPerc, yPerc) => {
     const label = (typeof window !== 'undefined' && window.prompt('Pin label (optional):', '')) || '';
     setCustomPins(prev => {
@@ -359,34 +397,6 @@ const MapPage = () => {
       localStorage.setItem(PINS_KEY, JSON.stringify(next));
       return next;
     });
-  };
-
-  // ผลค้นหา extract / transit / key บนแผนที่ปัจจุบัน
-  const searchResults = React.useMemo(() => {
-    const q = mapSearch.trim().toLowerCase();
-    if (!q) return [];
-    const out = [];
-    currentFeatures.extracts?.forEach(e => { if (e.name?.toLowerCase().includes(q)) out.push({ type: 'Extract', name: e.name, pos: e.position, color: factionColor(e.faction) }); });
-    currentFeatures.transits?.forEach(t => { if ((t.description || 'transit').toLowerCase().includes(q)) out.push({ type: 'Transit', name: t.description || 'Transit', pos: t.position, color: '#f91616' }); });
-    currentFeatures.locks?.forEach(k => { if (k.key?.name?.toLowerCase().includes(q)) out.push({ type: 'Key', name: k.key.name, pos: k.position, color: '#eab308' }); });
-    return out.slice(0, 20);
-  }, [mapSearch, currentFeatures]);
-
-  const jumpTo = (pos, ensure) => {
-    if (ensure === 'key') setShowKeys(true);
-    const { x, y } = posToPerc(pos);
-    setZoom(z => Math.max(z, 2));
-    // เผื่อ zoom เพิ่งเปลี่ยน ใช้ค่า zoom ปัจจุบันคำนวณ center แบบ manual
-    const img = imageRef.current;
-    if (img) {
-      const z = Math.max(zoom, 2);
-      const dx = ((x - 50) / 100) * img.clientWidth * z;
-      const dy = ((y - 50) / 100) * img.clientHeight * z;
-      const rad = (rotation * Math.PI) / 180;
-      setOffset({ x: -(dx * Math.cos(rad) - dy * Math.sin(rad)), y: -(dx * Math.sin(rad) + dy * Math.cos(rad)) });
-    }
-    setHighlight({ x, y });
-    setTimeout(() => setHighlight(null), 3000);
   };
 
   const handleMouseMove = (e) => {
@@ -552,7 +562,11 @@ const MapPage = () => {
         </div>
 
         <section style={UI.card}>
-          <div style={UI.cardTitle}>📍 Map Region</div>
+          <div style={{ ...UI.cardTitle, justifyContent: 'space-between', cursor: 'pointer', marginBottom: openSec.region ? undefined : 0 }} onClick={() => toggleSec('region')}>
+            <span>📍 Map Region</span>
+            <span style={{ color: '#7c8db0', display: 'flex' }}>{openSec.region ? <Icons.ChevronUp size={18} /> : <Icons.ChevronDown size={18} />}</span>
+          </div>
+          {openSec.region && (
           <select
             style={styles.select}
             value={selectedMapId}
@@ -568,12 +582,17 @@ const MapPage = () => {
           >
             {maps.map(map => <option key={map.id} value={map.id}>{map.map_name}</option>)}
           </select>
+          )}
         </section>
 
         {/* Map Feature Toggles */}
         <section style={UI.card}>
-          <div style={UI.cardTitle}>🧭 Layers</div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+          <div style={{ ...UI.cardTitle, justifyContent: 'space-between', cursor: 'pointer', marginBottom: openSec.layers ? undefined : 0 }} onClick={() => toggleSec('layers')}>
+            <span>🧭 Layers</span>
+            <span style={{ color: '#7c8db0', display: 'flex' }}>{openSec.layers ? <Icons.ChevronUp size={18} /> : <Icons.ChevronDown size={18} />}</span>
+          </div>
+          {openSec.layers && (<>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', padding: '12px 0' }}>
             {[
               { label: 'Extracts', on: showExtracts, set: setShowExtracts, color: '#10b981' },
               { label: 'Transits', on: showTransits, set: setShowTransits, color: '#f91616' },
@@ -628,38 +647,19 @@ const MapPage = () => {
               {pinsHere.length} pin(s) here · click a pin to remove
             </div>
           )}
+          </>)}
         </section>
 
-        {/* Search on map */}
-        <section style={UI.card}>
-          <div style={UI.cardTitle}>🔍 Search on map</div>
-          <input
-            style={{ width: '100%', padding: '10px 12px', borderRadius: '10px', border: '1px solid #2a3550', background: '#0e1730', color: '#e2e8f0', fontSize: '13px', outline: 'none' }}
-            placeholder="extract / key / transit..."
-            value={mapSearch}
-            onChange={e => setMapSearch(e.target.value)}
-          />
-          {searchResults.length > 0 && (
-            <div style={{ marginTop: '8px', maxHeight: '220px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '5px' }}>
-              {searchResults.map((r, i) => (
-                <div
-                  key={i}
-                  onClick={() => jumpTo(r.pos, r.type === 'Key' ? 'key' : null)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 9px', borderRadius: '8px', background: '#0e1730', border: '1px solid #24324f', cursor: 'pointer', fontSize: '12px', transition: 'background .15s ease' }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#1b2946'}
-                  onMouseLeave={e => e.currentTarget.style.background = '#0e1730'}
-                >
-                  <span style={{ width: '9px', height: '9px', borderRadius: '50%', background: r.color, flexShrink: 0, boxShadow: `0 0 6px ${r.color}` }} />
-                  <span style={{ color: '#64748b', flexShrink: 0, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '.05em', width: '48px' }}>{r.type}</span>
-                  <span style={{ color: '#e2e8f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</span>
-                </div>
-              ))}
-            </div>
-          )}
-          {mapSearch.trim() && searchResults.length === 0 && (
-            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '6px' }}>No match on this map</div>
-          )}
-        </section>
+        {/* Item Tracker (loot spawn) */}
+        <ItemTracker
+          items={allItems}
+          loot={loot}
+          mapId={tarkovMapId}
+          mapName={currentMapName}
+          tracked={trackedItems}
+          colorFor={colorForItem}
+          onChange={setTrackedItems}
+        />
 
         {questKeys.length > 0 && (
           <section style={UI.card}>
@@ -725,14 +725,18 @@ const MapPage = () => {
 
         )}
 
-        <section style={{ ...UI.card, flex: 1 }}>
-          <div style={UI.cardTitle}>🎯 Tracked Quests ({trackedQuests.length})</div>
+        <section style={{ ...UI.card }}>
+          <div style={{ ...UI.cardTitle, justifyContent: 'space-between', cursor: 'pointer', marginBottom: openSec.quests ? undefined : 0 }} onClick={() => toggleSec('quests')}>
+            <span>🎯 Tracked Quests ({trackedQuests.length})</span>
+            <span style={{ color: '#7c8db0', display: 'flex' }}>{openSec.quests ? <Icons.ChevronUp size={18} /> : <Icons.ChevronDown size={18} />}</span>
+          </div>
+          {openSec.quests && (<>
           {trackedQuests.length === 0 && (
             <div style={{ fontSize: '12px', color: '#64748b', textAlign: 'center', padding: '12px 0' }}>
               No quests tracked yet
             </div>
           )}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '12px 0' }}>
             {trackedQuests.map((tq) => {
               const fullQuest = quests.find(qd => qd.name === tq.name);
               const isExpanded = expandedQuestName === tq.name;
@@ -813,6 +817,7 @@ const MapPage = () => {
               );
             })}
           </div>
+          </>)}
         </section>
       </aside>
 
@@ -832,8 +837,8 @@ const MapPage = () => {
         <div style={styles.zoomControls}>
           <button style={styles.zoomBtn} onClick={() => rotateMap(-90)} title="Rotate Left">⟲</button>
           <button style={styles.zoomBtn} onClick={() => rotateMap(90)} title="Rotate Right">⟳</button>
-          <button style={styles.zoomBtn} onClick={() => setZoom(z => Math.min(10, z + 0.5))}>+</button>
-          <button style={styles.zoomBtn} onClick={() => setZoom(z => Math.max(0.5, z - 0.5))}>-</button>
+          <button style={styles.zoomBtn} onClick={() => setZoom(z => Math.min(10, z * 1.4))}>+</button>
+          <button style={styles.zoomBtn} onClick={() => setZoom(z => Math.max(0.5, z / 1.4))}>-</button>
           <button style={{ ...styles.zoomBtn, fontSize: '12px' }} onClick={resetZoom}>RST</button>
           <button style={{ ...styles.calibrationBtn, fontSize: '12px', backgroundColor: showCalibration ? 'rgba(246, 59, 59, 0.9)' : 'rgba(15, 23, 42, 0.9)', }} onClick={() => setShowCalibration(!showCalibration)}>Calib</button>
         </div>
@@ -898,7 +903,19 @@ const MapPage = () => {
             if (pinMode) { const { x, y } = pctFromEvent(e); addPin(x, y); return; }
             setIsDragging(true); setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
           }}
-          onWheel={(e) => setZoom(prev => Math.max(0.5, Math.min(10, prev + (e.deltaY > 0 ? -0.1 : 0.1))))}
+          onWheel={(e) => {
+            // ซูมเข้า/ออกโดยยึดตำแหน่งเมาส์ (zoom-to-cursor) — ปรับ offset ให้จุดใต้เมาส์อยู่กับที่
+            const rect = e.currentTarget.getBoundingClientRect();
+            const cx = e.clientX - rect.left - rect.width / 2;  // เมาส์เทียบจุดกึ่งกลาง (= transform origin)
+            const cy = e.clientY - rect.top - rect.height / 2;
+            // ซูมแบบ multiplicative (สม่ำเสมอทุกระดับ + ไวขึ้น) + ปรับตามแรง scroll · cap กันกระโดดแรงไป
+            const step = Math.max(-0.6, Math.min(0.6, -e.deltaY * 0.003));
+            const nz = Math.max(0.5, Math.min(10, zoom * Math.exp(step)));
+            if (nz === zoom) return;
+            const f = nz / zoom;
+            setOffset({ x: cx - f * (cx - offset.x), y: cy - f * (cy - offset.y) });
+            setZoom(nz);
+          }}
         >
           <div style={{
             position: 'relative',
@@ -1198,17 +1215,17 @@ const MapPage = () => {
               </div>
             ))}
 
-            {/* Search highlight ring */}
-            {highlight && (
-              <div style={{
-                position: 'absolute', left: `${highlight.x}%`, top: `${highlight.y}%`,
-                width: `${24 * markerScale}px`, height: `${24 * markerScale}px`,
-                border: '3px solid #facc15', borderRadius: '50%',
-                boxShadow: '0 0 12px #facc15',
-                transform: 'translate(-50%, -50%)', zIndex: 45, pointerEvents: 'none',
-                animation: 'pulseRing 1s ease-out infinite',
-              }} />
-            )}
+            {/* Item Tracker pins (loot spawn) — หด/ขยายคุมผ่าน item tracker (t.expanded) */}
+            {!isLoading && itemPinsHere.map((pin) => (
+              <div key={`item-${pin.key}`} style={{
+                position: 'absolute', left: `${pin.x}%`, top: `${pin.y}%`,
+                transform: `translate(-50%, -50%) scale(${pin.expanded ? markerScale * 1.8 : markerScale}) rotate(${-rotation}deg)`,
+                zIndex: pin.expanded ? 100 : 39, pointerEvents: 'none',
+              }} title={pin.name}>
+                <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: pin.color, border: '2px solid #fff', boxShadow: pin.expanded ? `0 0 8px ${pin.color}` : '0 0 4px #000' }} />
+              </div>
+            ))}
+
           </div>
         </div>
       </main>

@@ -481,6 +481,7 @@ export const mapStyles = {
     select: {
         width: '100%',
         padding: '12px',
+        marginTop: '10px',
         borderRadius: '10px',
         backgroundColor: '#1e293b',
         border: '1px solid #334155',

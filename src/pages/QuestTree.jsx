@@ -48,12 +48,10 @@ const QuestTree = () => {
             for (const req of quest.taskRequirements) {
                 if (!completed.has(req.task.id)) {
                     if (req.status.some(s => ["active",].includes(s))) {
-                        const tarketActiveTask = tasks.filter(t => t.id == req.task.id);
-                        tarketActiveTask.forEach(maintask => {
-                            maintask.taskRequirements?.forEach(require => {
-                                completed.add(require.task.id);
-                                dfs(require.task.id);
-                            });
+                        const activeTask = tasks.find(t => t.id === req.task.id);
+                        activeTask?.taskRequirements?.forEach(require => {
+                            completed.add(require.task.id);
+                            dfs(require.task.id);
                         });
                     }
                     else if (req.status.some(s => ["complete", "failed"].includes(s))) {
@@ -187,12 +185,10 @@ const QuestTree = () => {
             t.taskRequirements?.forEach(req => {
                 if (visibleIds.has(req.task.id)) {
                     if (req.status.some(s => ["active",].includes(s))) {
-                        const tarketActiveTask = tasks.filter(t => t.id == req.task.id);
-                        tarketActiveTask.forEach(maintask => {
-                            maintask.taskRequirements?.forEach(require => {
-                                edgeData.push({ source: require.task.id, target: t.id });
-                                g.setEdge(require.task.id, t.id);
-                            });
+                        const activeTask = tasks.find(t => t.id === req.task.id);
+                        activeTask?.taskRequirements?.forEach(require => {
+                            edgeData.push({ source: require.task.id, target: t.id });
+                            g.setEdge(require.task.id, t.id);
                         });
                     }
                     else if (req.status.some(s => ["complete", "failed"].includes(s))) {

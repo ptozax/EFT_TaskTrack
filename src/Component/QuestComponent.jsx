@@ -203,18 +203,24 @@ export const getNextQuestLists = (completedQuests, triggeringQuestId = null) => 
         return requirements.every(req => {
             const reqId = req.task.id;
 
-            // Standard API usually provides req.status = ['complete'] or ['failed']
+            // Standard API usually provides req.status = ['complete'] / ['failed'] / ['active']
             // If status is missing, we assume it requires 'complete'
             const requiredStatus = req.status || ['complete'];
 
-            // Check if we match the 'complete' requirement
-            const isCompleted = completedIds.has(reqId) && requiredStatus.includes('complete');
+            // complete / failed (For Trust Regain / No Offence)
+            if (requiredStatus.includes('complete') && completedIds.has(reqId)) return true;
+            if (requiredStatus.includes('failed') && failedIds.has(reqId)) return true;
 
-            // Check if we match the 'failed' requirement (For Trust Regain / No Offence)
-            const isFailed = failedIds.has(reqId) && requiredStatus.includes('failed');
+            // 'active' = prerequisite เริ่มได้แล้ว (prereq ของมันเสร็จหมด) หรือทำเสร็จไปแล้ว
+            // ให้สอดคล้องกับ QuestTree ที่ handle 'active' อยู่แล้ว
+            if (requiredStatus.includes('active')) {
+                if (completedIds.has(reqId)) return true;
+                const pre = TASKS().find(t => t.id === reqId);
+                const preReqs = pre?.taskRequirements || [];
+                return preReqs.length > 0 && preReqs.every(r => completedIds.has(r.task.id));
+            }
 
-            // Pass if EITHER condition is met
-            return isCompleted || isFailed;
+            return false;
         });
     });
 

@@ -1,4 +1,4 @@
-import { HashRouter as Router, Routes, Route } from "react-router-dom";
+import { HashRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import { StrictMode, lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -8,11 +8,21 @@ import './index.css';
 import Home from './home/home.jsx';
 import AppNavbar from './Component/AppNavbar.jsx';
 import SyncIndicator from './Component/SyncIndicator.jsx';
+import ErrorBoundary from './Component/ErrorBoundary.jsx';
 import { preloadAll } from './data/gameStore';
 
 // เริ่มดึงข้อมูล "สด" จาก json.tarkov.dev ทันทีที่เข้าเว็บ (ขนานกับการเรนเดอร์)
 // หน้าเว็บโชว์ static ก่อน แล้วสลับเป็น live เมื่อโหลด+transform เสร็จ (fallback = static ถ้าล้มเหลว)
 preloadAll();
+
+// Vite: ถ้า lazy chunk โหลดไม่ได้ (มัก = deploy เวอร์ชันใหม่ทำให้ chunk เก่าที่ browser cache ไว้ 404)
+// -> reload หนึ่งครั้งให้ดึง index/chunk ล่าสุด (กัน loop ด้วย flag เดียวกับ ErrorBoundary)
+window.addEventListener('vite:preloadError', () => {
+  if (!sessionStorage.getItem('eft_chunk_reloaded')) {
+    sessionStorage.setItem('eft_chunk_reloaded', '1');
+    window.location.reload();
+  }
+});
 
 // lazy-load แต่ละหน้า -> โหลดเฉพาะหน้าที่เปิด (lib หนักอย่าง leaflet/tesseract/d3 ถูกแยก chunk ตามหน้า)
 const AddQuest = lazy(() => import("./pages/AddQuest.jsx"));
@@ -57,15 +67,23 @@ function HandlePage() {
   );
 }
 
+// reset ErrorBoundary เมื่อเปลี่ยนหน้า — หน้าที่ crash จะไม่ค้าง error เวลานำทางไปหน้าอื่น
+function RoutedBoundary({ children }) {
+  const location = useLocation();
+  return <ErrorBoundary key={location.pathname}>{children}</ErrorBoundary>;
+}
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Router>
       <AppNavbar />
       <SyncIndicator />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/:pageId" element={<HandlePage />} />
-      </Routes>
+      <RoutedBoundary>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/:pageId" element={<HandlePage />} />
+        </Routes>
+      </RoutedBoundary>
     </Router>
   </StrictMode>
 );
