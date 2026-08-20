@@ -25,12 +25,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22       # ต้อง 18+ (global fetch)
+          cache: npm
 
+      # npm ci = ติดตั้งตาม package-lock.json เป๊ะ ๆ -> build ซ้ำได้ผลเดิมทุกครั้ง
       - name: Install Dependencies
-        run: npm install
+        run: npm ci
 
+      # ถ้า json.tarkov.dev ล่มตอนตี 1 ให้ deploy ต่อด้วย data ที่ commit ไว้
+      # (ไม่ให้ job แดงแล้วเสีย deploy ทั้งรอบ) — พฤติกรรมเดียวกับ Deploy.yml
       - name: Refresh data from tarkov.dev
-        run: npm run update-all   # items + price + gear + optimizer + ammo/maps/hideout/tasks
+        run: npm run update-all || echo "refresh ล้มเหลว — build/deploy ด้วย data ที่ commit ไว้แทน"
 
       - name: Commit refreshed data (ถ้ามีการเปลี่ยนแปลง)
         run: |
@@ -41,6 +45,9 @@ jobs:
             echo "ไม่มีข้อมูลเปลี่ยน — ข้าม commit"
           else
             git commit -m "chore(data): refresh tarkov data [skip ci]"
+            # ถ้ามีคน push โค้ดเข้า main ระหว่าง job นี้กำลังรัน push ตรง ๆ จะถูก reject
+            # -> rebase ทับของใหม่ก่อน แล้วค่อย push (ยังพลาดได้ถ้า JSON ชนกันจริง)
+            git pull --rebase --autostash origin main
             git push
           fi
 

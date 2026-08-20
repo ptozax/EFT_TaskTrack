@@ -20,9 +20,12 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 22
+          cache: npm
 
+      # npm ci = ติดตั้งตาม package-lock.json เป๊ะ ๆ -> build ซ้ำได้ผลเดิมทุกครั้ง
+      # (npm install จะขยับเวอร์ชันตาม semver range เอง ทำให้ build ที่เคยผ่านพังได้)
       - name: Install Dependencies
-        run: npm install
+        run: npm ci
 
       # refresh data ก่อน build ทุกครั้งที่ deploy โค้ดใหม่ -> bundle fallback สดเสมอ (ไม่ใช่ของเก่าที่ commit ไว้)
       # ถ้า tarkov.dev ล่มชั่วคราว จะ build ต่อด้วย data ที่ commit ไว้ (ไม่ทำให้ deploy พัง)
