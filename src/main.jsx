@@ -28,6 +28,7 @@ window.addEventListener('vite:preloadError', () => {
 const AddQuest = lazy(() => import("./pages/AddQuest.jsx"));
 const MapPage = lazy(() => import("./pages/MapPage.jsx"));
 const Kappa = lazy(() => import("./pages/Kappa.jsx"));
+const StoryProgress = lazy(() => import("./pages/StoryProgress.jsx"));
 const QuestTree = lazy(() => import("./pages/QuestTree.jsx"));
 const Hideout = lazy(() => import("./pages/Hideout.jsx"));
 const Balistic = lazy(() => import("./pages/Balistic.jsx"));
@@ -42,6 +43,7 @@ const pageComponents = {
   ItemPrice: <ItemPrice />,
   QuestTree: <QuestTree />,
   Kappa: <Kappa />,
+  Story: <StoryProgress />,
   Map: <MapPage />,
   AddQuest: <AddQuest />,
   Hideout: <Hideout />,

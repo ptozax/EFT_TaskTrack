@@ -7,13 +7,13 @@ import Badge from 'react-bootstrap/Badge';
 
 import { NavLink } from 'react-router-dom';
 
-import { GiHomeGarage, GiPc, GiTreeGrowth, GiTrophy, GiMachineGunMagazine, GiProgression, GiBullets, GiBulletImpacts, GiKevlarVest, GiGunStock } from 'react-icons/gi';
+import { GiHomeGarage, GiPc, GiTreeGrowth, GiTrophy, GiMachineGunMagazine, GiProgression, GiBullets, GiBulletImpacts, GiKevlarVest, GiGunStock, GiOpenBook } from 'react-icons/gi';
 import { FaGem, FaMap, FaQrcode, FaTools, FaExchangeAlt, FaCamera, FaStore } from 'react-icons/fa';
 import { kappaStyles as styles, COLORS } from './EftComponent';
 import BEAR from '/BEAR_Icon.webp';
 import USEC from '/USEC_Emblem.webp';
 
-const RESET = ["All", "Questline", "Hideout"];
+const RESET = ["All", "Questline", "Story", "Hideout"];
 
 function AppNavbar() {
 
@@ -23,6 +23,7 @@ function AppNavbar() {
         { key: "#/Map", href: "/Map", icon: FaMap, text: "Map", subLinks: [] },
         {
             key: "#/Progressions", href: "", icon: GiProgression, text: "Progressions", subLinks: [
+                { key: "#/Story", href: "/Story", icon: GiOpenBook, text: "Story" },
                 { key: "#/Kappa", href: "/Kappa", icon: GiTrophy, text: "Kappa" },
                 { key: "#/QuestTree", href: "/QuestTree", icon: GiTreeGrowth, text: "Quest Tree" },
                 { key: "#/Hideout", href: "/Hideout", icon: GiHomeGarage, text: "Hideout" }]
@@ -105,6 +106,10 @@ function AppNavbar() {
                     localStorage.removeItem('eft_objective_checklist');
                     localStorage.removeItem('eft_completed_quests');
                     localStorage.removeItem('eft_select_quest_hidden');
+                } else if (value === "Story") {
+                    localStorage.removeItem('eft_story_progress');
+                    localStorage.removeItem('eft_story_view');
+                    localStorage.removeItem('eft_story_chapter');
                 } else if (value === "Hideout") {
                     localStorage.removeItem('eft_hideout');
                 }

@@ -18,8 +18,9 @@
     "update-gear": "node scripts/update-gear-data.mjs",
     "update-data": "node scripts/update-data.mjs",
     "update-loot": "node scripts/update-loot.mjs",
+    "update-story": "node scripts/update-story.mjs",
     "update": "npm run update-items && npm run update-price && npm run update-gear && npm run update-optimizer && npm run update-loot",
-    "update-all": "npm run update && npm run update-data",
+    "update-all": "npm run update && npm run update-data && npm run update-story",
     "lint": "eslint .",
     "preview": "vite preview"
   },

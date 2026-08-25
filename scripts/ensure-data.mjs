@@ -11,7 +11,7 @@
  * ใช้เป็น predev / prebuild -> clone ใหม่แล้ว npm run dev ได้เลย
  * ========================================================================= */
 import { spawn } from 'node:child_process';
-import { access } from 'node:fs/promises';
+import { access, readdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -25,6 +25,7 @@ const TARGETS = [
   { files: ['public/gear_data.json'], script: 'update-gear-data.mjs' },
   { files: ['public/optimizer_data.json'], script: 'update-optimizer-data.mjs' },
   { files: ['public/loot_data.json'], script: 'update-loot.mjs' },
+  { files: ['src/data/story.json'], script: 'update-story.mjs' },
 ];
 
 const exists = async (rel) => {
@@ -36,11 +37,21 @@ const exists = async (rel) => {
   }
 };
 
-const run = (script) => new Promise((done, fail) => {
-  const child = spawn(process.execPath, [resolve(ROOT, 'scripts', script)], { cwd: ROOT, stdio: 'inherit' });
+const run = (script, args = []) => new Promise((done, fail) => {
+  const child = spawn(process.execPath, [resolve(ROOT, 'scripts', script), ...args], { cwd: ROOT, stdio: 'inherit' });
   child.on('exit', (code) => (code === 0 ? done() : fail(new Error(`${script} exit ${code}`))));
   child.on('error', fail);
 });
+
+// รูปของ story ก็ generate มาเหมือนกัน — ถ้า story.json มีแต่รูปหาย ต้องดึงใหม่แบบ force
+// (ปกติ update-story จะข้ามเมื่อวิกิไม่เปลี่ยน ซึ่งจะไม่โหลดรูปให้)
+const storyImagesMissing = async () => {
+  try {
+    return (await readdir(resolve(ROOT, 'public', 'story'))).length === 0;
+  } catch {
+    return true;
+  }
+};
 
 async function main() {
   const missing = [];
@@ -50,14 +61,25 @@ async function main() {
     if (gone.length) missing.push({ ...target, gone });
   }
 
-  if (!missing.length) {
+  const storyOnlyImages = !missing.some((m) => m.script === 'update-story.mjs')
+    && await exists('src/data/story.json')
+    && await storyImagesMissing();
+
+  if (!missing.length && !storyOnlyImages) {
     console.log('✓ ข้อมูลครบแล้ว — ไม่ต้องดึงอะไร');
     return;
   }
 
-  console.log(`ขาดข้อมูล ${missing.reduce((s, m) => s + m.gone.length, 0)} ไฟล์ — กำลังสร้าง:`);
-  missing.forEach((m) => console.log(`  · ${m.gone.join(', ')} (${m.script})`));
-  for (const m of missing) await run(m.script);
+  if (missing.length) {
+    console.log(`ขาดข้อมูล ${missing.reduce((s, m) => s + m.gone.length, 0)} ไฟล์ — กำลังสร้าง:`);
+    missing.forEach((m) => console.log(`  · ${m.gone.join(', ')} (${m.script})`));
+    for (const m of missing) await run(m.script);
+  }
+
+  if (storyOnlyImages) {
+    console.log('รูปของ story หาย — ดึงใหม่ทั้งชุด (update-story.mjs --force)');
+    await run('update-story.mjs', ['--force']);
+  }
 
   console.log('✓ ข้อมูลพร้อมแล้ว');
 }

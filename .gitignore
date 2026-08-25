@@ -24,6 +24,8 @@ public/price_data.json
 public/gear_data.json
 public/optimizer_data.json
 public/loot_data.json
+src/data/story.json
+public/story/
 
 # Editor directories and files
 .vscode/*

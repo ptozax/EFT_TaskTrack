@@ -43,10 +43,12 @@ jobs:
             src/data/maps.json
             src/data/hideout.json
             src/data/ammo.json
+            src/data/story.json
             public/price_data.json
             public/gear_data.json
             public/optimizer_data.json
             public/loot_data.json
+            public/story
           key: tarkov-data-${{ github.run_id }}
           restore-keys: tarkov-data-
 
