@@ -12,6 +12,19 @@ dist
 dist-ssr
 *.local
 
+# ข้อมูลเกมที่ generate ได้ทั้งหมด (~18 MB) — ไม่ commit
+# เดิม commit ไว้แล้วทั้ง bot กับเครื่องเราเขียนทับกัน + .git โตวันละ ~8 MB
+# ตอน build/dev สร้างเองด้วย scripts/ensure-data.mjs, บน CI มี actions/cache เป็น fallback
+src/data/items.json
+src/data/tasks.json
+src/data/maps.json
+src/data/hideout.json
+src/data/ammo.json
+public/price_data.json
+public/gear_data.json
+public/optimizer_data.json
+public/loot_data.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

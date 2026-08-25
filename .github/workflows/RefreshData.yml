@@ -1,14 +1,15 @@
 name: Refresh Tarkov Data
 
-# ดึงข้อมูลสดจาก json.tarkov.dev มาอัปเดตไฟล์ static (fallback) ที่ commit ไว้บน git
-# ให้ไม่ค้างเก่า — แล้ว build+deploy ให้ตัวที่ deploy สดตามด้วย
+# ดึงข้อมูลสดจาก json.tarkov.dev แล้ว build/deploy ตาม
+# ข้อมูลไม่ถูก commit ลง git อีกแล้ว — ของที่ deploy สร้างใหม่ทุกรอบตรงนี้เลย
+# ชุดข้อมูลรอบล่าสุดถูกเก็บใน actions/cache ไว้เป็น fallback เวลา API ล่ม
 on:
   schedule:
     - cron: '0 18 * * *'      # ทุกวัน 18:00 UTC (= 01:00 เวลาไทย) — แก้ความถี่ได้ที่นี่
   workflow_dispatch: {}         # กดรันเองได้จากแท็บ Actions
 
 permissions:
-  contents: write               # ต้องเขียน เพื่อ commit ข้อมูล + deploy ไป gh-pages
+  contents: write               # ต้องเขียน เพื่อ deploy ไป gh-pages
 
 concurrency:
   group: refresh-data
@@ -31,25 +32,31 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      # ถ้า json.tarkov.dev ล่มตอนตี 1 ให้ deploy ต่อด้วย data ที่ commit ไว้
-      # (ไม่ให้ job แดงแล้วเสีย deploy ทั้งรอบ) — พฤติกรรมเดียวกับ Deploy.yml
-      - name: Refresh data from tarkov.dev
-        run: npm run update-all || echo "refresh ล้มเหลว — build/deploy ด้วย data ที่ commit ไว้แทน"
+      # กู้ชุดข้อมูลของรอบก่อนมาก่อน เพื่อให้มีของใช้ build ต่อได้แม้ API ล่มวันนี้
+      # key ไม่ซ้ำทุกรอบ + restore-keys prefix = ได้ cache ล่าสุดที่มีเสมอ
+      - name: Restore last good data
+        uses: actions/cache@v4
+        with:
+          path: |
+            src/data/items.json
+            src/data/tasks.json
+            src/data/maps.json
+            src/data/hideout.json
+            src/data/ammo.json
+            public/price_data.json
+            public/gear_data.json
+            public/optimizer_data.json
+            public/loot_data.json
+          key: tarkov-data-${{ github.run_id }}
+          restore-keys: tarkov-data-
 
-      - name: Commit refreshed data (ถ้ามีการเปลี่ยนแปลง)
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add src/data/*.json public/*.json
-          if git diff --staged --quiet; then
-            echo "ไม่มีข้อมูลเปลี่ยน — ข้าม commit"
-          else
-            git commit -m "chore(data): refresh tarkov data [skip ci]"
-            # ถ้ามีคน push โค้ดเข้า main ระหว่าง job นี้กำลังรัน push ตรง ๆ จะถูก reject
-            # -> rebase ทับของใหม่ก่อน แล้วค่อย push (ยังพลาดได้ถ้า JSON ชนกันจริง)
-            git pull --rebase --autostash origin main
-            git push
-          fi
+      # ถ้าแหล่งข้อมูลล่ม ให้ build ต่อด้วยชุดที่กู้มาจาก cache (ไม่ทำให้ deploy พัง)
+      - name: Refresh data
+        run: npm run update-all || echo "refresh ล้มเหลว — ใช้ชุดข้อมูลจาก cache รอบก่อนแทน"
+
+      # กันกรณี cache ว่างและ refresh ล้มบางตัว: เติมไฟล์ที่ยังขาดให้ครบก่อน build
+      - name: Ensure data present
+        run: npm run ensure-data
 
       - name: Build
         run: npm run build

@@ -6,9 +6,12 @@
   "homepage": "https://ptozax.github.io/EFT_TaskTrack/",
   "scripts": {
     "dev": "vite",
+    "predev": "node scripts/ensure-data.mjs",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
+    "prebuild": "node scripts/ensure-data.mjs",
     "build": "vite build",
+    "ensure-data": "node scripts/ensure-data.mjs",
     "update-optimizer": "node scripts/update-optimizer-data.mjs",
     "update-items": "node scripts/update-items.mjs",
     "update-price": "node scripts/update-price-data.mjs",

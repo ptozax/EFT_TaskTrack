@@ -27,10 +27,31 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      # refresh data ก่อน build ทุกครั้งที่ deploy โค้ดใหม่ -> bundle fallback สดเสมอ (ไม่ใช่ของเก่าที่ commit ไว้)
-      # ถ้า tarkov.dev ล่มชั่วคราว จะ build ต่อด้วย data ที่ commit ไว้ (ไม่ทำให้ deploy พัง)
-      - name: Refresh data from tarkov.dev
-        run: npm run update-all || echo "refresh ล้มเหลว — build ด้วย data ที่ commit ไว้แทน"
+      # ข้อมูลไม่ได้ commit ใน git แล้ว -> กู้ชุดล่าสุดจาก cache ก่อน เผื่อ API ล่มวันนี้
+      - name: Restore last good data
+        uses: actions/cache@v4
+        with:
+          path: |
+            src/data/items.json
+            src/data/tasks.json
+            src/data/maps.json
+            src/data/hideout.json
+            src/data/ammo.json
+            public/price_data.json
+            public/gear_data.json
+            public/optimizer_data.json
+            public/loot_data.json
+          key: tarkov-data-${{ github.run_id }}
+          restore-keys: tarkov-data-
+
+      # refresh ก่อน build ทุกครั้งที่ deploy โค้ดใหม่ -> ข้อมูลใน bundle สดเสมอ
+      # ถ้าแหล่งข้อมูลล่มชั่วคราว จะ build ต่อด้วยชุดที่กู้มาจาก cache (ไม่ทำให้ deploy พัง)
+      - name: Refresh data
+        run: npm run update-all || echo "refresh ล้มเหลว — ใช้ชุดข้อมูลจาก cache รอบก่อนแทน"
+
+      # เติมไฟล์ที่ยังขาด (เช่น cache ว่างและ refresh ล้มบางตัว) ก่อน build
+      - name: Ensure data present
+        run: npm run ensure-data
 
       - name: Build Project
         run: npm run build
