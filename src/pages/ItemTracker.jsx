@@ -55,26 +55,35 @@ export default function ItemTracker({ items, loot, mapId, mapName, tracked, colo
   const hereCount = (id) => (loot?.[mapId]?.[id] || []).length;
   const raidOnly = (it) => !(it?.buyFor || []).length;
 
+  /* หน้าตาหัวข้อ/กล่อง ให้ตรงกับ section อื่นในไซด์บาร์ที่ออกแบบใหม่ */
+  const headStyle = {
+    display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', userSelect: 'none',
+    padding: '10px 12px', borderRadius: open ? '12px 12px 0 0' : '12px',
+    background: open ? '#16223c' : '#111c33', border: '1px solid #24324f',
+    fontSize: '11px', fontWeight: 800, color: '#9fb0d0',
+    textTransform: 'uppercase', letterSpacing: '.1em',
+  };
+  const bodyStyle = {
+    border: '1px solid #24324f', borderTop: 'none', borderRadius: '0 0 12px 12px',
+    background: 'linear-gradient(180deg,#101b31 0%,#0d1729 100%)', padding: '12px',
+  };
+
   return (
-    <section style={{
-      background: 'linear-gradient(180deg,#131f38 0%,#0e1830 100%)',
-      border: '1px solid #24324f',
-      borderRadius: '14px',
-      padding: '16px',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
-    }}>
-      <div onClick={() => setOpen((o) => !o)}
-        style={{
-          fontSize: '11px', fontWeight: 800, color: '#7c8db0',
-          textTransform: 'uppercase', letterSpacing: '0.12em',
-          display: 'flex', alignItems: 'center', gap: '8px',
-          justifyContent: 'space-between', cursor: 'pointer'
+    <div style={{ marginBottom: '10px' }}>
+      <div onClick={() => setOpen((o) => !o)} style={headStyle}>
+        <span style={{ fontSize: '13px' }}>📦</span>
+        <span style={{ flex: 1 }}>Item spawns</span>
+        <span style={{
+          fontSize: '10px', fontWeight: 800, padding: '1px 6px', borderRadius: '999px',
+          background: tracked.length ? 'rgba(56,189,248,.12)' : 'rgba(124,141,176,.12)',
+          color: tracked.length ? '#38bdf8' : '#7c8db0',
         }}>
-        <span>🎯 Item Tracker ({tracked.length})</span>
-        <span style={{ color: '#7c8db0', display: 'flex' }}>{open ? <Icons.ChevronUp size={18} /> : <Icons.ChevronDown size={18} />}</span>
+          {tracked.length || 'none'}
+        </span>
+        <span style={{ color: '#64748b', display: 'flex' }}>{open ? <Icons.ChevronUp size={16} /> : <Icons.ChevronDown size={16} />}</span>
       </div>
 
-      {open && (<>
+      {open && (<div style={bodyStyle}>
         {/* search */}
         <input
           value={q}
@@ -94,7 +103,9 @@ export default function ItemTracker({ items, loot, mapId, mapName, tracked, colo
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 12, color: '#e2e8f0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{it.name}</div>
                   <div style={{ fontSize: 10, color: '#64748b' }}>
-                    {mapsWithItem[it.id] ? `📍 ${mapsWithItem[it.id]} map(s)` : '🎲 random loot'} {raidOnly(it) && '· raid-only'}
+                    {mapsWithItem[it.id]
+                      ? `📍 ${mapsWithItem[it.id]} map${mapsWithItem[it.id] > 1 ? 's' : ''}`
+                      : '— no spawn data'} {raidOnly(it) && '· raid-only'}
                   </div>
                 </div>
                 <span style={{ color: '#22c55e', fontSize: 16 }}>＋</span>
@@ -105,7 +116,7 @@ export default function ItemTracker({ items, loot, mapId, mapName, tracked, colo
 
         {/* watchlist */}
         {tracked.length === 0 ? (
-          <div style={{ fontSize: 11, color: '#64748b', marginTop: 8 }}>ยังไม่มี item ที่ track — ค้นด้านบนแล้วกดเพิ่ม</div>
+          <div style={{ fontSize: 11, color: '#64748b', marginTop: 8 }}>No items tracked — search above to add one</div>
         ) : (
           <div style={{ marginTop: 4 }}>
             {tracked.map((t) => {
@@ -118,14 +129,21 @@ export default function ItemTracker({ items, loot, mapId, mapName, tracked, colo
                 <div key={t.id}
                   style={{ ...chip(!t.hidden), border: isExp ? `1px solid ${c}` : '1px solid #24324a', cursor: canExpand ? 'pointer' : 'default' }}
                   onClick={() => canExpand && toggleExpand(t.id)}
-                  title={!canExpand ? 'ไม่มีจุดบนแมพนี้' : isExp ? 'คลิกเพื่อย่อจุดบนแผนที่' : 'คลิกเพื่อขยายจุดบนแผนที่'}
+                  title={!canExpand ? 'No spawn points on this map' : isExp ? 'Click to shrink the markers' : 'Click to enlarge the markers'}
                 >
                   <span style={{ width: isExp ? 14 : 10, height: isExp ? 14 : 10, borderRadius: '50%', background: c, flexShrink: 0, boxShadow: isExp ? `0 0 6px ${c}` : '0 0 3px #000', transition: 'all .12s' }} />
                   {icon(it) && <img src={icon(it)} alt="" style={{ width: 22, height: 22, objectFit: 'contain' }} />}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 12, color: '#e2e8f0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{it?.name || t.id}</div>
                     <div style={{ fontSize: 10, color: here ? (isExp ? c : '#4ade80') : '#94a3b8' }}>
-                      {here ? `${isExp ? '🔍 ขยาย · ' : ''}📍 ${here} จุดใน ${mapName}` : (mapsWithItem[t.id] ? `🎲 ไม่มีใน ${mapName} · มี ${mapsWithItem[t.id]} แมพ` : '🎲 สุ่มในกล่อง — raid only')}
+                      {/* ข้อมูลต้นทาง (lootLoose) ระบุจุดเกิดไว้แค่ 314 ไอเทม
+                          ของอย่าง Bolts / Screw nuts / Salewa ดรอปตามพื้นในเกมจริงแต่ไม่มีในข้อมูล
+                          จึงห้ามเขียนว่า "container only" เพราะไม่จริง */}
+                      {here
+                        ? `${isExp ? '🔍 zoomed · ' : ''}📍 ${here} spot${here > 1 ? 's' : ''} on ${mapName}`
+                        : (mapsWithItem[t.id]
+                          ? `none on ${mapName} · mapped on ${mapsWithItem[t.id]} other map${mapsWithItem[t.id] > 1 ? 's' : ''}`
+                          : 'no spawn points in the data — can still drop as loose loot or from containers')}
                     </div>
                   </div>
                   <button title={t.hidden ? 'Show pins' : 'Hide pins'} onClick={(e) => { e.stopPropagation(); toggle(t.id); }}
@@ -139,7 +157,7 @@ export default function ItemTracker({ items, loot, mapId, mapName, tracked, colo
             })}
           </div>
         )}
-      </>)}
-    </section>
+      </div>)}
+    </div>
   );
 }

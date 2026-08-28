@@ -26,6 +26,7 @@ const TARGETS = [
   { files: ['public/optimizer_data.json'], script: 'update-optimizer-data.mjs' },
   { files: ['public/loot_data.json'], script: 'update-loot.mjs' },
   { files: ['src/data/story.json'], script: 'update-story.mjs' },
+  { files: ['src/data/map_layers.json'], script: 'update-maps.mjs' },
 ];
 
 const exists = async (rel) => {
@@ -45,9 +46,9 @@ const run = (script, args = []) => new Promise((done, fail) => {
 
 // รูปของ story ก็ generate มาเหมือนกัน — ถ้า story.json มีแต่รูปหาย ต้องดึงใหม่แบบ force
 // (ปกติ update-story จะข้ามเมื่อวิกิไม่เปลี่ยน ซึ่งจะไม่โหลดรูปให้)
-const storyImagesMissing = async () => {
+const dirEmpty = async (...parts) => {
   try {
-    return (await readdir(resolve(ROOT, 'public', 'story'))).length === 0;
+    return (await readdir(resolve(ROOT, ...parts))).length === 0;
   } catch {
     return true;
   }
@@ -63,7 +64,7 @@ async function main() {
 
   const storyOnlyImages = !missing.some((m) => m.script === 'update-story.mjs')
     && await exists('src/data/story.json')
-    && await storyImagesMissing();
+    && await dirEmpty('public', 'story');
 
   if (!missing.length && !storyOnlyImages) {
     console.log('✓ ข้อมูลครบแล้ว — ไม่ต้องดึงอะไร');
@@ -79,6 +80,14 @@ async function main() {
   if (storyOnlyImages) {
     console.log('รูปของ story หาย — ดึงใหม่ทั้งชุด (update-story.mjs --force)');
     await run('update-story.mjs', ['--force']);
+  }
+
+  // เช่นเดียวกับ story: ถ้า metadata แมพมีแต่ไฟล์ SVG หาย ต้องดึงใหม่แบบ force
+  if (!missing.some((m) => m.script === 'update-maps.mjs')
+      && await exists('src/data/map_layers.json')
+      && await dirEmpty('public', 'maps')) {
+    console.log('ไฟล์ SVG ของแมพหาย — ดึงใหม่ทั้งชุด (update-maps.mjs --force)');
+    await run('update-maps.mjs', ['--force']);
   }
 
   console.log('✓ ข้อมูลพร้อมแล้ว');

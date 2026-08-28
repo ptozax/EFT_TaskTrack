@@ -1,5 +1,5 @@
 // pages/MapPage.jsx
-import React, { useEffect, useState, useRef, Fragment } from 'react';
+import React, { useEffect, useState, useRef, useMemo, Fragment } from 'react';
 import questsStatic from "../data/tasks";
 import mapFeaturesStatic from "../data/maps";
 import itemsStatic from "../data/items.json";
@@ -7,6 +7,11 @@ import { useLiveData, getData } from '../data/gameStore';
 import { mapStyles as styles, Icons } from '../Component/EftComponent';
 import * as QuestComponent from '../Component/QuestComponent';
 import ItemTracker from './ItemTracker';
+import {
+  findMapLayers, usableFloors, isMarkerVisible, mapCredit,
+  hasSatellite, pickTileLevel, maxUsableTileLevel, tilesFor, tileRect,
+  canPlaceByBounds, posToPercent, percentToPos,
+} from './mapLayers';
 
 /* ---------------- STORAGE KEYS ---------------- */
 const OBJECTIVE_CHECK_KEY = "eft_objective_checklist";
@@ -60,7 +65,53 @@ const UI = {
     background: active ? `${color}22` : '#0e1730',
     color: active ? color : '#64748b',
   }),
+  // ป้ายเล็ก ๆ ท้ายหัวข้อ บอกสถานะได้แม้พับ section ไว้
+  badge: (color = '#7c8db0') => ({
+    fontSize: '10px', fontWeight: 800, letterSpacing: '.04em',
+    padding: '1px 6px', borderRadius: '999px',
+    background: `${color}1f`, color, whiteSpace: 'nowrap',
+  }),
+  chip: (active, color) => ({
+    display: 'inline-flex', alignItems: 'center', gap: '4px',
+    padding: '3px 8px', borderRadius: '999px', cursor: 'pointer', userSelect: 'none',
+    fontSize: '11px', fontWeight: 700, transition: 'all .15s ease',
+    border: `1px solid ${active ? color : '#2a3550'}`,
+    background: active ? `${color}22` : 'transparent',
+    color: active ? color : '#64748b',
+  }),
+  sectionHead: (open) => ({
+    display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', userSelect: 'none',
+    padding: '10px 12px', borderRadius: open ? '12px 12px 0 0' : '12px',
+    background: open ? '#16223c' : '#111c33',
+    border: '1px solid #24324f',
+    borderBottom: open ? '1px solid #24324f' : '1px solid #24324f',
+    fontSize: '11px', fontWeight: 800, color: '#9fb0d0',
+    textTransform: 'uppercase', letterSpacing: '.1em',
+  }),
+  sectionBody: {
+    border: '1px solid #24324f', borderTop: 'none', borderRadius: '0 0 12px 12px',
+    background: 'linear-gradient(180deg,#101b31 0%,#0d1729 100%)', padding: '12px',
+  },
+  label: {
+    fontSize: '10px', color: '#64748b', textTransform: 'uppercase',
+    letterSpacing: '.1em', marginBottom: '6px',
+  },
 };
+
+/* กล่องหัวข้อพับได้ ใช้หน้าตาเดียวกันทุก section ของ sidebar */
+const Section = ({ icon, title, badge, badgeColor, open, onToggle, children }) => (
+  <div style={{ marginBottom: '10px' }}>
+    <div style={UI.sectionHead(open)} onClick={onToggle}>
+      <span style={{ fontSize: '13px', filter: 'saturate(0.9)' }}>{icon}</span>
+      <span style={{ flex: 1 }}>{title}</span>
+      {badge != null && <span style={UI.badge(badgeColor)}>{badge}</span>}
+      <span style={{ color: '#64748b', display: 'flex' }}>
+        {open ? <Icons.ChevronUp size={16} /> : <Icons.ChevronDown size={16} />}
+      </span>
+    </div>
+    {open && <div style={UI.sectionBody}>{children}</div>}
+  </div>
+);
 
 /* ---------------- COMPONENT ---------------- */
 const MapPage = () => {
@@ -130,7 +181,8 @@ const MapPage = () => {
   useEffect(() => { getData('loot', LOOT_URL).then((d) => d && setLoot(d)).catch(() => {}); }, []);
 
   // หุบ/แสดง section ย่อยของ sidebar
-  const [openSec, setOpenSec] = useState({ region: true, layers: false, quests: true });
+  // markers เปิดไว้เป็นค่าเริ่มต้น (ใช้บ่อยสุด) ส่วนที่เหลือพับไว้ให้ไซด์บาร์โปร่ง
+  const [openSec, setOpenSec] = useState({ layers: true, floors: false, quests: true });
   const toggleSec = (k) => setOpenSec((s) => ({ ...s, [k]: !s[k] }));
 
 
@@ -158,13 +210,130 @@ const MapPage = () => {
 
   const imageRef = useRef(null);
 
+  /* ---------- แมพหลายชั้น (SVG แยก layer ต่อชั้น) ---------- */
+  // ต้อง inline SVG ลง DOM ถึงจะเปิด/ปิด <g> ของแต่ละชั้นได้ (<img> ทำไม่ได้)
+  const [svgMarkup, setSvgMarkup] = useState(null);
+  const svgCache = useRef(new Map());
+  const [visibleFloors, setVisibleFloors] = useState([]);
+  const [mapStyle, setMapStyle] = useState('abstract');   // 'abstract' = ภาพวาด SVG, 'satellite' = ภาพจริงจากเกม
+
   const currentMap = maps.find(m => m.id === selectedMapId);
   const currentMapName = currentMap?.map_name || "Unknown";
-  const imageSrc = currentMap.id === 5 || currentMap.id === 10 ? `./${currentMap.svg}.png` : `https://assets.tarkov.dev/maps/svg/${currentMap.svg}.svg`;
+  // แมพ SVG เก็บไว้ที่ public/maps/ เอง (ดึงตอน build ด้วย scripts/update-maps.mjs)
+  // ไม่ hotlink assets.tarkov.dev แล้ว -> โหลดเร็วกว่าและไม่พึ่ง CDN คนอื่น
+  // The Lab (5) กับ The Labyrinth (10) ต้นทางเป็น tile ไม่ใช่ SVG จึงยังใช้ PNG ของเรา
+  const imageSrc = currentMap.id === 5 || currentMap.id === 10
+    ? `${import.meta.env.BASE_URL}${currentMap.svg}.png`
+    : `${import.meta.env.BASE_URL}maps/${currentMap.svg}.svg`;
 
   const calib = mapCalibrations[selectedMapId];
 
-  const currentFeatures = mapFeatures.find(m => m.name === currentMapName) || { transits: [], extracts: [] };
+  const currentFeatures = useMemo(
+    () => mapFeatures.find(m => m.name === currentMapName) || { transits: [], extracts: [], locks: [] },
+    [mapFeatures, currentMapName],
+  );
+
+  // useMemo สำคัญ: ถ้าสร้าง array ใหม่ทุก render ตัว effect ที่เปิด/ปิดชั้นจะยิงทุกเฟรม
+  // ตอนลากแมพ (mousemove -> setState) แล้วเขียน style ทับ <g> ซ้ำ ๆ จนภาพกระพริบ
+  const layerEntry = useMemo(() => findMapLayers(currentMap.map_name), [currentMap.map_name]);
+  const floors = useMemo(() => usableFloors(layerEntry), [layerEntry]);
+  const credit = useMemo(() => mapCredit(layerEntry), [layerEntry]);
+
+  // เริ่มด้วยเปิดทุกชั้น -> พฤติกรรมเหมือนเดิม ไม่มีหมุดหายไปเอง แล้วผู้ใช้ค่อยปิดที่ไม่ต้องการ
+  useEffect(() => {
+    setVisibleFloors(usableFloors(findMapLayers(currentMap.map_name)).map(f => f.name));
+  }, [currentMap.map_name]);
+
+  /* ---------- สไตล์ภาพแมพ: ภาพวาด (abstract) หรือภาพจริงจากเกม (satellite) ---------- */
+  const satelliteAvailable = hasSatellite(layerEntry);
+  const abstractAvailable = !!layerEntry?.svgFile;
+  // แมพที่มีแบบเดียวก็บังคับใช้แบบนั้น (The Lab / Labyrinth มีแต่ satellite,
+  // Streets / Lighthouse / Terminal มีแต่ภาพวาด)
+  const useSatellite = satelliteAvailable && (mapStyle === 'satellite' || !abstractAvailable);
+
+  useEffect(() => {
+    if (!abstractAvailable && satelliteAvailable) setMapStyle('satellite');
+    else if (!satelliteAvailable && abstractAvailable) setMapStyle('abstract');
+  }, [abstractAvailable, satelliteAvailable]);
+
+  /* อัตราส่วนกรอบแมพ — คิดจากระดับ 0 จึงไม่ขึ้นกับระดับ tile ที่เลือก
+     (ถ้าไปผูกกับ tileLevel จะวนกัน: ระดับต้องใช้ขนาดกล่อง กล่องต้องใช้อัตราส่วน) */
+  const boxRatio = useMemo(() => {
+    if (layerEntry?.viewBox) return layerEntry.viewBox.width / layerEntry.viewBox.height;
+    const r = tileRect(layerEntry, 0);
+    return r && r.height ? r.width / r.height : null;
+  }, [layerEntry]);
+
+  /* ระดับ tile เลือกจากความกว้างที่แสดงจริงบนจอ (กล่องแมพ × zoom)
+     ไม่ใช่เดาจากตัวเลข zoom เฉย ๆ -> ความคมเท่าความละเอียดที่ตาเห็นจริง
+     boxWidth วัดจาก DOM หลัง render (เก็บใน state เพื่อไม่อ่าน ref ตอน render) */
+  const [boxWidth, setBoxWidth] = useState(0);
+  useEffect(() => {
+    const measure = () => setBoxWidth(imageRef.current?.clientWidth || 0);
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [useSatellite, boxRatio, svgMarkup]);
+
+  const tileLevel = useMemo(
+    () => (useSatellite ? pickTileLevel(layerEntry, (boxWidth || 1200) * zoom) : null),
+    [useSatellite, layerEntry, boxWidth, zoom],
+  );
+  const maxLevel = useMemo(
+    () => (useSatellite ? maxUsableTileLevel(layerEntry) : null),
+    [useSatellite, layerEntry],
+  );
+  const tiles = useMemo(
+    () => (useSatellite && tileLevel != null ? tilesFor(layerEntry, tileLevel, null) : []),
+    [useSatellite, layerEntry, tileLevel],
+  );
+
+  // โหมด satellite ไม่มี onLoad ของภาพเดียวมาปลด isLoading -> ปลดเองเมื่อมี tile พร้อมวาง
+  // (ต้องอยู่หลังประกาศ tileLevel ไม่งั้นชน temporal dead zone ตอน render)
+  useEffect(() => {
+    if (useSatellite) setIsLoading(false);
+  }, [useSatellite, tileLevel]);
+
+  // โหลดตัว SVG เป็นข้อความ (cache ต่อไฟล์ ไม่โหลดซ้ำเวลาสลับแมพไปกลับ)
+  useEffect(() => {
+    if (!imageSrc.endsWith('.svg')) { setSvgMarkup(null); return undefined; }
+    const cached = svgCache.current.get(imageSrc);
+    if (cached) { setSvgMarkup(cached); setIsLoading(false); return undefined; }
+    let cancelled = false;
+    setIsLoading(true);
+    fetch(imageSrc)
+      .then(r => (r.ok ? r.text() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then(text => {
+        if (cancelled) return;
+        svgCache.current.set(imageSrc, text);
+        setSvgMarkup(text);
+        setIsLoading(false);
+      })
+      .catch(err => {
+        console.error('โหลดแมพ SVG ไม่ได้:', err);
+        if (!cancelled) { setSvgMarkup(null); setIsLoading(false); }   // fallback ไปใช้ <img>
+      });
+    return () => { cancelled = true; };
+  }, [imageSrc]);
+
+  /* ปิดชั้นด้วย CSS ที่ React คุมเอง ไม่ใช่การเขียน style.display ใส่ DOM หลัง render
+     เพราะ innerHTML ของ SVG ถูกสร้างใหม่ได้ทุกเมื่อ (re-render / สลับแมพ) แล้วค่าที่เขียนไว้จะหลุด
+     -> ชั้นที่ปิดไว้กลับมาโชว์เองเวลาขยับเมาส์ ซึ่งเป็นบั๊กที่เจอ
+     วิธีนี้เป็น declarative: DOM ถูกสร้างใหม่กี่ครั้ง กฎก็ยังบังคับอยู่ */
+  const hiddenFloorCss = useMemo(() => floors
+    .filter(f => !visibleFloors.includes(f.name))
+    .map(f => `.eft-map-svg [id="${f.svgLayer}"]{display:none}`)
+    .join(''), [floors, visibleFloors]);
+
+  // ซ่อนหมุดที่อยู่บนชั้นที่ปิดไว้ (ใช้ position.y + กรอบอาคารของชั้น)
+  const visibleFeatures = useMemo(() => {
+    const show = (pos) => isMarkerVisible(layerEntry, visibleFloors, pos);
+    return {
+      extracts: (currentFeatures.extracts || []).filter(e => show(e.position)),
+      transits: (currentFeatures.transits || []).filter(t => show(t.position)),
+      locks: (currentFeatures.locks || []).filter(l => show(l.position)),
+    };
+  }, [currentFeatures, layerEntry, visibleFloors]);
   const [isRefresh, setIsRefresh] = useState(false);
 
   /* -------- LOAD LOCAL STORAGE -------- */
@@ -327,8 +496,13 @@ const MapPage = () => {
   const factionColor = (f) => FACTION_COLORS[f] || FACTION_COLORS.scav;
   const factionImg = (f) => `https://tarkov.dev/maps/interactive/extract_${f === 'pmc' ? 'pmc' : f === 'shared' ? 'shared' : 'scav'}.png`;
 
-  // แปลง game position -> % บนภาพ (ใช้ transform ชุดเดียวกับ marker อื่น)
+  /* แปลง game position -> % บนภาพ
+     ใช้ bounds ที่ต้นทางเผยแพร่ (แม่นและไม่ต้องจูนมือ) ถ้าแมพนั้นมีข้อมูล
+     ไม่งั้นถอยไปใช้ค่า calibrate เดิม — ค่าเดิมเพี้ยนกับแมพที่เปลี่ยนภาพฐาน
+     อย่าง The Lab (ต่าง 7.3%) และ The Labyrinth (3.1%) เพราะจูนไว้กับ PNG ชุดเก่า */
+  const useBoundsCoords = canPlaceByBounds(layerEntry);
   const posToPerc = (pos) => {
+    if (useBoundsCoords) return posToPercent(layerEntry, pos);
     let fx = pos.x, fv = pos.z;
     if (calib.swapXZ) { const t = fx; fx = fv; fv = t; }
     return {
@@ -399,18 +573,56 @@ const MapPage = () => {
     });
   };
 
+  /**
+   * จำกัดระยะเลื่อนไม่ให้ลากแมพออกไปพ้นจอจนกลับมาหาไม่เจอ
+   * เหลือให้แมพค้างในจออย่างน้อย ~25% ของด้านที่สั้นกว่าเสมอ
+   */
+  const clampOffset = (next, zoomValue, viewport) => {
+    const el = imageRef.current;
+    if (!el || !viewport) return next;
+    const limit = (contentSize, viewSize) => {
+      const scaled = contentSize * zoomValue;
+      const keep = Math.min(viewSize, scaled) * 0.25;
+      return Math.max(0, (scaled + viewSize) / 2 - keep);
+    };
+    const lx = limit(el.clientWidth, viewport.width);
+    const ly = limit(el.clientHeight, viewport.height);
+    return {
+      x: Math.max(-lx, Math.min(lx, next.x)),
+      y: Math.max(-ly, Math.min(ly, next.y)),
+    };
+  };
+
   const handleMouseMove = (e) => {
     if (!imageRef.current) return;
+    // ตอนลากแมพ ข้ามการอัปเดตตัวอ่านพิกัดใต้เมาส์ -> setState น้อยลงครึ่งหนึ่งต่อเฟรม
+    // (ค่าพิกัดไม่มีประโยชน์ระหว่างลาก และการ re-render ถี่ ๆ ทำให้ SVG ที่ inline ไว้กระตุก)
+    if (isDragging) {
+      setOffset(clampOffset(
+        { x: e.clientX - dragStart.x, y: e.clientY - dragStart.y },
+        zoom,
+        e.currentTarget.getBoundingClientRect(),
+      ));
+      return;
+    }
     const rect = imageRef.current.getBoundingClientRect();
 
     // Exact percentage of the mouse over the image
     const px = ((e.clientX - rect.left) / rect.width) * 100;
     const pz = ((e.clientY - rect.top) / rect.height) * 100;
 
-    let gx = (px - calib.offsetX) / (calib.scaleX * (calib.flipX ? -1 : 1));
-    let gz = (pz - calib.offsetZ) / (calib.scaleZ * (calib.flipZ ? -1 : 1));
-
-    if (calib.swapXZ) [gx, gz] = [gz, gx];
+    // ตัวอ่านพิกัดใต้เมาส์ ใช้สูตรผกผันของตัววางหมุด จะได้ตรงกันเสมอ
+    let gx;
+    let gz;
+    if (useBoundsCoords) {
+      const g = percentToPos(layerEntry, px, pz);
+      gx = g.x;
+      gz = g.z;
+    } else {
+      gx = (px - calib.offsetX) / (calib.scaleX * (calib.flipX ? -1 : 1));
+      gz = (pz - calib.offsetZ) / (calib.scaleZ * (calib.flipZ ? -1 : 1));
+      if (calib.swapXZ) [gx, gz] = [gz, gx];
+    }
 
     setMousePos({
       x: px.toFixed(2),
@@ -420,13 +632,6 @@ const MapPage = () => {
       rawPercX: px,
       rawPercZ: pz
     });
-
-    if (isDragging) {
-      setOffset({
-        x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y
-      });
-    }
   };
 
   const toggleQuestVisibility = (e, questId) => {
@@ -543,112 +748,167 @@ const MapPage = () => {
 
       <aside style={{
         ...styles.sidebar,
-        width: isSidebarOpen ? '25%' : '0%',
-        padding: isSidebarOpen ? '24px' : '0',
+        width: isSidebarOpen ? '330px' : '0px',
+        minWidth: isSidebarOpen ? '330px' : '0px',
+        padding: 0,
+        gap: 0,
         opacity: isSidebarOpen ? 1 : 0,
+        overflow: 'hidden',
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-          <header style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ width: '4px', height: '26px', borderRadius: '4px', background: 'linear-gradient(#eab308,#f59e0b)' }} />
-            <h1 style={{ fontSize: '18px', fontWeight: '800', margin: 0, letterSpacing: '.02em' }}>Quest Map</h1>
-          </header>
-          <button
-            style={{ background: '#0e1730', border: '1px solid #24324f', borderRadius: '8px', color: '#94a3b8', cursor: 'pointer', padding: '4px 6px', display: 'flex' }}
-            onClick={() => setIsSidebarOpen(false)}
-            title="Close Sidebar"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
-          </button>
-        </div>
-
-        <section style={UI.card}>
-          <div style={{ ...UI.cardTitle, justifyContent: 'space-between', cursor: 'pointer', marginBottom: openSec.region ? undefined : 0 }} onClick={() => toggleSec('region')}>
-            <span>📍 Map Region</span>
-            <span style={{ color: '#7c8db0', display: 'flex' }}>{openSec.region ? <Icons.ChevronUp size={18} /> : <Icons.ChevronDown size={18} />}</span>
+        {/* ---- ส่วนหัวติดอยู่กับที่: ของที่ใช้บ่อยสุด (เลือกแมพ / สไตล์ภาพ) ---- */}
+        <div style={{
+          padding: '14px 14px 12px', borderBottom: '1px solid #1e293b',
+          background: '#0d1526', flexShrink: 0,
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+            <header style={{ display: 'flex', alignItems: 'center', gap: '9px', minWidth: 0 }}>
+              <span style={{ width: '3px', height: '20px', borderRadius: '3px', background: 'linear-gradient(#eab308,#f59e0b)' }} />
+              <h1 style={{ fontSize: '15px', fontWeight: 800, margin: 0, letterSpacing: '.02em' }}>Quest Map</h1>
+            </header>
+            <button
+              style={{ background: '#0e1730', border: '1px solid #24324f', borderRadius: '8px', color: '#94a3b8', cursor: 'pointer', padding: '3px 5px', display: 'flex' }}
+              onClick={() => setIsSidebarOpen(false)}
+              title="Hide panel"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
+            </button>
           </div>
-          {openSec.region && (
+
           <select
-            style={styles.select}
+            style={{ ...styles.select, marginBottom: satelliteAvailable && abstractAvailable ? '8px' : 0 }}
             value={selectedMapId}
             onChange={(e) => {
               setSelectedMapId(Number(e.target.value));
-              localStorage.setItem(
-                MAP_KEY,
-                JSON.stringify(Number(e.target.value))
-              );
+              localStorage.setItem(MAP_KEY, JSON.stringify(Number(e.target.value)));
               setTrackedQuests([]);
               setExpandedQuestName(null);
             }}
           >
             {maps.map(map => <option key={map.id} value={map.id}>{map.map_name}</option>)}
           </select>
-          )}
-        </section>
 
-        {/* Map Feature Toggles */}
-        <section style={UI.card}>
-          <div style={{ ...UI.cardTitle, justifyContent: 'space-between', cursor: 'pointer', marginBottom: openSec.layers ? undefined : 0 }} onClick={() => toggleSec('layers')}>
-            <span>🧭 Layers</span>
-            <span style={{ color: '#7c8db0', display: 'flex' }}>{openSec.layers ? <Icons.ChevronUp size={18} /> : <Icons.ChevronDown size={18} />}</span>
-          </div>
-          {openSec.layers && (<>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', padding: '12px 0' }}>
+          {/* สลับสไตล์ภาพ — อยู่ระดับบนสุดเพราะเปลี่ยนบ่อยและเห็นผลทันที */}
+          {satelliteAvailable && abstractAvailable && (
+            <div style={{ display: 'flex', gap: '4px', background: '#0b1120', padding: '3px', borderRadius: '10px', border: '1px solid #1e293b' }}>
+              {[
+                { key: 'abstract', label: 'Abstract', hint: 'Vector map — sharp at any zoom, easier to read' },
+                { key: 'satellite', label: 'Satellite', hint: 'Real in-game imagery — streamed as tiles' },
+              ].map(s => {
+                const on = mapStyle === s.key;
+                return (
+                  <button
+                    key={s.key}
+                    onClick={() => setMapStyle(s.key)}
+                    title={s.hint}
+                    style={{
+                      flex: 1, padding: '6px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 700,
+                      border: 'none', transition: 'all .15s ease',
+                      background: on ? '#38bdf8' : 'transparent',
+                      color: on ? '#0b1120' : '#7c8db0',
+                    }}
+                  >
+                    {s.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* ---- เนื้อหาเลื่อนแยกจากส่วนหัว ---- */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '12px 14px 4px' }}>
+
+        {/* ---- Markers: สิ่งที่แสดงบนแมพ ---- */}
+        <Section
+          icon="🧭" title="Markers" open={openSec.layers} onToggle={() => toggleSec('layers')}
+          badge={[showExtracts && 'exits', showTransits && 'transits', showKeys && 'keys'].filter(Boolean).length || 'off'}
+          badgeColor={showExtracts || showTransits || showKeys ? '#10b981' : '#64748b'}
+        >
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
             {[
-              { label: 'Extracts', on: showExtracts, set: setShowExtracts, color: '#10b981' },
+              { label: 'Exits', on: showExtracts, set: setShowExtracts, color: '#10b981' },
               { label: 'Transits', on: showTransits, set: setShowTransits, color: '#f91616' },
               { label: 'Keys', on: showKeys, set: setShowKeys, color: '#eab308' },
+              { label: 'Labels', on: showLabels, set: setShowLabels, color: '#38bdf8' },
             ].map(f => (
               <div key={f.label} onClick={() => f.set(!f.on)} style={UI.pill(f.on, f.color)}>
-                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: f.color, opacity: f.on ? 1 : 0.4 }} />
+                <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: f.color, opacity: f.on ? 1 : 0.35 }} />
                 {f.label}
               </div>
             ))}
           </div>
 
-          {/* Labels toggle (ชื่อทางออก/transit) */}
-          <div onClick={() => setShowLabels(v => !v)} style={{ ...UI.pill(showLabels, '#38bdf8'), marginTop: '8px' }}>
-            🏷️ Exit labels {showLabels ? 'ON' : 'OFF'}
-          </div>
-
-          {/* Extract faction filter */}
+          {/* ตัวกรองฝ่ายของทางออก — โชว์เฉพาะเมื่อเปิดทางออกไว้ ไม่เกะกะตอนปิด */}
           {showExtracts && (
-            <>
-              <div style={{ fontSize: '10px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '.1em', margin: '14px 0 8px' }}>Extract faction</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+            <div style={{ marginTop: '10px' }}>
+              <div style={UI.label}>Exit faction</div>
+              <div style={{ display: 'flex', gap: '5px' }}>
                 {['pmc', 'scav', 'shared'].map(f => (
                   <div
                     key={f}
                     onClick={() => setExtractFactions(prev => ({ ...prev, [f]: !prev[f] }))}
-                    style={UI.pill(extractFactions[f], FACTION_COLORS[f])}
+                    style={UI.chip(extractFactions[f], FACTION_COLORS[f])}
                   >
-                    <span style={{ width: '9px', height: '9px', borderRadius: '50%', background: FACTION_COLORS[f], opacity: extractFactions[f] ? 1 : 0.4 }} />
+                    <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: FACTION_COLORS[f], opacity: extractFactions[f] ? 1 : 0.35 }} />
                     {f.toUpperCase()}
                   </div>
                 ))}
               </div>
-            </>
+            </div>
           )}
 
-          {/* Custom pin toggle */}
+          {/* ปักหมุดเอง — อยู่กลุ่มเดียวกับของที่แสดงบนแมพ */}
           <button
             onClick={() => setPinMode(v => !v)}
             style={{
-              marginTop: '14px', width: '100%', padding: '9px', borderRadius: '10px', cursor: 'pointer',
+              marginTop: '10px', width: '100%', padding: '8px', borderRadius: '9px', cursor: 'pointer',
               border: `1px solid ${pinMode ? '#facc15' : '#2a3550'}`,
               background: pinMode ? '#facc15' : '#0e1730',
-              color: pinMode ? '#000' : '#cbd5e1', fontWeight: 700, fontSize: '13px', transition: 'all .15s ease',
+              color: pinMode ? '#000' : '#94a3b8', fontWeight: 700, fontSize: '12px', transition: 'all .15s ease',
             }}
-            title="Toggle then click the map to drop a pin"
+            title="Toggle, then click the map to drop a pin"
           >
-            📍 {pinMode ? 'Pin mode ON — click the map' : 'Add custom pin'}
+            {pinMode ? '📍 Click the map to place' : '📍 Add pin'}
+            {pinsHere.length > 0 && !pinMode && <span style={{ color: '#7c8db0', fontWeight: 600 }}> · {pinsHere.length} here</span>}
           </button>
-          {pinsHere.length > 0 && (
-            <div style={{ fontSize: '11px', color: '#7c8db0', marginTop: '6px', textAlign: 'center' }}>
-              {pinsHere.length} pin(s) here · click a pin to remove
+          {useSatellite && tileLevel != null && (
+            <div style={{ fontSize: '10px', color: '#5b6b8c', marginTop: '8px' }}>
+              Satellite detail {tileLevel}/{maxLevel} · {tiles.length} tiles · zoom in for more
             </div>
           )}
-          </>)}
-        </section>
+        </Section>
+
+        {/* ---- Floors: เฉพาะแมพที่ไฟล์ SVG แยกชั้นไว้ ---- */}
+        {!useSatellite && floors.length > 1 && (
+          <Section
+            icon="🏢" title="Floors" open={openSec.floors} onToggle={() => toggleSec('floors')}
+            badge={`${visibleFloors.length}/${floors.length}`}
+            badgeColor={visibleFloors.length === floors.length ? '#a78bfa' : '#f59e0b'}
+          >
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+              {floors.map(f => {
+                const on = visibleFloors.includes(f.name);
+                return (
+                  <div
+                    key={f.name}
+                    onClick={() => setVisibleFloors(prev => (
+                      prev.includes(f.name) ? prev.filter(n => n !== f.name) : [...prev, f.name]
+                    ))}
+                    style={UI.chip(on, '#a78bfa')}
+                    title={on ? 'Click to hide this floor' : 'Click to show this floor'}
+                  >
+                    <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#a78bfa', opacity: on ? 1 : 0.35 }} />
+                    {f.name}
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ display: 'flex', gap: '5px', marginTop: '8px' }}>
+              <div onClick={() => setVisibleFloors(floors.map(f => f.name))} style={UI.chip(false, '#7c8db0')}>Show all</div>
+              <div onClick={() => setVisibleFloors(['Ground'])} style={UI.chip(false, '#7c8db0')}>Ground only</div>
+            </div>
+          </Section>
+        )}
 
         {/* Item Tracker (loot spawn) */}
         <ItemTracker
@@ -662,15 +922,11 @@ const MapPage = () => {
         />
 
         {questKeys.length > 0 && (
-          <section style={UI.card}>
-            <div style={{ ...UI.cardTitle, marginBottom: showQuestKey ? '12px' : 0, justifyContent: 'space-between', cursor: 'pointer' }}
-              onClick={() => setShowQuestKey(!showQuestKey)}>
-              <span>🔑 Key Lists ({questKeys.length})</span>
-              <span style={{ color: '#7c8db0', display: 'flex' }}>
-                {showQuestKey ? <Icons.ChevronUp size={18} /> : <Icons.ChevronDown size={18} />}
-              </span>
-            </div>
-            {showQuestKey && (
+          <Section
+            icon="🔑" title="Keys needed" badge={questKeys.length} badgeColor="#eab308"
+            open={showQuestKey} onToggle={() => setShowQuestKey(!showQuestKey)}
+          >
+            {(
               <div style={{
                 display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px', fontWeight: '700',
                 overflowY: questKeys.length > 5 ? 'scroll' : 'none',
@@ -721,16 +977,15 @@ const MapPage = () => {
                 }
               </div>
             )}
-          </section>
-
+          </Section>
         )}
 
-        <section style={{ ...UI.card }}>
-          <div style={{ ...UI.cardTitle, justifyContent: 'space-between', cursor: 'pointer', marginBottom: openSec.quests ? undefined : 0 }} onClick={() => toggleSec('quests')}>
-            <span>🎯 Tracked Quests ({trackedQuests.length})</span>
-            <span style={{ color: '#7c8db0', display: 'flex' }}>{openSec.quests ? <Icons.ChevronUp size={18} /> : <Icons.ChevronDown size={18} />}</span>
-          </div>
-          {openSec.quests && (<>
+        <Section
+          icon="🎯" title="Tracked quests" badge={trackedQuests.length || 'none'}
+          badgeColor={trackedQuests.length ? '#38bdf8' : '#64748b'}
+          open={openSec.quests} onToggle={() => toggleSec('quests')}
+        >
+          {(<>
           {trackedQuests.length === 0 && (
             <div style={{ fontSize: '12px', color: '#64748b', textAlign: 'center', padding: '12px 0' }}>
               No quests tracked yet
@@ -818,12 +1073,26 @@ const MapPage = () => {
             })}
           </div>
           </>)}
-        </section>
+        </Section>
+        </div>
+
+        {/* ---- ท้ายไซด์บาร์: เครดิตผู้วาดแมพ (CC BY-NC-SA) ---- */}
+        {credit && (
+          <div style={{
+            flexShrink: 0, padding: '8px 14px 10px', borderTop: '1px solid #1e293b',
+            background: '#0d1526', fontSize: '10px', color: '#5b6b8c', lineHeight: 1.5,
+          }}>
+            Map art: {credit.link
+              ? <a href={credit.link} target="_blank" rel="noopener noreferrer" style={{ color: '#60a5fa' }}>{credit.author}</a>
+              : credit.author} · CC BY-NC-SA 4.0
+          </div>
+        )}
       </aside>
 
       <main style={{
         ...styles.main,
-        width: isSidebarOpen ? '75%' : '100%'
+        width: 'auto',
+        flex: 1,
       }}>
         {isLoading && <div style={{ position: 'absolute', zIndex: 60, color: '#3b82f6' }}>SYNCING...</div>}
 
@@ -913,7 +1182,11 @@ const MapPage = () => {
             const nz = Math.max(0.5, Math.min(10, zoom * Math.exp(step)));
             if (nz === zoom) return;
             const f = nz / zoom;
-            setOffset({ x: cx - f * (cx - offset.x), y: cy - f * (cy - offset.y) });
+            setOffset(clampOffset(
+              { x: cx - f * (cx - offset.x), y: cy - f * (cy - offset.y) },
+              nz,
+              rect,
+            ));
             setZoom(nz);
           }}
         >
@@ -924,12 +1197,49 @@ const MapPage = () => {
             transition: isDragging ? 'none' : 'transform 0.1s ease-out',
             transformOrigin: 'center'
           }}>
-            <img
-              ref={imageRef}
-              src={imageSrc}
-              onLoad={() => setIsLoading(false)}
-              style={{ display: 'block', height: '85vh', width: 'auto', userSelect: 'none', pointerEvents: 'none' }}
-            />
+            {useSatellite ? (
+              /* ภาพจริงจากเกม: วาง tile เป็น % ของกรอบแมพ (กรอบเดียวกับ SVG หมุดจึงตรงทั้งสองแบบ)
+                 loading="lazy" ทำให้เบราว์เซอร์โหลดเฉพาะ tile ที่เข้ามาในจอ */
+              <div
+                ref={imageRef}
+                style={{
+                  display: 'block', height: '85vh', aspectRatio: boxRatio || 1,
+                  position: 'relative', overflow: 'hidden', backgroundColor: '#0b1120',
+                  userSelect: 'none', pointerEvents: 'none',
+                }}
+              >
+                {tiles.map(t => (
+                  <img
+                    key={t.key}
+                    src={t.url}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
+                    style={{
+                      position: 'absolute',
+                      left: `${t.leftPct}%`, top: `${t.topPct}%`,
+                      width: `${t.widthPct}%`, height: `${t.heightPct}%`,
+                    }}
+                  />
+                ))}
+              </div>
+            ) : svgMarkup ? (
+              /* inline SVG -> เข้าถึง <g> ของแต่ละชั้นได้ (ที่มา/เครดิตอยู่ในแถบ Layers) */
+              <div
+                ref={imageRef}
+                className="eft-map-svg"
+                style={{ display: 'block', height: '85vh', width: 'auto', userSelect: 'none', pointerEvents: 'none' }}
+                dangerouslySetInnerHTML={{ __html: svgMarkup }}
+              />
+            ) : (
+              <img
+                ref={imageRef}
+                src={imageSrc}
+                onLoad={() => setIsLoading(false)}
+                style={{ display: 'block', height: '85vh', width: 'auto', userSelect: 'none', pointerEvents: 'none' }}
+              />
+            )}
 
             {/* Origin Marker and Lines */}
             {showCalibration && (
@@ -947,24 +1257,15 @@ const MapPage = () => {
 
             {/* Extract Outlines (SVG Layer) */}
             <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 25 }} viewBox="0 0 100 100" preserveAspectRatio="none">
-              {showExtracts && !isLoading && currentFeatures.extracts.map((ext, idx) => {
+              {showExtracts && !isLoading && visibleFeatures.extracts.map((ext, idx) => {
                 if (!ext.outline || ext.outline.length === 0) return null;
                 if (extractFactions[ext.faction] === false) return null;
 
-                const pointsStr = ext.outline.map(pt => {
-                  let finalX = pt.x;
-                  let finalVertical = pt.z;
-
-                  if (calib.swapXZ) {
-                    const temp = finalX;
-                    finalX = finalVertical;
-                    finalVertical = temp;
-                  }
-
-                  const xPerc = gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX);
-                  const yPerc = gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ);
-                  return `${xPerc},${yPerc}`;
-                }).join(' ');
+                // ใช้ posToPerc ตัวเดียวกับหมุด ไม่คำนวณเองซ้ำ ไม่งั้นกรอบเยื้องจากหมุด
+                const pointsStr = ext.outline
+                  .map(pt => posToPerc({ x: pt.x, y: pt.y ?? 0, z: pt.z }))
+                  .map(p => `${p.x},${p.y}`)
+                  .join(' ');
 
                 const col = factionColor(ext.faction);
 
@@ -982,22 +1283,16 @@ const MapPage = () => {
             </svg>
 
             {/* Extracts Markers (Labels) */}
-            {showExtracts && !isLoading && currentFeatures.extracts.map((ext, idx) => {
+            {showExtracts && !isLoading && visibleFeatures.extracts.map((ext, idx) => {
               if (extractFactions[ext.faction] === false) return null;
-              let finalX = ext.position.x;
-              let finalVertical = ext.position.z;
-              if (calib.swapXZ) {
-                const temp = finalX;
-                finalX = finalVertical;
-                finalVertical = temp;
-              }
+              const p = posToPerc(ext.position);
               const col = factionColor(ext.faction);
 
               return (
                 <div key={`ext-${idx}`} style={{
                   position: 'absolute',
-                  left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
-                  top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
+                  left: `${p.x}%`,
+                  top: `${p.y}%`,
                   transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg)`,
                   zIndex: 28, display: 'flex', flexDirection: 'column', alignItems: 'center', pointerEvents: 'none',
                 }}>
@@ -1019,23 +1314,14 @@ const MapPage = () => {
 
             {/* transit Outlines (SVG Layer) */}
             <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 25 }} viewBox="0 0 100 100" preserveAspectRatio="none">
-              {showTransits && !isLoading && currentFeatures.transits.map((ext, idx) => {
+              {showTransits && !isLoading && visibleFeatures.transits.map((ext, idx) => {
                 if (!ext.outline || ext.outline.length === 0) return null;
 
-                const pointsStr = ext.outline.map(pt => {
-                  let finalX = pt.x;
-                  let finalVertical = pt.z;
-
-                  if (calib.swapXZ) {
-                    const temp = finalX;
-                    finalX = finalVertical;
-                    finalVertical = temp;
-                  }
-
-                  const xPerc = gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX);
-                  const yPerc = gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ);
-                  return `${xPerc},${yPerc}`;
-                }).join(' ');
+                // ใช้ posToPerc ตัวเดียวกับหมุด ไม่คำนวณเองซ้ำ ไม่งั้นกรอบเยื้องจากหมุด
+                const pointsStr = ext.outline
+                  .map(pt => posToPerc({ x: pt.x, y: pt.y ?? 0, z: pt.z }))
+                  .map(p => `${p.x},${p.y}`)
+                  .join(' ');
 
                 return (
                   <polygon
@@ -1051,21 +1337,15 @@ const MapPage = () => {
             </svg>
 
             {/* Transits */}
-            {showTransits && !isLoading && currentFeatures.transits.map((trans, idx) => {
-              let finalX = trans.position.x;
-              let finalVertical = trans.position.z;
-              if (calib.swapXZ) {
-                const temp = finalX;
-                finalX = finalVertical;
-                finalVertical = temp;
-              }
+            {showTransits && !isLoading && visibleFeatures.transits.map((trans, idx) => {
+              const p = posToPerc(trans.position);
               const label = trans.description || 'Transit';
 
               return (
                 <div key={`trans-${idx}`} style={{
                   position: 'absolute',
-                  left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
-                  top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
+                  left: `${p.x}%`,
+                  top: `${p.y}%`,
                   transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg)`,
                   zIndex: 28, display: 'flex', flexDirection: 'column', alignItems: 'center', pointerEvents: 'none',
                 }}>
@@ -1085,14 +1365,8 @@ const MapPage = () => {
             })}
 
             {/* Keys */}
-            {showKeys && !isLoading && currentFeatures.locks.map((keys, idx) => {
-              let finalX = keys.position.x;
-              let finalVertical = keys.position.z;
-              if (calib.swapXZ) {
-                const temp = finalX;
-                finalX = finalVertical;
-                finalVertical = temp;
-              }
+            {showKeys && !isLoading && visibleFeatures.locks.map((keys, idx) => {
+              const p = posToPerc(keys.position);
 
               return (
                 <div key={`keys-${idx}`} >
@@ -1102,8 +1376,8 @@ const MapPage = () => {
                     title={keys.key.name || 'key'}
                     style={{
                       ...styles.extractMarker,
-                      left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
-                      top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
+                      left: `${p.x}%`,
+                      top: `${p.y}%`,
                       transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg)`,
                     }}
                     onClick={() => setKeyDescription(keyDescription === idx ? null : idx)}
@@ -1112,8 +1386,8 @@ const MapPage = () => {
                     <div style={{
                       ...styles.descriptionMarker,
                       width: '120px',
-                      left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
-                      top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
+                      left: `${p.x}%`,
+                      top: `${p.y}%`,
                       display: 'flex',
                       flexDirection: 'column',
                       transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg)`
@@ -1142,15 +1416,10 @@ const MapPage = () => {
                 }
 
                 return points.map((p, idx) => {
-                  let finalX = p.x;
-                  let finalVertical = p.z !== undefined ? p.z : p.y;
+                  // ข้อมูลเควสบางจุดเก็บแกนตั้งไว้ที่ y (ไม่มี z) -> ปรับให้เป็นรูปเดียวกันก่อนแปลง
+                  const pos = p.z !== undefined ? p : { x: p.x, y: 0, z: p.y };
+                  const mk = posToPerc(pos);
                   let lastIndex = points.length - 1;
-
-                  if (calib.swapXZ) {
-                    const temp = finalX;
-                    finalX = finalVertical;
-                    finalVertical = temp;
-                  }
 
                   // --- FIX APPLIED BELOW ---
                   // Used React.Fragment with a key instead of shorthand <>
@@ -1161,8 +1430,8 @@ const MapPage = () => {
                           <div
                             style={{
                               ...styles.marker,
-                              left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
-                              top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
+                              left: `${mk.x}%`,
+                              top: `${mk.y}%`,
                               backgroundColor: tq.color,
                               transform: `translate(-50%, -50%) scale(${isExpanded ? markerScale * 1.8 : markerScale}) rotate(${rotation}deg)`,
                               zIndex: isExpanded ? 100 : 30,
@@ -1172,8 +1441,8 @@ const MapPage = () => {
                           {questDescription === obj.id && idx === lastIndex && (
                             <div style={{
                               ...styles.descriptionMarker,
-                              left: `${gameToPerc(finalX, calib.offsetX, calib.scaleX, calib.flipX)}%`,
-                              top: `${gameToPerc(finalVertical, calib.offsetZ, calib.scaleZ, calib.flipZ)}%`,
+                              left: `${mk.x}%`,
+                              top: `${mk.y}%`,
                               display: 'flex',
                               flexDirection: 'column',
                               transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg)`,
@@ -1229,7 +1498,9 @@ const MapPage = () => {
           </div>
         </div>
       </main>
-      <style>{`@keyframes pulseRing { 0%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:.3;transform:translate(-50%,-50%) scale(1.6)} }`}</style>
+      <style>{`.eft-map-svg > svg { display:block; height:85vh; width:auto; }
+        ${hiddenFloorCss}
+        @keyframes pulseRing { 0%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:.3;transform:translate(-50%,-50%) scale(1.6)} }`}</style>
     </div>
   );
 };

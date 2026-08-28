@@ -26,6 +26,8 @@ public/optimizer_data.json
 public/loot_data.json
 src/data/story.json
 public/story/
+src/data/map_layers.json
+public/maps/
 
 # Editor directories and files
 .vscode/*
