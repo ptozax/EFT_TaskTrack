@@ -283,7 +283,12 @@ export function transformMaps(mapsJson, mapsEnJson, itemsJson, itemsEnJson) {
   };
   return Object.values(M).map((m) => ({
     id: m.id, name: mapName(m.id),
-    extracts: (m.extracts || []).map((e) => ({ outline: e.outline, position: e.position, name: e.name, id: e.id, faction: e.faction })),
+    /* ชื่อ extract ที่ต้นทางส่งมาเป็น "คีย์" ของไฟล์ภาษา ไม่ใช่ชื่อที่ใช้แสดง
+       เช่น EXFIL_ZB013 -> ZB-013, Shack -> Military Base CP
+       ต้องแปลผ่าน maps_en เหมือนที่ transit ทำ ไม่งั้นจะเห็นคีย์ดิบมี _ บนแมพ */
+    extracts: (m.extracts || []).map((e) => ({
+      outline: e.outline, position: e.position, name: men[e.name] ?? e.name, id: e.id, faction: e.faction,
+    })),
     transits: (m.transits || []).map((t) => ({ outline: t.outline, position: t.position, description: men[t.description] ?? t.description, conditions: null, id: t.id })),
     locks: (m.locks || []).map((l) => ({ outline: l.outline, position: l.position, key: keyItem(l.key) })),
   }));

@@ -106,9 +106,14 @@ const toPixel0 = (entry, x, z) => {
   return { px: t[0] * lng + t[1], py: -t[2] * lat + t[3] };
 };
 
-/** กรอบของแมพ (ตาม bounds) ในหน่วย pixel ที่ระดับ 0 */
-const boundsPixelBox = (entry) => {
-  const [[x1, z1], [x2, z2]] = entry.bounds;
+/* กรอบที่ใช้อ้างอิง ต่างกันตามภาพที่แสดงอยู่:
+   - satellite (tile) ใช้ bounds
+   - abstract (SVG) ใช้ svgBounds ถ้ามี (ตอนนี้มีแค่ Reserve ที่ภาพ SVG ครอบไม่เท่ากัน) */
+const activeBounds = (entry, forSvg) => (forSvg && entry.svgBounds ? entry.svgBounds : entry.bounds);
+
+/** กรอบของแมพในหน่วย pixel ที่ระดับ 0 */
+const boundsPixelBox = (entry, forSvg) => {
+  const [[x1, z1], [x2, z2]] = activeBounds(entry, forSvg);
   const a = toPixel0(entry, x1, z1);
   const b = toPixel0(entry, x2, z2);
   return {
@@ -121,10 +126,35 @@ const boundsPixelBox = (entry) => {
 
 export const canPlaceByBounds = (entry) => !!(entry?.bounds && entry?.transform);
 
-/** พิกัดเกม -> ตำแหน่งบนภาพเป็น % (0-100) */
-export const posToPercent = (entry, pos) => {
+/** อัตราส่วนของกรอบแมพ (กว้าง/สูง) — ใช้กำหนดขนาดกล่องภาพ */
+export const boundsAspect = (entry) => {
+  if (!canPlaceByBounds(entry)) return null;
+  const box = boundsPixelBox(entry, false);
+  return box.height ? box.width / box.height : null;
+};
+
+/**
+ * ตำแหน่งที่ควรวางภาพ SVG ภายในกล่องที่อ้าง bounds (หน่วย %)
+ * แมพอย่าง Reserve ภาพ SVG ครอบพื้นที่ไม่เท่าชุด tile -> ต้องขยับ/ย่อภาพให้ตรงพื้นที่จริง
+ * วิธีนี้ทำให้ "หมุดใช้พิกัดชุดเดียว" ทั้งสองสไตล์ สลับไปมาแล้วหมุดไม่ขยับ
+ */
+export const svgPlacement = (entry) => {
+  if (!canPlaceByBounds(entry)) return null;
+  if (!entry.svgBounds) return { leftPct: 0, topPct: 0, widthPct: 100, heightPct: 100 };
+  const box = boundsPixelBox(entry, false);
+  const svgBox = boundsPixelBox(entry, true);
+  return {
+    leftPct: ((svgBox.left - box.left) / box.width) * 100,
+    topPct: ((svgBox.top - box.top) / box.height) * 100,
+    widthPct: (svgBox.width / box.width) * 100,
+    heightPct: (svgBox.height / box.height) * 100,
+  };
+};
+
+/** พิกัดเกม -> ตำแหน่งบนภาพเป็น % (0-100) — forSvg = กำลังแสดงภาพวาด ไม่ใช่ satellite */
+export const posToPercent = (entry, pos, forSvg = false) => {
   if (!canPlaceByBounds(entry) || !pos) return null;
-  const box = boundsPixelBox(entry);
+  const box = boundsPixelBox(entry, forSvg);
   const p = toPixel0(entry, pos.x, pos.z);
   return {
     x: ((p.px - box.left) / box.width) * 100,
@@ -133,9 +163,9 @@ export const posToPercent = (entry, pos) => {
 };
 
 /** % บนภาพ -> พิกัดเกม (ใช้กับตัวอ่านพิกัดใต้เมาส์ / การปักหมุดเอง) */
-export const percentToPos = (entry, xPct, yPct) => {
+export const percentToPos = (entry, xPct, yPct, forSvg = false) => {
   if (!canPlaceByBounds(entry)) return null;
-  const box = boundsPixelBox(entry);
+  const box = boundsPixelBox(entry, forSvg);
   const t = entry.transform;
   const px = box.left + (xPct / 100) * box.width;
   const py = box.top + (yPct / 100) * box.height;

@@ -160,6 +160,9 @@ async function main() {
       viewBox: vb,
       // bounds[0] = แกน x, bounds[1] = แกน z (ตรวจกับตำแหน่งจริงแล้ว)
       bounds: svgVariant.bounds,
+      /* บางแมพภาพ SVG ครอบพื้นที่ไม่เท่ากับชุด tile (ตอนนี้มีแค่ Reserve)
+         ถ้าใช้ bounds เดียวกันทั้งสองแบบ หมุดจะตรงบน satellite แต่เพี้ยนบน abstract */
+      svgBounds: svgVariant.svgBounds || null,
       /* transform = ตัวแปลงพิกัดเกม -> pixel ที่ต้นทางใช้จริง (ทั้งกับ SVG และ tile)
          เก็บไว้ระดับแมพ เพราะหมุดต้องใช้สูตรเดียวกับภาพ ไม่งั้นเยื้องกัน
          (เคสจริง: The Lab ใช้การเดาทิศทางจากค่า calibrate เก่าแล้วเพี้ยน) */

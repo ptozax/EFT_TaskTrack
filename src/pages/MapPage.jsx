@@ -10,7 +10,7 @@ import ItemTracker from './ItemTracker';
 import {
   findMapLayers, usableFloors, isMarkerVisible, mapCredit,
   hasSatellite, pickTileLevel, maxUsableTileLevel, tilesFor, tileRect,
-  canPlaceByBounds, posToPercent, percentToPos,
+  canPlaceByBounds, posToPercent, percentToPos, boundsAspect, svgPlacement,
 } from './mapLayers';
 
 /* ---------------- STORAGE KEYS ---------------- */
@@ -217,6 +217,19 @@ const MapPage = () => {
   const [visibleFloors, setVisibleFloors] = useState([]);
   const [mapStyle, setMapStyle] = useState('abstract');   // 'abstract' = ภาพวาด SVG, 'satellite' = ภาพจริงจากเกม
 
+  /* พื้นที่ของทางออก/transit: ทำแบบ tarkov.dev — ซ่อนไว้ก่อน โผล่เมื่อชี้เมาส์ที่หมุด
+     และคลิกเพื่อปักให้ค้าง (ของเขาใช้คลาส not-shown / force-show)
+     ข้อดี: ไม่มีกรอบสีเต็มแมพมาบังรายละเอียดตลอดเวลา */
+  const [hoverArea, setHoverArea] = useState(null);       // key ของอันที่กำลังชี้
+  const [pinnedAreas, setPinnedAreas] = useState(() => new Set());
+  const areaKey = (kind, item, idx) => `${kind}:${item.id ?? idx}`;
+  const areaShown = (key) => hoverArea === key || pinnedAreas.has(key);
+  const toggleArea = (key) => setPinnedAreas(prev => {
+    const next = new Set(prev);
+    if (next.has(key)) next.delete(key); else next.add(key);
+    return next;
+  });
+
   const currentMap = maps.find(m => m.id === selectedMapId);
   const currentMapName = currentMap?.map_name || "Unknown";
   // แมพ SVG เก็บไว้ที่ public/maps/ เอง (ดึงตอน build ด้วย scripts/update-maps.mjs)
@@ -259,10 +272,15 @@ const MapPage = () => {
   /* อัตราส่วนกรอบแมพ — คิดจากระดับ 0 จึงไม่ขึ้นกับระดับ tile ที่เลือก
      (ถ้าไปผูกกับ tileLevel จะวนกัน: ระดับต้องใช้ขนาดกล่อง กล่องต้องใช้อัตราส่วน) */
   const boxRatio = useMemo(() => {
+    const fromBounds = boundsAspect(layerEntry);
+    if (fromBounds) return fromBounds;
     if (layerEntry?.viewBox) return layerEntry.viewBox.width / layerEntry.viewBox.height;
     const r = tileRect(layerEntry, 0);
     return r && r.height ? r.width / r.height : null;
   }, [layerEntry]);
+
+  // ตำแหน่งวางภาพ SVG ในกล่อง (Reserve ต้องขยับ/ย่อ เพราะภาพครอบไม่เท่าชุด tile)
+  const svgBox = useMemo(() => svgPlacement(layerEntry), [layerEntry]);
 
   /* ระดับ tile เลือกจากความกว้างที่แสดงจริงบนจอ (กล่องแมพ × zoom)
      ไม่ใช่เดาจากตัวเลข zoom เฉย ๆ -> ความคมเท่าความละเอียดที่ตาเห็นจริง
@@ -492,7 +510,8 @@ const MapPage = () => {
   };
 
   // สี + ไอคอนตาม faction ของ extract
-  const FACTION_COLORS = { pmc: '#10b981', scav: '#f97316', shared: '#3b82f6' };
+  // สีชุดเดียวกับ tarkov.dev/map (pmc เขียวมิ้นต์ / scav ส้ม / shared ฟ้าอมเขียว)
+  const FACTION_COLORS = { pmc: '#00e599', scav: '#ff7800', shared: '#00e4e5' };
   const factionColor = (f) => FACTION_COLORS[f] || FACTION_COLORS.scav;
   const factionImg = (f) => `https://tarkov.dev/maps/interactive/extract_${f === 'pmc' ? 'pmc' : f === 'shared' ? 'shared' : 'scav'}.png`;
 
@@ -1225,13 +1244,29 @@ const MapPage = () => {
                 ))}
               </div>
             ) : svgMarkup ? (
-              /* inline SVG -> เข้าถึง <g> ของแต่ละชั้นได้ (ที่มา/เครดิตอยู่ในแถบ Layers) */
+              /* กล่องอ้าง bounds เสมอ (ชุดพิกัดเดียวกับ satellite) แล้ววางภาพ SVG ข้างในตาม svgBounds
+                 -> สลับ Abstract/Satellite แล้วหมุดไม่ขยับ ต่างกันแค่ภาพพื้นหลัง
+                 Reserve เป็นเคสที่ภาพ SVG ครอบพื้นที่ไม่เท่าชุด tile */
               <div
                 ref={imageRef}
-                className="eft-map-svg"
-                style={{ display: 'block', height: '85vh', width: 'auto', userSelect: 'none', pointerEvents: 'none' }}
-                dangerouslySetInnerHTML={{ __html: svgMarkup }}
-              />
+                style={{
+                  display: 'block', height: '85vh', aspectRatio: boxRatio || 1,
+                  position: 'relative', overflow: 'hidden',
+                  userSelect: 'none', pointerEvents: 'none',
+                }}
+              >
+                <div
+                  className="eft-map-svg"
+                  style={{
+                    position: 'absolute',
+                    left: `${svgBox?.leftPct ?? 0}%`,
+                    top: `${svgBox?.topPct ?? 0}%`,
+                    width: `${svgBox?.widthPct ?? 100}%`,
+                    height: `${svgBox?.heightPct ?? 100}%`,
+                  }}
+                  dangerouslySetInnerHTML={{ __html: svgMarkup }}
+                />
+              </div>
             ) : (
               <img
                 ref={imageRef}
@@ -1268,14 +1303,19 @@ const MapPage = () => {
                   .join(' ');
 
                 const col = factionColor(ext.faction);
+                // โชว์พื้นที่เฉพาะตอนชี้เมาส์ที่หมุด หรือคลิกปักไว้ (แบบ tarkov.dev)
+                if (!areaShown(areaKey('ext', ext, idx))) return null;
 
                 return (
                   <polygon
                     key={`outline-${idx}`}
                     points={pointsStr}
-                    fill={`${col}33`}
+                    fill={col}
+                    fillOpacity={0.16}
                     stroke={col}
-                    strokeWidth={0.2 * markerScale}
+                    strokeOpacity={0.9}
+                    strokeWidth={0.75}          /* บางลง ไม่ให้กรอบหนาเกินตัวแมพ */
+                    strokeLinejoin="round"
                     vectorEffect="non-scaling-stroke"
                   />
                 );
@@ -1289,24 +1329,53 @@ const MapPage = () => {
               const col = factionColor(ext.faction);
 
               return (
-                <div key={`ext-${idx}`} style={{
-                  position: 'absolute',
-                  left: `${p.x}%`,
-                  top: `${p.y}%`,
-                  transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg)`,
-                  zIndex: 28, display: 'flex', flexDirection: 'column', alignItems: 'center', pointerEvents: 'none',
-                }}>
+                /* แบบเดียวกับ tarkov.dev/map: ไอคอนฝ่าย 24px + ชื่อวางข้าง ๆ
+                   ตัวหนังสือขาว หนา มีขอบดำ (text-stroke + text-shadow) ไม่มีป้ายพื้นทึบ
+                   -> อ่านได้ทั้งบนพื้นสว่างและพื้นเข้ม และไม่บังรายละเอียดแมพ */
+                <div
+                  key={`ext-${idx}`}
+                  onMouseEnter={() => setHoverArea(areaKey('ext', ext, idx))}
+                  onMouseLeave={() => setHoverArea(null)}
+                  onMouseDown={(e) => e.stopPropagation()}   // กันลากแมพตอนคลิกหมุด
+                  onClick={() => toggleArea(areaKey('ext', ext, idx))}
+                  title={`${ext.name} (${ext.faction}) — click to keep the area shown`}
+                  style={{
+                    position: 'absolute',
+                    left: `${p.x}%`,
+                    top: `${p.y}%`,
+                    transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg)`,
+                    zIndex: 28, display: 'flex', alignItems: 'center', gap: '3px',
+                    whiteSpace: 'nowrap', pointerEvents: 'auto', cursor: 'pointer',
+                  }}
+                >
                   <img
                     src={factionImg(ext.faction)}
                     onLoad={() => setIsLoading(false)}
                     onError={(e) => { e.target.src = 'https://tarkov.dev/maps/interactive/extract_scav.png'; }}
                     title={`${ext.name} (${ext.faction})`}
-                    style={{ width: '20px', height: '20px', filter: 'drop-shadow(0 1px 2px #000)' }}
+                    alt=""
+                    style={{
+                      width: '24px', height: '24px', flexShrink: 0,
+                      filter: 'drop-shadow(0 0 2px #000) drop-shadow(0 0 4px rgba(0,0,0,0.9))',
+                    }}
                   />
                   {showLabels && (
-                    <div style={{ ...styles.mapLabel, borderColor: col }} title={`${ext.name} (${ext.faction})`}>
+                    /* อ่านง่ายขึ้น: ตัวอักษรขาวบนพื้นเข้มโปร่ง + ขีดสีฝ่ายด้านซ้ายเป็นตัวบอกฝ่าย
+                       (ตัวอักษรสีฝ่ายล้วนอ่านยากบนพื้นที่สีใกล้กัน เช่น scav ส้มบนพื้นทราย) */
+                    <span
+                      style={{
+                        fontSize: '11px', fontWeight: 700, color: '#f2f6ff', lineHeight: 1.35,
+                        padding: '0 5px 0 4px',
+                        borderRadius: '3px',
+                        borderLeft: `2px solid ${col}`,
+                        background: 'rgba(6,10,20,0.72)',
+                        textShadow: '0 1px 2px rgba(0,0,0,0.9)',
+                        letterSpacing: '.01em',
+                      }}
+                      title={`${ext.name} (${ext.faction})`}
+                    >
                       {ext.name}
-                    </div>
+                    </span>
                   )}
                 </div>
               );
@@ -1323,13 +1392,19 @@ const MapPage = () => {
                   .map(p => `${p.x},${p.y}`)
                   .join(' ');
 
+                // เหมือนทางออก: โชว์เฉพาะตอนชี้/ปักไว้ · สี #e53500 ตามที่ tarkov.dev ใช้
+                if (!areaShown(areaKey('trans', ext, idx))) return null;
+
                 return (
                   <polygon
                     key={`trans-outline-${idx}`}
                     points={pointsStr}
-                    fill={'rgba(249, 22, 22, 0.2)'}
-                    stroke={'#f91616ff'}
-                    strokeWidth={0.2 * markerScale}
+                    fill="#e53500"
+                    fillOpacity={0.16}
+                    stroke="#e53500"
+                    strokeOpacity={0.9}
+                    strokeWidth={0.75}
+                    strokeLinejoin="round"
                     vectorEffect="non-scaling-stroke"
                   />
                 );
@@ -1342,23 +1417,46 @@ const MapPage = () => {
               const label = trans.description || 'Transit';
 
               return (
-                <div key={`trans-${idx}`} style={{
-                  position: 'absolute',
-                  left: `${p.x}%`,
-                  top: `${p.y}%`,
-                  transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg)`,
-                  zIndex: 28, display: 'flex', flexDirection: 'column', alignItems: 'center', pointerEvents: 'none',
-                }}>
+                <div
+                  key={`trans-${idx}`}
+                  onMouseEnter={() => setHoverArea(areaKey('trans', trans, idx))}
+                  onMouseLeave={() => setHoverArea(null)}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={() => toggleArea(areaKey('trans', trans, idx))}
+                  title={`${label} — click to keep the area shown`}
+                  style={{
+                    position: 'absolute',
+                    left: `${p.x}%`,
+                    top: `${p.y}%`,
+                    transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg)`,
+                    zIndex: 28, display: 'flex', alignItems: 'center', gap: '3px',
+                    whiteSpace: 'nowrap', pointerEvents: 'auto', cursor: 'pointer',
+                  }}
+                >
                   <img
                     src={`https://tarkov.dev/maps/interactive/extract_transit.png`}
                     onLoad={() => setIsLoading(false)}
                     title={label}
-                    style={{ width: '20px', height: '20px', filter: 'drop-shadow(0 1px 2px #000)' }}
+                    alt=""
+                    style={{
+                      width: '24px', height: '24px', flexShrink: 0,
+                      filter: 'drop-shadow(0 0 2px #000) drop-shadow(0 0 4px rgba(0,0,0,0.9))',
+                    }}
                   />
                   {showLabels && (
-                    <div style={{ ...styles.mapLabel, borderColor: '#f91616' }} title={label}>
+                    <span
+                      style={{
+                        fontSize: '11px', fontWeight: 700, color: '#f2f6ff', lineHeight: 1.35,
+                        padding: '0 5px 0 4px',
+                        borderRadius: '3px',
+                        borderLeft: '2px solid #e53500',
+                        background: 'rgba(6,10,20,0.72)',
+                        textShadow: '0 1px 2px rgba(0,0,0,0.9)',
+                      }}
+                      title={label}
+                    >
                       {label}
-                    </div>
+                    </span>
                   )}
                 </div>
               );
@@ -1498,7 +1596,9 @@ const MapPage = () => {
           </div>
         </div>
       </main>
-      <style>{`.eft-map-svg > svg { display:block; height:85vh; width:auto; }
+      {/* SVG ยืดเต็มกล่องที่คำนวณจาก bounds (ไม่ยึดความสูงจอ) เพื่อให้ทับพื้นที่จริงพอดี */}
+      <style>{`.eft-map-svg { line-height: 0; }
+        .eft-map-svg > svg { display:block; width:100%; height:100%; }
         ${hiddenFloorCss}
         @keyframes pulseRing { 0%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:.3;transform:translate(-50%,-50%) scale(1.6)} }`}</style>
     </div>
