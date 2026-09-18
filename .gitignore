@@ -28,6 +28,9 @@ src/data/story.json
 public/story/
 src/data/map_layers.json
 public/maps/
+# หมายเหตุ: src/data/kappa.json ไม่อยู่ในลิสต์นี้ — commit ไว้โดยตั้งใจ
+# ขนาดแค่ ~7 KB และเปลี่ยนปีละไม่กี่ครั้ง แต่ gameStore.js import ตรงๆ ตอน build
+# ถ้าไม่ commit แล้ววิกิล่มตอน CI จะ build ไม่ผ่านเลย
 
 # Editor directories and files
 .vscode/*

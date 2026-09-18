@@ -7,7 +7,7 @@
  * ต้องใช้ Node 18+ (global fetch) -> nvm use 22 && node scripts/update-data.mjs
  *          node scripts/update-data.mjs ammo tasks   (อัปเดตเฉพาะบางไฟล์)
  * ========================================================================= */
-import { writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { transformAmmo, transformMaps, transformHideout, transformTasks } from '../src/data/transforms.js';
@@ -33,6 +33,18 @@ async function fetchJson(url, retries = 3) {
 const CACHE = {};
 const load = (name) => (CACHE[name] = CACHE[name] || fetchJson(`${BASE}/${name}`));
 
+// รายชื่อเควส Kappa จากวิกิ (scripts/update-kappa.mjs) — ถ้ายังไม่มีก็ข้ามไป
+// ธง kappaRequired จาก json.tarkov.dev เองนับแค่ 13 เควส (ดูคำอธิบายใน update-kappa.mjs)
+const loadKappaNames = async () => {
+  try {
+    const { questNames } = JSON.parse(await readFile(resolve(DATA_DIR, 'kappa.json'), 'utf8'));
+    return questNames;
+  } catch {
+    console.warn('  ! ไม่มี src/data/kappa.json — kappaRequired จะเหลือเท่าที่ tarkov.dev ให้มา (รัน npm run update-kappa ก่อน)');
+    return undefined;
+  }
+};
+
 const DATASETS = {
   ammo: {
     file: 'ammo.json', indent: 4,
@@ -48,7 +60,7 @@ const DATASETS = {
   },
   tasks: {
     file: 'tasks.json', indent: 2,
-    build: async () => transformTasks(await load('tasks'), await load('tasks_en'), await load('maps_en'), await load('traders'), await load('items'), await load('items_en')),
+    build: async () => transformTasks(await load('tasks'), await load('tasks_en'), await load('maps_en'), await load('traders'), await load('items'), await load('items_en'), await loadKappaNames()),
   },
 };
 

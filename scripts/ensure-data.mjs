@@ -20,6 +20,9 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 // ไฟล์ที่ต้องมี -> สคริปต์ที่สร้างมัน (เรียงตามลำดับ dependency: items ต้องมาก่อน)
 const TARGETS = [
   { files: ['src/data/items.json'], script: 'update-items.mjs' },
+  // kappa.json ปกติ commit ไว้ในรีโป (เล็กและแทบไม่เปลี่ยน) — เผื่อกรณีถูกลบเท่านั้น
+  // ต้องมาก่อน tasks.json เพราะ update-data.mjs อ่านไปใส่ธง kappaRequired
+  { files: ['src/data/kappa.json'], script: 'update-kappa.mjs' },
   { files: ['src/data/ammo.json', 'src/data/maps.json', 'src/data/hideout.json', 'src/data/tasks.json'], script: 'update-data.mjs' },
   { files: ['public/price_data.json'], script: 'update-price-data.mjs' },
   { files: ['public/gear_data.json'], script: 'update-gear-data.mjs' },
@@ -71,10 +74,19 @@ async function main() {
     return;
   }
 
+  // kappa.json เพิ่งถูกสร้าง แต่ tasks.json มีอยู่แล้ว -> tasks.json ยังไม่มีธง kappaRequired จากวิกิ
+  const tasksNeedKappa = missing.some((m) => m.script === 'update-kappa.mjs')
+    && !missing.some((m) => m.script === 'update-data.mjs');
+
   if (missing.length) {
     console.log(`ขาดข้อมูล ${missing.reduce((s, m) => s + m.gone.length, 0)} ไฟล์ — กำลังสร้าง:`);
     missing.forEach((m) => console.log(`  · ${m.gone.join(', ')} (${m.script})`));
     for (const m of missing) await run(m.script);
+  }
+
+  if (tasksNeedKappa) {
+    console.log('เพิ่งได้รายชื่อเควส Kappa มา — สร้าง tasks.json ใหม่ให้ธง kappaRequired ครบ');
+    await run('update-data.mjs', ['tasks']);
   }
 
   if (storyOnlyImages) {

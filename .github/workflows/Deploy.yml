@@ -43,6 +43,8 @@ jobs:
             public/optimizer_data.json
             public/loot_data.json
             public/story
+            src/data/map_layers.json
+            public/maps
           key: tarkov-data-${{ github.run_id }}
           restore-keys: tarkov-data-
 

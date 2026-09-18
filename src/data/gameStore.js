@@ -15,6 +15,9 @@ import {
   transformItems, transformPriceData, transformGear, transformOptimizer,
   transformAmmo, transformMaps, transformHideout, transformTasks, transformLoot,
 } from './transforms.js';
+// รายชื่อเควส Kappa จากวิกิ (build-time, scripts/update-kappa.mjs)
+// ต้องส่งเข้า transformTasks ตอน transform สด ไม่งั้นข้อมูลสดจะเหลือ kappaRequired แค่ 13 เควส
+import kappaList from './kappa.json';
 
 const BASE = 'https://json.tarkov.dev/regular';
 const GRIDS_URL = 'https://tarkov.dev/data/item-grids.min.json';
@@ -89,7 +92,7 @@ async function doLoad() {
   if (maps) safeSet('loot', () => transformLoot(maps));
   if (hideout && hideoutEn && items && itemsEn) safeSet('hideout', () => transformHideout(hideout, hideoutEn, items, itemsEn));
   if (tasks && tasksEn && mapsEn && traders && items && itemsEn)
-    safeSet('tasks', () => transformTasks(tasks, tasksEn, mapsEn, traders, items, itemsEn));
+    safeSet('tasks', () => transformTasks(tasks, tasksEn, mapsEn, traders, items, itemsEn, kappaList?.questNames));
 }
 
 // เรียกครั้งเดียวตอนเข้าเว็บ (idempotent)

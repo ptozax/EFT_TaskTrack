@@ -1,63 +1,77 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import tasksStatic from "../data/tasks";
 import { useLiveData } from '../data/gameStore';
 import * as d3 from 'd3';
 import dagre from 'dagre';
-import { mapStyles as styles2, TRADER_THEMES } from '../Component/EftComponent.jsx';
+import { Icons, TRADER_THEMES } from '../Component/EftComponent.jsx';
+import { P, card, chip, badge, label, Bar, SearchBox, IconButton } from '../Component/PanelUI.jsx';
 import * as QuestComponent from '../Component/QuestComponent';
-
-import Button from 'react-bootstrap/Button';
 
 const COMPLETE_KEY = "eft_completed_quests";
 const STORAGE_KEY = "eft_selected_quests";
+const VIEW_KEY = "eft_tree_view";
+
+const NODE_W = 260;
+const NODE_H = 76;
+const GAP_X = 40;
+const GAP_Y = 30;
+
+/* สีของโหนดตามสถานะ — ให้ตาจับได้ทันทีว่าอะไรทำไปแล้ว อะไรทำต่อได้
+   โทนยกขึ้นจากเดิมทั้งชุด (ของเดิมเข้มจนผังดูดำไปหมด) พื้นโหนดสว่างกว่าพื้นผัง
+   ตัวอักษรเกือบขาว ขอบใช้สีสดเป็นตัวแยกสถานะแทนการพึ่งความเข้มของพื้น */
+const NODE_STATE = {
+  done: { fill: '#1d4435', stroke: '#34d399', text: '#c6f6dd', sub: '#7fc9a6' },
+  active: { fill: '#4a3d17', stroke: '#facc15', text: '#fdeeb4', sub: '#d3b459' },
+  ready: { fill: '#27375a', stroke: '#6b95d6', text: '#e6efff', sub: '#9db5dd' },
+  blocked: { fill: '#1e2a45', stroke: '#44557d', text: '#b3c1da', sub: '#7386a8' },
+};
+
+const CANVAS_BG = '#182444';   // พื้นผัง — สว่างกว่าแถบเครื่องมือ ให้ผังเป็นพระเอก
+const GRID_DOT = '#2c3c63';    // จุดกริดจาง ๆ ช่วยให้รู้ว่ากำลังลากผังอยู่
 
 const QuestTree = () => {
-  const tasks = useLiveData(tasksStatic, 'tasks'); // สดจาก tarkov.dev ถ้าโหลดเสร็จ ไม่งั้น static
-    const [selectedTrader, setSelectedTrader] = useState("All");
-    const [searchTerm, setSearchTerm] = useState("");
-    const svgRef = useRef(null);
-    const gRef = useRef(null);
+    const tasks = useLiveData(tasksStatic, 'tasks'); // สดจาก tarkov.dev ถ้าโหลดเสร็จ ไม่งั้น static
 
+    const [view, setView] = useState(() => {
+        try { return JSON.parse(localStorage.getItem(VIEW_KEY)) || { trader: 'All', hideDone: false, showLoose: true }; }
+        catch { return { trader: 'All', hideDone: false, showLoose: true }; }
+    });
+    const [searchTerm, setSearchTerm] = useState("");
     const [selectedQuest, setSelectedQuest] = useState(null);
 
+    const svgRef = useRef(null);
+    const gRef = useRef(null);
+    const zoomRef = useRef(null);
 
     const [passedQuest, setPassedQuest] = useState([]);
     const [completeQuest, setCompleteQuest] = useState(() => {
-        return JSON.parse(localStorage.getItem(COMPLETE_KEY)) || [];
+        try { return JSON.parse(localStorage.getItem(COMPLETE_KEY)) || []; } catch { return []; }
     });
     const [curentQuest, setCurentQuest] = useState(() => {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+        try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; }
     });
     const [isLoad, setIsLoad] = useState(false);
 
-    const zoomRef = useRef(null);
-
-
+    useEffect(() => { localStorage.setItem(VIEW_KEY, JSON.stringify(view)); }, [view]);
 
     function getCompletedQuests(quests, currentQuests) {
-        const questMap = Object.fromEntries(
-            quests.map(q => [q.id, q])
-        );
-
+        const questMap = Object.fromEntries(quests.map(q => [q.id, q]));
         const completed = new Set();
 
         function dfs(id) {
             const quest = questMap[id];
             if (!quest) return;
-
             for (const req of quest.taskRequirements) {
-                if (!completed.has(req.task.id)) {
-                    if (req.status.some(s => ["active",].includes(s))) {
-                        const activeTask = tasks.find(t => t.id === req.task.id);
-                        activeTask?.taskRequirements?.forEach(require => {
-                            completed.add(require.task.id);
-                            dfs(require.task.id);
-                        });
-                    }
-                    else if (req.status.some(s => ["complete", "failed"].includes(s))) {
-                        completed.add(req.task.id);
-                        dfs(req.task.id);
-                    }
+                if (completed.has(req.task.id)) continue;
+                if (req.status.some(s => ["active"].includes(s))) {
+                    const activeTask = quests.find(t => t.id === req.task.id);
+                    activeTask?.taskRequirements?.forEach(require => {
+                        completed.add(require.task.id);
+                        dfs(require.task.id);
+                    });
+                } else if (req.status.some(s => ["complete", "failed"].includes(s))) {
+                    completed.add(req.task.id);
+                    dfs(req.task.id);
                 }
             }
         }
@@ -66,89 +80,64 @@ const QuestTree = () => {
         return [...completed];
     }
 
-
     const onQuetsSccess = (successQuest) => {
-        let passQuest = QuestComponent.getPreviousQuestsList(successQuest.id, JSON.parse(localStorage.getItem(COMPLETE_KEY)))
+        const passQuest = QuestComponent.getPreviousQuestsList(successQuest.id, JSON.parse(localStorage.getItem(COMPLETE_KEY)) || []);
         const idsToRemove = new Set(passQuest.map(u => u.id));
         idsToRemove.add(successQuest.id);
 
-        setCompleteQuest([...new Set([...completeQuest, ...passQuest])])
+        const nextComplete = [...new Set([...completeQuest, ...passQuest])];
+        setCompleteQuest(nextComplete);
 
-        const nextCurrentQuest = curentQuest.filter(q => !Array.from(idsToRemove).includes(q.id));
-        const nextquest = QuestComponent.getNextQuestLists([...new Set([...completeQuest, ...passQuest])], successQuest.id);
-
+        const nextCurrentQuest = curentQuest.filter(q => !idsToRemove.has(q.id));
+        const nextquest = QuestComponent.getNextQuestLists(nextComplete, successQuest.id);
         setCurentQuest([...new Set([...nextCurrentQuest, ...nextquest])]);
+    };
 
-    }
-
-    const handleStorageChange = () => {
-
+    const handleStorageChange = useCallback(() => {
         const completedQuests = JSON.parse(localStorage.getItem(COMPLETE_KEY)) || [];
-        const curentQuests = JSON.parse(localStorage.getItem(STORAGE_KEY)) || []
+        const curentQuests = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 
-
-        let completedQuestsIds = completedQuests.map(q => q.id);
-        let curentQuestIds = curentQuests.map(q => q.id);
-        let passQuest = getCompletedQuests(tasks, curentQuestIds)
-        // [] + []  ไม่ซ้ำ
+        const completedQuestsIds = completedQuests.map(q => q.id);
+        const curentQuestIds = curentQuests.map(q => q.id);
+        const passQuest = getCompletedQuests(tasks, curentQuestIds);
         const result = [...new Set([...completedQuestsIds, ...passQuest])];
 
-        const completedQuestsNew = [];
-        result.forEach(r => {
-            completedQuestsNew.push({ id: r, status: "complete" })
-        })
-
-
-        setCompleteQuest(completedQuestsNew);
-        setCurentQuest(curentQuests)
-    }
+        setCompleteQuest(result.map(r => ({ id: r, status: "complete" })));
+        setCurentQuest(curentQuests);
+    }, [tasks]);
 
     useEffect(() => {
         setIsLoad(true);
         handleStorageChange();
-        QuestComponent.callbackStorageChange(handleStorageChange);
+        return QuestComponent.callbackStorageChange(handleStorageChange);
     }, []);
-    useEffect(() => {
-        if (isLoad) {
-            localStorage.setItem(COMPLETE_KEY, JSON.stringify(completeQuest));
-
-
-
-            let completedQuestsIds = completeQuest.map(q => q.id);
-            let curentQuestIds = curentQuest.map(q => q.id);
-            let passQuest = getCompletedQuests(tasks, curentQuestIds)
-            // [] + []  ไม่ซ้ำ
-            const result = [...new Set([...completedQuestsIds, ...passQuest])];
-            setPassedQuest(result);
-
-
-
-
-        }
-    }, [completeQuest])
-
-
-
 
     useEffect(() => {
-        if (isLoad) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(curentQuest));
-        }
-    }, [curentQuest])
+        if (!isLoad) return;
+        localStorage.setItem(COMPLETE_KEY, JSON.stringify(completeQuest));
+        const completedQuestsIds = completeQuest.map(q => q.id);
+        const curentQuestIds = curentQuest.map(q => q.id);
+        const passQuest = getCompletedQuests(tasks, curentQuestIds);
+        setPassedQuest([...new Set([...completedQuestsIds, ...passQuest])]);
+    }, [completeQuest]);
 
-    // ตรรกะการประมวลผลกราฟ
-    const { nodes, edges, layout } = useMemo(() => {
-        if (!tasks.length) return { nodes: [], edges: [], layout: null };
+    useEffect(() => {
+        if (isLoad) localStorage.setItem(STORAGE_KEY, JSON.stringify(curentQuest));
+    }, [curentQuest]);
 
-        // 1. ระบุ Node ที่ต้องการแสดง (กรองตาม Trader หรือค้นหา)
+    const doneSet = useMemo(() => new Set(passedQuest), [passedQuest]);
+    const activeSet = useMemo(() => new Set(curentQuest.map(q => q.id)), [curentQuest]);
+
+    /* ---------------- ตรรกะการประมวลผลกราฟ ---------------- */
+    const { nodes, edges, layout, looseCount, looseTop, nodeById } = useMemo(() => {
+        const empty = { nodes: [], edges: [], layout: null, looseCount: 0, looseTop: null, nodeById: new Map() };
+        if (!tasks.length) return empty;
+
         let initialFiltered = tasks;
-        if (selectedTrader !== "All") {
-            initialFiltered = tasks.filter(t => t.trader.name === selectedTrader);
-        }
+        if (view.trader !== "All") initialFiltered = tasks.filter(t => t.trader.name === view.trader);
 
-        // สร้าง Set ของ ID ที่จะแสดง (รวม Prerequisites ทั้งสาย)
+        // สร้าง Set ของ ID ที่จะแสดง (รวม prerequisites ทั้งสาย)
         const visibleIds = new Set();
-
         const addWithPrereqs = (task) => {
             if (!task || visibleIds.has(task.id)) return;
             visibleIds.add(task.id);
@@ -157,360 +146,355 @@ const QuestTree = () => {
                 if (prereqTask) addWithPrereqs(prereqTask);
             });
         };
-
-        initialFiltered.forEach(task => addWithPrereqs(task));
-
-        // กรณี Search ให้เพิ่มเควสที่ตรงกับคำค้นหาด้วย
+        initialFiltered.forEach(addWithPrereqs);
         if (searchTerm) {
             tasks.forEach(task => {
-                if (task.name.toLowerCase().includes(searchTerm.toLowerCase())) {
-                    addWithPrereqs(task);
-                }
+                if (task.name.toLowerCase().includes(searchTerm.toLowerCase())) addWithPrereqs(task);
             });
         }
 
-        const finalTasks = tasks.filter(t => visibleIds.has(t.id));
+        let finalTasks = tasks.filter(t => visibleIds.has(t.id));
 
-        // 2. ตั้งค่า Dagre Layout
+        // ซ่อนเควสที่ทำเสร็จแล้ว (เก็บไว้เฉพาะที่ยังเป็นสะพานไปหาเควสที่ยังไม่เสร็จ)
+        if (view.hideDone) {
+            const keep = new Set(finalTasks.filter(t => !doneSet.has(t.id)).map(t => t.id));
+            finalTasks = finalTasks.filter(t => keep.has(t.id));
+            visibleIds.forEach(id => { if (!keep.has(id)) visibleIds.delete(id); });
+        }
+
         const g = new dagre.graphlib.Graph();
-        g.setGraph({ rankdir: 'LR', nodesep: 40, ranksep: 160 });
+        g.setGraph({ rankdir: 'LR', nodesep: GAP_Y, ranksep: 150 });
         g.setDefaultEdgeLabel(() => ({}));
+        finalTasks.forEach(t => g.setNode(t.id, { width: NODE_W, height: NODE_H }));
 
-        finalTasks.forEach(t => {
-            g.setNode(t.id, { width: 240, height: 70 });
-        });
-
+        /* เส้นเชื่อม = ทุก taskRequirements ไม่ว่าเงื่อนไขจะเป็น complete / active / failed
+           ของเดิม: ถ้าเงื่อนไขเป็น active จะข้ามเควสนั้นไปลากจาก "แม่ของมัน" แทน
+           -> ถ้าแม่ไม่มีก็ไม่มีเส้นเลย ทำให้เควสลอยเดี่ยวทั้งที่มีสายจริง */
         const edgeData = [];
+        const edgeSeen = new Set();
         finalTasks.forEach(t => {
             t.taskRequirements?.forEach(req => {
-                if (visibleIds.has(req.task.id)) {
-                    if (req.status.some(s => ["active",].includes(s))) {
-                        const activeTask = tasks.find(t => t.id === req.task.id);
-                        activeTask?.taskRequirements?.forEach(require => {
-                            edgeData.push({ source: require.task.id, target: t.id });
-                            g.setEdge(require.task.id, t.id);
-                        });
-                    }
-                    else if (req.status.some(s => ["complete", "failed"].includes(s))) {
-                        g.setEdge(req.task.id, t.id);
-                        edgeData.push({ source: req.task.id, target: t.id });
-                    }
-                }
+                const from = req.task?.id;
+                if (!from || !visibleIds.has(from) || from === t.id) return;
+                const key = `${from}->${t.id}`;
+                if (edgeSeen.has(key)) return;
+                edgeSeen.add(key);
+
+                const status = req.status || [];
+                // เงื่อนไขแบบ active = ปลดล็อกตั้งแต่เควสก่อนหน้ายัง "กำลังทำ" -> วาดเป็นเส้นประ
+                const kind = status.includes('complete') ? 'complete'
+                    : status.includes('active') ? 'active'
+                        : status.includes('failed') ? 'failed' : 'complete';
+                g.setEdge(from, t.id);
+                edgeData.push({ source: from, target: t.id, kind });
             });
         });
+
+        /* เควสที่ไม่มีเส้นเชื่อมเลย (ไม่มีทั้งแม่และลูก) มีถึง ~240 จาก 515
+           ถ้าปล่อยให้ dagre จัด จะถูกวางเรียงลงมาเป็นแถวเดียว ผังสูงกว่า 33,000px
+           เหลือแต่ความว่างเปล่า -> เอาออกจาก dagre แล้วจัดเป็นกริดต่อท้ายแทน */
+        const connected = new Set(edgeData.flatMap(e => [e.source, e.target]));
+        const loose = view.showLoose ? finalTasks.filter(t => !connected.has(t.id)) : [];
+        finalTasks.filter(t => !connected.has(t.id)).forEach(t => g.removeNode(t.id));
 
         dagre.layout(g);
+        const laidOut = g.graph();
+        const treeWidth = laidOut.width || 0;
+        const treeHeight = laidOut.height || 0;
 
-        const positionedNodes = finalTasks.map(t => {
-            const nodePos = g.node(t.id);
-            return {
-                ...t,
-                x: nodePos.x,
-                y: nodePos.y
-            };
-        });
-
-        return { nodes: positionedNodes, edges: edgeData, layout: g.graph() };
-    }, [tasks, selectedTrader, searchTerm, passedQuest]);
-
-    // D3 Zoom & Pan
-    useEffect(() => {
-        if (!svgRef.current || !nodes.length) return;
-
-        const svg = d3.select(svgRef.current);
-        const g = d3.select(gRef.current);
-
-        const zoom = d3.zoom()
-            .scaleExtent([0.02, 3])
-            .on('zoom', (event) => {
-                g.attr('transform', event.transform);
+        const positionedNodes = finalTasks
+            .filter(t => connected.has(t.id))
+            .map(t => {
+                const pos = g.node(t.id);
+                return { ...t, x: pos.x, y: pos.y };
             });
 
-        svg.call(zoom);
-        zoomRef.current = zoom; // 👈 เก็บไว้ใช้ตอน search
+        const cols = Math.max(1, Math.floor((treeWidth || (NODE_W * 6)) / (NODE_W + GAP_X)));
+        const looseStart = treeHeight + 160;
+        loose.forEach((t, i) => {
+            positionedNodes.push({
+                ...t,
+                isLoose: true,
+                x: (i % cols) * (NODE_W + GAP_X) + NODE_W / 2,
+                y: looseStart + Math.floor(i / cols) * (NODE_H + GAP_Y) + NODE_H / 2,
+            });
+        });
 
-        // Fit view ตอนโหลด
-        if (layout) {
-            const padding = 50;
-            const fullWidth = svgRef.current.clientWidth;
-            const fullHeight = svgRef.current.clientHeight;
+        const looseRows = Math.ceil(loose.length / cols);
+        return {
+            nodes: positionedNodes,
+            edges: edgeData,
+            layout: {
+                width: Math.max(treeWidth, loose.length ? cols * (NODE_W + GAP_X) : 0),
+                height: loose.length ? looseStart + looseRows * (NODE_H + GAP_Y) : treeHeight,
+            },
+            looseCount: loose.length,
+            looseTop: loose.length ? looseStart : null,
+            nodeById: new Map(positionedNodes.map(n => [n.id, n])),
+        };
+    }, [tasks, view.trader, view.hideDone, view.showLoose, searchTerm, doneSet]);
 
-            const scale = Math.min(
-                (fullWidth - padding) / layout.width,
-                (fullHeight - padding) / layout.height,
-                0.8
-            );
+    /* สายที่เกี่ยวข้องกับเควสที่เลือก: พ่อแม่ทั้งหมด + ลูกหลานทั้งหมด
+       เลือกแล้วส่วนที่ไม่เกี่ยวจะจางลง ทำให้อ่านเส้นทางได้ในผังที่มี 500 โหนด */
+    const focus = useMemo(() => {
+        if (!selectedQuest) return null;
+        const up = new Map();   // target -> [source]
+        const down = new Map(); // source -> [target]
+        edges.forEach(e => {
+            if (!up.has(e.target)) up.set(e.target, []);
+            up.get(e.target).push(e.source);
+            if (!down.has(e.source)) down.set(e.source, []);
+            down.get(e.source).push(e.target);
+        });
+        const walk = (startId, map) => {
+            const seen = new Set();
+            const stack = [startId];
+            while (stack.length) {
+                const id = stack.pop();
+                (map.get(id) || []).forEach(next => {
+                    if (seen.has(next)) return;
+                    seen.add(next);
+                    stack.push(next);
+                });
+            }
+            return seen;
+        };
+        const ancestors = walk(selectedQuest.id, up);
+        const descendants = walk(selectedQuest.id, down);
+        const all = new Set([...ancestors, ...descendants, selectedQuest.id]);
+        return { all, ancestors, descendants };
+    }, [selectedQuest, edges]);
 
-            const transform = d3.zoomIdentity
-                .translate(
-                    fullWidth / 2 - (layout.width / 2) * scale,
-                    fullHeight / 2 - (layout.height / 2) * scale
-                )
-                .scale(scale);
-
-            svg.transition().duration(750).call(zoom.transform, transform);
-        }
-    }, [nodes, layout]);
-
-
-
-
-
+    /* ---------------- D3 zoom / pan ---------------- */
+    const fitView = useCallback((duration = 600) => {
+        if (!svgRef.current || !layout || !zoomRef.current || !layout.width) return;
+        const padding = 80;
+        const w = svgRef.current.clientWidth;
+        const h = svgRef.current.clientHeight;
+        const scale = Math.min((w - padding) / layout.width, (h - padding) / layout.height, 1);
+        const t = d3.zoomIdentity
+            .translate(w / 2 - (layout.width / 2) * scale, h / 2 - (layout.height / 2) * scale)
+            .scale(scale);
+        d3.select(svgRef.current).transition().duration(duration).call(zoomRef.current.transform, t);
+    }, [layout]);
 
     useEffect(() => {
-        if (!searchTerm || !nodes.length || !svgRef.current) return;
-
-        const match = nodes.find(n =>
-            n.name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-
-        if (!match) return;
-
+        if (!svgRef.current) return;
         const svg = d3.select(svgRef.current);
-        const width = svgRef.current.clientWidth;
-        const height = svgRef.current.clientHeight;
+        const g = d3.select(gRef.current);
+        const zoom = d3.zoom().scaleExtent([0.02, 3]).on('zoom', (event) => {
+            g.attr('transform', event.transform);
+        });
+        svg.call(zoom);
+        zoomRef.current = zoom;
+    }, []);
 
-        const scale = 1.2; // ระดับ zoom (ปรับได้)
-        const transform = d3.zoomIdentity
-            .translate(
-                width / 2 - match.x * scale,
-                height / 2 - match.y * scale
-            )
-            .scale(scale);
+    useEffect(() => { if (nodes.length) fitView(750); }, [nodes.length, layout?.width, layout?.height]);
 
-        svg
-            .transition()
-            .duration(750)
-            .call(zoomRef.current.transform, transform);
+    // เลื่อนไปหาเควสที่ค้นเจอ
+    useEffect(() => {
+        if (!searchTerm || !nodes.length || !svgRef.current || !zoomRef.current) return;
+        const match = nodes.find(n => n.name.toLowerCase().includes(searchTerm.toLowerCase()));
+        if (!match) return;
+        const w = svgRef.current.clientWidth;
+        const h = svgRef.current.clientHeight;
+        const scale = 1;
+        const t = d3.zoomIdentity.translate(w / 2 - match.x * scale, h / 2 - match.y * scale).scale(scale);
+        d3.select(svgRef.current).transition().duration(600).call(zoomRef.current.transform, t);
     }, [searchTerm, nodes]);
 
-
-
-
-
-
-
-
-
-    const traders = ["All", ...new Set(tasks.map(t => t.trader.name))];
-
-    const styles = {
-        wrapper: {
-            display: 'flex',
-            flexDirection: 'column',
-            height: '93vh',
-            overflow: 'hidden',
-        },
-        header: {
-            backgroundColor: 'rgba(15, 23, 42, 0.9)',
-            backdropFilter: 'blur(12px)',
-            borderBottom: '1px solid rgba(51, 65, 85, 0.5)',
-            padding: '16px',
-            display: 'flex',
-            flexDirection: 'row', // Note: You may need a media query for mobile column
-            gap: '16px',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            zIndex: 20,
-            boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
-        },
-        logoBox: {
-            backgroundColor: '#eab308', // yellow-500
-            padding: '8px',
-            borderRadius: '8px',
-            color: 'black',
-            fontWeight: 900,
-            fontSize: '1.25rem',
-            boxShadow: '0 10px 15px -3px rgba(234, 179, 8, 0.2)',
-        },
-        selectWrapper: {
-            backgroundColor: 'rgba(30, 41, 59, 0.8)',
-            border: '1px solid #334155',
-            borderRadius: '12px',
-            padding: '4px',
-            display: 'flex',
-            alignItems: 'center',
-            boxShadow: 'inset 0 2px 4px 0 rgb(0 0 0 / 0.05)',
-        },
-        input: {
-            backgroundColor: 'rgba(30, 41, 59, 0.8)',
-            border: '1px solid #334155',
-            borderRadius: '12px',
-            padding: '8px 16px',
-            fontSize: '0.875rem',
-            outline: 'none',
-            width: '256px',
-            color: '#e2e8f0',
-            transition: 'all 0.3s',
-        },
-        graphContainer: {
-            flex: 1,
-            backgroundColor: '#0b0f1a',
-            position: 'relative',
-        },
-        loaderOverlay: {
-            position: 'absolute',
-            inset: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: 'rgba(2, 6, 23, 0.5)',
-        },
-        legend: {
-            position: 'absolute',
-            bottom: '24px',
-            left: '24px',
-            padding: '16px',
-            backgroundColor: 'rgba(15, 23, 42, 0.9)',
-            backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(51, 65, 85, 0.5)',
-            borderRadius: '16px',
-            boxShadow: '0 25px 50px -12px rgb(0 0 0 / 0.5)',
-            maxWidth: '200px',
-            zIndex: 20,
-        }
-
-
-
-
-
-
+    const zoomBy = (k) => {
+        if (!svgRef.current || !zoomRef.current) return;
+        d3.select(svgRef.current).transition().duration(200).call(zoomRef.current.scaleBy, k);
     };
 
+    // กดเควสในแผงรายละเอียดแล้วเลื่อนผังไปหาเควสนั้น
+    const focusNode = (id) => {
+        const node = nodeById.get(id);
+        if (!node) return;
+        setSelectedQuest(node);
+        if (!svgRef.current || !zoomRef.current) return;
+        const w = svgRef.current.clientWidth;
+        const h = svgRef.current.clientHeight;
+        const t = d3.zoomIdentity.translate(w / 2 - node.x, h / 2 - node.y).scale(1);
+        d3.select(svgRef.current).transition().duration(500).call(zoomRef.current.transform, t);
+    };
+
+    const traders = useMemo(() => ["All", ...new Set(tasks.map(t => t.trader.name))], [tasks]);
+    const stateOf = (node) => doneSet.has(node.id) ? 'done'
+        : activeSet.has(node.id) ? 'active'
+            : (node.taskRequirements || []).every(r => doneSet.has(r.task?.id)) ? 'ready' : 'blocked';
+
+    const stats = useMemo(() => {
+        const s = { done: 0, active: 0, ready: 0, blocked: 0 };
+        nodes.forEach(n => { s[stateOf(n)] += 1; });
+        return s;
+    }, [nodes, doneSet, activeSet]);
+
+    const set = (patch) => setView(v => ({ ...v, ...patch }));
+
     return (
-        <div style={styles.wrapper}>
-            {/* UI Header */}
-            <header style={styles.header}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-
-                    <h1 style={{ fontSize: '1.125rem', fontWeight: 'bold', color: 'white' }}>Quest Explorer</h1>
-
+        <div style={{
+            display: 'flex', flexDirection: 'column', height: '93vh',
+            overflow: 'hidden', background: P.bg, color: P.text,
+            position: 'relative',   // ให้แผงรายละเอียดที่เป็น absolute ยึดกับกรอบหน้านี้ ไม่ใช่ทั้งหน้าเว็บ
+        }}>
+            {/* ---------------- toolbar ---------------- */}
+            <header style={{
+                background: 'rgba(11,18,34,.92)', backdropFilter: 'blur(12px)',
+                borderBottom: `1px solid ${P.border}`, padding: '12px 16px',
+                display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', zIndex: 20,
+            }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+                    <h1 style={{ fontSize: '17px', fontWeight: 900, margin: 0 }}>Quest Tree</h1>
+                    <span style={{ ...label }}>{nodes.length} quests · {edges.length} links</span>
                 </div>
 
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
-                    <div style={styles.selectWrapper}>
-                        <span style={{ paddingLeft: '12px', paddingRight: '4px', fontSize: '10px', color: '#64748b', fontWeight: 'bold', textTransform: 'uppercase' }}>Trader</span>
-                        <select
-                            style={{ backgroundColor: 'transparent', fontSize: '0.875rem', border: 'none', outline: 'none', padding: '4px 8px', cursor: 'pointer', fontWeight: 500, color: '#e2e8f0' }}
-                            value={selectedTrader}
-                            onChange={(e) => setSelectedTrader(e.target.value)}
-                        >
-                            {traders.map(t => <option key={t} value={t} style={{ backgroundColor: '#1e293b' }}>{t}</option>)}
-                        </select>
-                    </div>
+                <SearchBox value={searchTerm} onChange={setSearchTerm} placeholder="Search quest name..." width={240} />
 
-                    <div style={{ position: 'relative' }}>
-                        <input
-                            type="text"
-                            placeholder="Search quest name..."
-                            style={styles.input}
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
+                {/* เทรดเดอร์ */}
+                <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                    {traders.map(t => {
+                        const color = t === 'All' ? P.gold : (TRADER_THEMES[t]?.bg || P.label);
+                        return (
+                            <span key={t} style={chip(view.trader === t, color)} onClick={() => set({ trader: t })}>
+                                {t !== 'All' && <span style={{ width: 7, height: 7, borderRadius: 999, background: color }} />}
+                                {t}
+                            </span>
+                        );
+                    })}
+                </div>
+
+                <div style={{ flex: 1 }} />
+
+                <span style={chip(view.hideDone, P.green)} onClick={() => set({ hideDone: !view.hideDone })}>
+                    <Icons.Check size={13} /> Hide done
+                </span>
+                <span style={chip(view.showLoose, P.blue)} onClick={() => set({ showLoose: !view.showLoose })}>
+                    Standalone {looseCount > 0 ? `(${looseCount})` : ''}
+                </span>
+
+                <div style={{ display: 'flex', gap: 5 }}>
+                    <IconButton title="Zoom in" onClick={() => zoomBy(1.4)}><span style={{ fontSize: 16, fontWeight: 700 }}>+</span></IconButton>
+                    <IconButton title="Zoom out" onClick={() => zoomBy(1 / 1.4)}><span style={{ fontSize: 18, fontWeight: 700 }}>−</span></IconButton>
+                    <IconButton title="Fit to screen" onClick={() => fitView(500)}><Icons.Crosshair size={15} /></IconButton>
                 </div>
             </header>
 
-            {/* กราฟ SVG Container */}
-            <div style={styles.graphContainer}>
+            {/* ---------------- กราฟ ---------------- */}
+            <div style={{ flex: 1, position: 'relative', background: CANVAS_BG }}>
                 {tasks.length === 0 ? (
-                    <div style={styles.loaderOverlay}>
-                        <div style={{ textAlign: 'center' }}>
-                            <div style={{ width: '48px', height: '48px', border: '4px solid #eab308', borderTopColor: 'transparent', borderRadius: '50%', margin: '0 auto 16px' }} className="animate-spin"></div>
-                            <p style={{ color: '#94a3b8', fontWeight: 500 }}>Loading quest data...</p>
-                        </div>
+                    <div style={{
+                        position: 'absolute', inset: 0, display: 'flex',
+                        alignItems: 'center', justifyContent: 'center', color: P.dim,
+                    }}>
+                        Loading quest data...
                     </div>
                 ) : (
-                    <svg ref={svgRef} style={{ width: '100%', height: '100%' }} className="zoom-container">
+                    <svg ref={svgRef} style={{ width: '100%', height: '100%', cursor: 'grab' }}>
                         <defs>
-                            <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-                                <polygon points="0 0, 8 3, 0 6" fill="#334155" />
+                            <marker id="arrow" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 9 3.5, 0 7" fill="#5e739b" />
                             </marker>
-
-                            <linearGradient
-                                id="rainbowStrokeAnimated"
-                                gradientUnits="userSpaceOnUse"
-                                x1="0"
-                                y1="0"
-                                x2="240"
-                                y2="0"
-                            >
-                                <stop offset="0%" stopColor="#ef4444" />
-                                <stop offset="20%" stopColor="#f97316" />
-                                <stop offset="40%" stopColor="#facc15" />
-                                <stop offset="60%" stopColor="#22c55e" />
-                                <stop offset="80%" stopColor="#3b82f6" />
-                                <stop offset="100%" stopColor="#a855f7" />
-
-                                {/* animation */}
-                                <animate
-                                    attributeName="x1"
-                                    from="0"
-                                    to="240"
-                                    dur="3s"
-                                    repeatCount="indefinite"
-                                />
-                                <animate
-                                    attributeName="x2"
-                                    from="240"
-                                    to="480"
-                                    dur="3s"
-                                    repeatCount="indefinite"
-                                />
-                            </linearGradient>
-
-
+                            <marker id="arrowHot" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 9 3.5, 0 7" fill={P.gold} />
+                            </marker>
+                            {/* จุดกริด: อยู่ในกลุ่มที่ซูม/ลากได้ เลยขยับไปพร้อมผัง รู้สึกว่ากำลังลากจริง */}
+                            <pattern id="dots" width="44" height="44" patternUnits="userSpaceOnUse">
+                                <circle cx="2" cy="2" r="1.6" fill={GRID_DOT} />
+                            </pattern>
                         </defs>
-                        <g ref={gRef}>
-                            {/* วาดเส้นเชื่อม (Edges) */}
-                            {edges.map((edge, i) => {
-                                const source = nodes.find(n => n.id === edge.source);
-                                const target = nodes.find(n => n.id === edge.target);
-                                if (!source || !target) return null;
 
+                        <g ref={gRef}>
+                            <rect
+                                x={-3000} y={-3000}
+                                width={(layout?.width || 2000) + 6000}
+                                height={(layout?.height || 2000) + 6000}
+                                fill="url(#dots)"
+                            />
+                            {/* โซนเควสเดี่ยว (ไม่มีสายเชื่อมกับใคร) */}
+                            {looseTop != null && (
+                                <>
+                                    <line
+                                        x1={0} y1={looseTop - 70} x2={layout?.width || 0} y2={looseTop - 70}
+                                        stroke="#54688f" strokeWidth={2} strokeDasharray="10 8"
+                                    />
+                                    <text x={0} y={looseTop - 26} fill="#8ba1c6" fontSize={24} fontWeight={800}
+                                        style={{ textTransform: 'uppercase', letterSpacing: '.08em' }}>
+                                        Standalone quests ({looseCount}) — no prerequisites, no follow-ups
+                                    </text>
+                                </>
+                            )}
+
+                            {/* เส้นเชื่อม */}
+                            {edges.map((edge, i) => {
+                                const source = nodeById.get(edge.source);
+                                const target = nodeById.get(edge.target);
+                                if (!source || !target) return null;
+                                const onPath = focus && focus.all.has(edge.source) && focus.all.has(edge.target);
+                                const dimmed = focus && !onPath;
+                                const x1 = source.x + NODE_W / 2;
+                                const x2 = target.x - NODE_W / 2;
+                                const mid = (x1 + x2) / 2;
                                 return (
                                     <path
                                         key={`e-${i}`}
                                         className="edge-path"
-                                        d={`M ${source.x + 120} ${source.y} L ${target.x - 120} ${target.y}`}
-                                        markerEnd="url(#arrow)"
+                                        // เส้นโค้งแบบขั้นบันได อ่านง่ายกว่าเส้นตรงทับกันมั่ว
+                                        d={`M ${x1} ${source.y} C ${mid} ${source.y}, ${mid} ${target.y}, ${x2} ${target.y}`}
+                                        fill="none"
+                                        markerEnd={onPath ? "url(#arrowHot)" : "url(#arrow)"}
+                                        stroke={onPath ? P.gold : edge.kind === 'failed' ? '#f87171' : '#5e739b'}
+                                        strokeWidth={onPath ? 3 : 1.8}
+                                        strokeDasharray={edge.kind === 'complete' ? undefined : '6 5'}
+                                        opacity={dimmed ? 0.18 : 1}
                                     />
                                 );
                             })}
 
-                            {/* วาดโหนด (Nodes) */}
+                            {/* โหนด */}
                             {nodes.map(node => {
-                                const theme = TRADER_THEMES[node.trader.name] || { bg: "#1e293b", border: "#334155", text: "#f8fafc" };
-                                const isHighlight = searchTerm && node.name.toLowerCase().includes(searchTerm.toLowerCase());
-                                const isSelectedTraderNode = selectedTrader !== "All" && node.trader.name === selectedTrader;
+                                const state = stateOf(node);
+                                const skin = NODE_STATE[state];
+                                const trader = TRADER_THEMES[node.trader.name] || { bg: '#334155' };
+                                const isHit = searchTerm && node.name.toLowerCase().includes(searchTerm.toLowerCase());
+                                const isSelected = selectedQuest?.id === node.id;
+                                const dimmed = focus && !focus.all.has(node.id);
 
                                 return (
-                                    <g key={node.id} transform={`translate(${node.x - 120}, ${node.y - 35})`}>
+                                    <g
+                                        key={node.id}
+                                        transform={`translate(${node.x - NODE_W / 2}, ${node.y - NODE_H / 2})`}
+                                        opacity={dimmed ? 0.22 : 1}
+                                        onClick={() => setSelectedQuest(isSelected ? null : node)}
+                                        style={{ cursor: 'pointer' }}
+                                    >
                                         <rect
-                                            width="240"
-                                            height="70"
-                                            rx="12"
-                                            fill={passedQuest.includes(node.id) ? "#1e293b" : theme.bg}
-                                            stroke={curentQuest.map(q => q.id).includes(node.id) ? "url(#rainbowStrokeAnimated)" : isHighlight ? "#fbbf24" : isSelectedTraderNode ? "#fff" : theme.border}
-                                            strokeWidth={curentQuest.map(q => q.id).includes(node.id) ? "10" : isHighlight ? "4" : (isSelectedTraderNode ? "2.5" : "1")}
-                                            className="node-rect"
-                                            style={{
-                                                filter: isHighlight ? 'drop-shadow(0 0 12px rgba(251, 191, 36, 0.4))' : 'none',
-                                                opacity: (selectedTrader === "All" || isSelectedTraderNode || isHighlight || nodes.some(n => n.id === node.id)) ? 1 : 0.4
-                                            }}
-
-
-                                            onClick={() => setSelectedQuest(node)}
-
+                                            width={NODE_W} height={NODE_H} rx={12}
+                                            fill={skin.fill}
+                                            stroke={isSelected ? P.gold : isHit ? '#fbbf24' : skin.stroke}
+                                            strokeWidth={isSelected ? 3 : isHit ? 2.5 : 1.5}
+                                            style={{ filter: isSelected ? `drop-shadow(0 0 14px ${P.gold}66)` : 'none' }}
                                         />
-                                        <text x="16" y="28" fill={theme.text} className="font-bold text-[13px] tracking-tight" pointerEvents="none">
-                                            {node.name.length > 28 ? node.name.substring(0, 26) + '...' : node.name}
+                                        {/* แถบสีเทรดเดอร์ด้านซ้าย */}
+                                        <rect x={0} y={0} width={5} height={NODE_H} fill={trader.bg}
+                                            style={{ clipPath: 'inset(0 0 0 0 round 12px 0 0 12px)' }} />
+
+                                        <text x={18} y={28} fill={skin.text} fontSize={13.5} fontWeight={700} pointerEvents="none">
+                                            {node.name.length > 27 ? node.name.slice(0, 25) + '…' : node.name}
                                         </text>
-                                        <text x="16" y="52" fill={theme.text} className="opacity-60 text-[10px] font-medium uppercase tracking-wider" pointerEvents="none">
-                                            {node.trader.name} {node.minPlayerLevel > 1 ? `• LV.${node.minPlayerLevel}` : ''}
+                                        <text x={18} y={48} fill={skin.sub} fontSize={10.5} fontWeight={700}
+                                            pointerEvents="none" style={{ textTransform: 'uppercase', letterSpacing: '.06em' }}>
+                                            {node.trader.name}{node.minPlayerLevel > 1 ? ` · LV ${node.minPlayerLevel}` : ''}
                                         </text>
+
+                                        {/* แถบสถานะล่าง — อ่านออกแม้ซูมออกไกล */}
+                                        <rect x={18} y={58} width={NODE_W - 52} height={4} rx={2} fill="#0d1526" opacity={0.45} />
+                                        <rect x={18} y={58} width={(NODE_W - 52) * (state === 'done' ? 1 : state === 'active' ? 0.5 : 0)}
+                                            height={4} rx={2} fill={state === 'done' ? '#34d399' : P.gold} />
+
                                         {node.kappaRequired && (
-                                            <circle cx="220" cy="50" r="4" fill="#fbbf24" title="Kappa Required" pointerEvents="none" />
+                                            <circle cx={NODE_W - 18} cy={26} r={5} fill={P.gold} />
                                         )}
                                     </g>
                                 );
@@ -518,118 +502,166 @@ const QuestTree = () => {
                         </g>
                     </svg>
                 )}
-            </div>
 
+                {/* ---------------- legend ---------------- */}
+                <div style={{
+                    ...card, position: 'absolute', left: 16, bottom: 16, padding: '12px 14px',
+                    zIndex: 10, maxWidth: 260,
+                }}>
+                    <div style={{ ...label, marginBottom: 8 }}>Legend</div>
+                    <div style={{ display: 'grid', gap: 6 }}>
+                        {[
+                            ['done', `Done (${stats.done})`],
+                            ['active', `In progress (${stats.active})`],
+                            ['ready', `Ready (${stats.ready})`],
+                            ['blocked', `Blocked (${stats.blocked})`],
+                        ].map(([k, text]) => (
+                            <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5, color: P.muted }}>
+                                <span style={{
+                                    width: 12, height: 12, borderRadius: 4,
+                                    background: NODE_STATE[k].fill, border: `1.5px solid ${NODE_STATE[k].stroke}`,
+                                }} />
+                                {text}
+                            </div>
+                        ))}
+                    </div>
+                    <div style={{ height: 1, background: P.borderSoft, margin: '10px 0' }} />
+                    <div style={{ display: 'grid', gap: 5, fontSize: 11, color: P.dim }}>
+                        <div>— solid: must complete first</div>
+                        <div>– – dashed: unlocks while previous is active</div>
+                        <div style={{ color: '#b45b5b' }}>– – red: previous must be failed</div>
+                        <div style={{ color: P.gold }}>● gold dot: required for Kappa</div>
+                    </div>
+                </div>
 
-
-
-
-            <aside style={{
-                ...styles2.sidebar,
-                width: selectedQuest ? '25%' : '0%',
-                padding: selectedQuest ? '24px' : '0',
-                opacity: selectedQuest ? 1 : 0,
-                marginTop: '70px',
-                height: "86%",
-                position: 'absolute'
-            }}>
-
-                {selectedQuest && (<>
-
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                        <header style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <h1 style={{ fontSize: '20px', fontWeight: '800' }}>🗺️ Quest Detail</h1>
-                        </header>
+            {/* ---------------- แผงรายละเอียด ---------------- */}
+            {selectedQuest && (
+                <aside style={{
+                    position: 'absolute', right: 0, top: 0, bottom: 0, width: 360, maxWidth: '100%',
+                    background: 'linear-gradient(180deg,#101b31 0%,#0b1426 100%)',
+                    borderLeft: `1px solid ${P.border}`,
+                    overflowY: 'auto', zIndex: 25, padding: 16,
+                    boxShadow: '-12px 0 30px rgba(0,0,0,.45)',
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                        <span style={{
+                            width: 5, height: 26, borderRadius: 3,
+                            background: TRADER_THEMES[selectedQuest.trader.name]?.bg || '#334155',
+                        }} />
+                        <h2 style={{ flex: 1, fontSize: '16px', fontWeight: 800, margin: 0, lineHeight: 1.3 }}>
+                            {selectedQuest.name}
+                        </h2>
                         <button
-                            style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}
-                            onClick={() => setSelectedQuest(null)}
-                            title="Close Sidebar"
+                            onClick={() => setSelectedQuest(null)} title="Close"
+                            style={{ background: 'none', border: 'none', color: P.dim, cursor: 'pointer', display: 'flex' }}
                         >
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6" /></svg>
+                            <Icons.Close size={18} />
                         </button>
                     </div>
 
-
-
-                    <div className="card  border-primary" style={{}}>
-                        <img src={selectedQuest.taskImageLink} alt="" />
-                        <div className="card-body">
-                            <h5 className="card-title">{selectedQuest.name}</h5>
-                            <Button variant="success" className='col-12' onClick={() => { onQuetsSccess(selectedQuest) }}>Complete</Button>
-                            <div className="text-muted small mt-3 ">
-                                {selectedQuest.trader.name} | EXP : {selectedQuest.experience}
-
-                                {selectedQuest.kappaRequired && (
-                                    <span className="badge rounded-pill bg-success ms-2">
-                                        Kappa
-                                    </span>
-                                )}
-
-                                {selectedQuest.lightkeeperRequired && (
-                                    <span className="badge rounded-pill bg-info ms-1 ">
-                                        LightKeeper
-                                    </span>
-                                )}
-                            </div>
-
-
-                            <ul>
-                                {selectedQuest.objectives.map((obj, index) => (
-                                    <li key={index}>
-                                        <span>{obj.description}</span>  {["giveItem", "TaskObjectiveShoot", "shoot", "kill"].includes(obj.type) && <> <span className='text-info'>x {obj.count}</span> </>}
-                                    </li>
-                                ))}
-                            </ul>
-
-                            <div className='d-flex justify-content-end' style={{ marginTop: '10px' }}>
-                                <a
-                                    href={selectedQuest.wikiLink}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    style={{ color: '#60a5fa', textDecoration: 'none' }}
-                                >
-                                    Wiki ↗
-                                </a>
-                            </div>
-
-                        </div>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
+                        <span style={badge(TRADER_THEMES[selectedQuest.trader.name]?.bg || P.label)}>
+                            {selectedQuest.trader.name}
+                        </span>
+                        {selectedQuest.minPlayerLevel > 1 && <span style={badge(P.label)}>LV {selectedQuest.minPlayerLevel}</span>}
+                        <span style={badge(P.blue)}>{selectedQuest.experience.toLocaleString()} XP</span>
+                        {selectedQuest.kappaRequired && <span style={badge(P.gold)}>Kappa</span>}
+                        {selectedQuest.lightkeeperRequired && <span style={badge('#38bdf8')}>Lightkeeper</span>}
                     </div>
 
+                    {selectedQuest.taskImageLink && (
+                        <img
+                            src={selectedQuest.taskImageLink} alt=""
+                            style={{ width: '100%', borderRadius: 10, marginBottom: 14, border: `1px solid ${P.borderSoft}` }}
+                        />
+                    )}
 
+                    <button
+                        onClick={() => onQuetsSccess(selectedQuest)}
+                        disabled={doneSet.has(selectedQuest.id)}
+                        style={{
+                            width: '100%', padding: '10px', borderRadius: 10, marginBottom: 16,
+                            fontSize: 13, fontWeight: 800, cursor: doneSet.has(selectedQuest.id) ? 'default' : 'pointer',
+                            border: `1px solid ${doneSet.has(selectedQuest.id) ? '#1f6f4a' : P.green}`,
+                            background: doneSet.has(selectedQuest.id) ? '#10281c' : `${P.green}22`,
+                            color: doneSet.has(selectedQuest.id) ? '#6ee7a8' : P.green,
+                        }}
+                    >
+                        {doneSet.has(selectedQuest.id) ? '✓ Completed' : 'Mark as complete'}
+                    </button>
 
+                    <div style={{ ...label, marginBottom: 7 }}>Objectives ({selectedQuest.objectives.length})</div>
+                    <ul style={{ margin: '0 0 16px', padding: 0, listStyle: 'none', display: 'grid', gap: 6 }}>
+                        {selectedQuest.objectives.map((obj, i) => (
+                            <li key={i} style={{
+                                fontSize: 12.5, color: P.muted, lineHeight: 1.5,
+                                paddingLeft: 14, position: 'relative',
+                            }}>
+                                <span style={{
+                                    position: 'absolute', left: 2, top: 7, width: 4, height: 4,
+                                    borderRadius: 999, background: '#3a4a6b',
+                                }} />
+                                {obj.description}
+                                {obj.count > 1 && <span style={{ color: P.blue, fontWeight: 700 }}> ×{obj.count}</span>}
+                            </li>
+                        ))}
+                    </ul>
 
-                </>
-
-                )}
-
-
-
-
-
-            </aside>
-
-
-
-
-
-
-
-
-
-
-
-            {/* Legend Panel */}
-            {/* <div style={styles.legend}>
-                <h4 style={{ fontSize: '10px', fontWeight: 900, color: '#64748b', textTransform: 'uppercase', marginBottom: '12px', letterSpacing: '0.2em' }}>Trader Guide</h4>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '8px' }}>
-                    {Object.entries(TRADER_THEMES).map(([name, theme]) => (
-                        <div key={name} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: theme.bg }}></div>
-                            <span style={{ fontSize: '10px', fontWeight: 600, color: '#cbd5e1' }}>{name}</span>
+                    {/* เดินสายต่อได้จากตรงนี้เลย ไม่ต้องไปไล่หาในผัง */}
+                    {focus && [
+                        { title: `Unlocked by (${focus.ancestors.size})`, ids: [...focus.ancestors] },
+                        { title: `Leads to (${focus.descendants.size})`, ids: [...focus.descendants] },
+                    ].map(({ title, ids }) => ids.length > 0 && (
+                        <div key={title} style={{ marginBottom: 14 }}>
+                            <div style={{ ...label, marginBottom: 7 }}>{title}</div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                                {ids.slice(0, 24).map(id => {
+                                    const n = nodeById.get(id);
+                                    if (!n) return null;
+                                    return (
+                                        <span
+                                            key={id}
+                                            onClick={() => focusNode(id)}
+                                            style={{ ...badge(doneSet.has(id) ? P.green : P.label), cursor: 'pointer' }}
+                                            title="Show in tree"
+                                        >
+                                            {n.name}
+                                        </span>
+                                    );
+                                })}
+                                {ids.length > 24 && <span style={badge(P.dim)}>+{ids.length - 24} more</span>}
+                            </div>
                         </div>
                     ))}
+
+                    <div style={{ borderTop: `1px solid ${P.borderSoft}`, paddingTop: 12 }}>
+                        <a
+                            href={selectedQuest.wikiLink} target="_blank" rel="noreferrer"
+                            style={{
+                                display: 'inline-flex', alignItems: 'center', gap: 6,
+                                color: P.blue, textDecoration: 'none', fontSize: 12.5, fontWeight: 700,
+                            }}
+                        >
+                            Open on Wiki <Icons.ExternalLink size={13} />
+                        </a>
+                    </div>
+                </aside>
+            )}
+            </div>
+
+            {/* แถบความคืบหน้ารวม อยู่ล่างสุดให้เห็นตลอด */}
+            <div style={{
+                borderTop: `1px solid ${P.border}`, background: '#0b1222',
+                padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 12,
+            }}>
+                <span style={label}>Overall</span>
+                <div style={{ flex: 1, maxWidth: 420 }}>
+                    <Bar value={stats.done} total={nodes.length} color={P.green} />
                 </div>
-            </div> */}
+                <span style={{ ...label, fontVariantNumeric: 'tabular-nums' }}>
+                    {stats.done} / {nodes.length} done
+                </span>
+            </div>
         </div>
     );
 };

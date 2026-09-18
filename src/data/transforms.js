@@ -361,7 +361,13 @@ const TYPENAME = {
   dialogue: 'TaskObjectiveBasic', globalVariable: 'TaskObjectiveBasic',
 };
 
-export function transformTasks(tasksJson, tasksEnJson, mapsEnJson, tradersJson, itemsJson, itemsEnJson) {
+/**
+ * kappaNames = รายชื่อเควสจาก src/data/kappa.json (วิกิ) — optional
+ * ธง kappaRequired ที่มากับ json.tarkov.dev นับแค่เงื่อนไขเควสตรงๆ ของ Collector (13 เควส)
+ * ไม่รวมเควสที่ต้องทำเพื่อดัน Loyalty Level 4 ให้ครบ 7 เทรดเดอร์ ซึ่งเป็นเงื่อนไขของ Collector ด้วย
+ * -> ถ้าส่งรายชื่อจากวิกิเข้ามา จะ union กับธงเดิม (ไม่เคยถอดออก) ให้ได้เช็คลิสต์จริงที่ผู้เล่นใช้
+ */
+export function transformTasks(tasksJson, tasksEnJson, mapsEnJson, tradersJson, itemsJson, itemsEnJson, kappaNames) {
   const T = tasksJson.data.tasks;
   const ten = tasksEnJson.data;
   const men = mapsEnJson.data;
@@ -432,9 +438,11 @@ export function transformTasks(tasksJson, tasksEnJson, mapsEnJson, tradersJson, 
     };
   };
 
+  const kappaSet = new Set(kappaNames || []);
+
   return Object.values(T).map((t) => ({
     id: t.id, tarkovDataId: t.tarkovDataId ?? null, name: tName(t.id),
-    kappaRequired: !!t.kappaRequired, lightkeeperRequired: !!t.lightkeeperRequired, experience: t.experience ?? 0,
+    kappaRequired: !!t.kappaRequired || kappaSet.has(tName(t.id)), lightkeeperRequired: !!t.lightkeeperRequired, experience: t.experience ?? 0,
     wikiLink: t.wikiLink ?? null, minPlayerLevel: t.minPlayerLevel ?? 0,
     taskRequirements: (t.taskRequirements || []).map((r) => ({ status: r.status || [], task: { id: r.task, name: tName(r.task) } })),
     traderLevelRequirements: (t.traderRequirements || []).filter((r) => r.requirementType === 'level').map((r) => ({ level: r.value, trader: { id: r.trader, name: trName(r.trader) } })),
