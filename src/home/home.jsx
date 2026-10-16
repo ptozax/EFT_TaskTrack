@@ -383,23 +383,31 @@ const Home = () => {
         </div>
       </header>
 
-      <main style={{ maxWidth: 1500, margin: '0 auto', padding: '18px 20px 64px' }}>
-        {/* เสนอเควสต่อของเทรดเดอร์คนเดิมหลังทำเสร็จ — พวกนี้ไม่มีเงื่อนไขเควสก่อนหน้า
-            ระบบเลยเพิ่มให้เองไม่ได้ ต้องให้เลือก เรียงตาม Loyalty Level */}
-        {suggest && (
-          <div style={{
-            ...card, padding: 14, marginBottom: 14,
-            borderColor: `${P.gold}55`, background: `${P.gold}10`,
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
+      {/* เสนอเควสต่อของเทรดเดอร์คนเดิมหลังทำเสร็จ — พวกนี้ไม่มีเงื่อนไขเควสก่อนหน้า
+          ระบบเลยเพิ่มให้เองไม่ได้ ต้องให้เลือก เรียงตามลำดับในสายเทรดเดอร์
+
+          ลอยติดมุมจอ ไม่ใช่วางบนสุดของรายการ — ปุ่ม ✓ อยู่ตามการ์ดเควสซึ่งกระจายอยู่
+          ทั่วหน้า กดจากตัวที่อยู่ล่าง ๆ แล้วการ์ดแนะนำโผล่บนสุดก็มองไม่เห็น
+          ต้องเลื่อนขึ้นไปหาทุกครั้ง */}
+      {suggest && (
+        <div className="suggest-card" style={{
+          ...card, padding: 18,
+          position: 'fixed', right: 20, bottom: 20, zIndex: 50,
+          width: 'min(620px, calc(100vw - 32px))',
+          maxHeight: 'min(72vh, 680px)', overflowY: 'auto',
+          borderColor: `${P.gold}66`,
+          background: 'linear-gradient(180deg,#1d2440 0%,#141c33 100%)',
+          boxShadow: '0 12px 34px rgba(0,0,0,.55)',
+        }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginBottom: 13, flexWrap: 'wrap' }}>
               <span style={{
-                width: 5, height: 20, borderRadius: 3,
+                width: 6, height: 26, borderRadius: 3,
                 background: TRADER_THEMES[suggest.trader]?.bg || P.gold,
               }} />
-              <span style={{ fontSize: 14, fontWeight: 800 }}>
+              <span style={{ fontSize: 17, fontWeight: 800 }}>
                 More from {suggest.trader}
               </span>
-              <span style={{ ...label, textTransform: 'none', letterSpacing: 0 }}>
+              <span style={{ ...label, fontSize: 12, textTransform: 'none', letterSpacing: 0 }}>
                 unlocked by loyalty level, not by a previous quest
               </span>
               <div style={{ flex: 1 }} />
@@ -410,8 +418,8 @@ const Home = () => {
                     onClick={() => { addQuests(shown); setSuggest(null); }}
                     title={`Add ${shown.length} quest${shown.length > 1 ? 's' : ''} to your list`}
                     style={{
-                      padding: '6px 13px', borderRadius: 999, cursor: 'pointer',
-                      fontSize: 12, fontWeight: 800, whiteSpace: 'nowrap',
+                      padding: '8px 16px', borderRadius: 999, cursor: 'pointer',
+                      fontSize: 13.5, fontWeight: 800, whiteSpace: 'nowrap',
                       border: `1px solid ${P.green}`, background: `${P.green}22`, color: P.green,
                     }}
                   >
@@ -424,12 +432,14 @@ const Home = () => {
                 title="Dismiss"
                 style={{ background: 'none', border: 'none', color: P.dim, cursor: 'pointer', display: 'flex' }}
               >
-                <Icons.Close size={16} />
+                <Icons.Close size={19} />
               </button>
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+
+            {/* เรียงเป็นแถว ไม่ใช่ชิปพันกันเป็นก้อน — ชื่อเควสยาวและมีหลายอัน อ่านทีละบรรทัดง่ายกว่า */}
+            <div style={{ display: 'grid', gap: 6 }}>
               {(suggestOpen ? suggest.quests : suggest.quests.slice(0, 8)).map((q) => (
-                <span
+                <div
                   key={q.id}
                   onClick={() => {
                     addQuest(q);
@@ -438,12 +448,25 @@ const Home = () => {
                       return rest.length ? { ...s, quests: rest } : null;
                     });
                   }}
-                  style={{ ...chip(false, P.gold), cursor: 'pointer' }}
-                  title={`${q.loyalty?.level ? `Loyalty Level ${q.loyalty.level}` : 'Loyalty level unknown'}${q.minPlayerLevel > 1 ? ` · player level ${q.minPlayerLevel}` : ''}`}
+                  title="Add to your active quests"
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    padding: '10px 12px', borderRadius: 10, cursor: 'pointer',
+                    background: P.inputBg, border: `1px solid ${P.borderSoft}`,
+                  }}
                 >
-                  + {q.name}
-                  {q.loyalty?.level && <span style={{ opacity: .6 }}>LL{q.loyalty.level}</span>}
-                </span>
+                  <span style={{
+                    flexShrink: 0, width: 22, height: 22, borderRadius: 7,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    border: `1px solid ${P.gold}66`, background: `${P.gold}1c`,
+                    color: P.gold, fontSize: 15, fontWeight: 800, lineHeight: 1,
+                  }}>+</span>
+                  <span style={{ flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 600 }}>
+                    {q.name}
+                  </span>
+                  {q.loyalty?.level && <span style={badge(P.gold)}>LL {q.loyalty.level}</span>}
+                  {q.minPlayerLevel > 1 && <span style={badge(P.label)}>LV {q.minPlayerLevel}</span>}
+                </div>
               ))}
             </div>
 
@@ -451,16 +474,17 @@ const Home = () => {
             {suggest.quests.length > 8 && (
               <div
                 onClick={() => setSuggestOpen((v) => !v)}
-                style={{ ...label, marginTop: 10, cursor: 'pointer', color: P.blue }}
+                style={{ ...label, fontSize: 12, marginTop: 12, cursor: 'pointer', color: P.blue }}
               >
                 {suggestOpen
                   ? '▴ Show fewer'
                   : `▾ Show all ${suggest.quests.length} from ${suggest.trader}`}
               </div>
             )}
-          </div>
-        )}
+        </div>
+      )}
 
+      <main style={{ maxWidth: 1500, margin: '0 auto', padding: '18px 20px 64px' }}>
         {selectedQuests.length === 0 ? (
           <Empty
             icon={<Icons.Book size={44} />}
