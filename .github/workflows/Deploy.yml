@@ -39,6 +39,7 @@ jobs:
             src/data/ammo.json
             src/data/story.json
             public/price_data.json
+            public/pve_prices.json
             public/gear_data.json
             public/optimizer_data.json
             public/loot_data.json

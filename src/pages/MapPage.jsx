@@ -142,6 +142,10 @@ const MapPage = () => {
   /* ------------------ STATE  ----------------------- */
   const [currentQuestId, setCurrentQuestId] = useState(null);
   const [trackedQuests, setTrackedQuests] = useState([]);
+  /* ค้นเควสด้วย id เสมอ — มี 9 ชื่อที่ซ้ำกัน (20 เควส) เช่น Drip-Out / Textile
+     ที่มีทั้งเวอร์ชัน BEAR และ USEC ชื่อเดียวกัน ถ้าค้นด้วยชื่อจะได้ตัวแรกเสมอ
+     ผู้เล่น USEC ก็จะเห็น objective ของฝั่ง BEAR */
+  const findQuest = (tq) => quests.find(q => q.id === tq.id) || quests.find(q => q.name === tq.name);
   const [expandedQuestName, setExpandedQuestName] = useState(null);
   const [questKeys, setQuestKeys] = useState([]);
   const [showQuestKey, setShowQuestKey] = useState(false);
@@ -468,7 +472,7 @@ const MapPage = () => {
     const accumulatedKeys = [];
 
     trackedQuests.forEach((tq) => {
-      const fullQuest = quests.find(qd => qd.name === tq.name);
+      const fullQuest = findQuest(tq);
 
       // Safety check: skip if quest data isn't found
       if (!fullQuest || !fullQuest.neededKeys) return;
@@ -539,17 +543,6 @@ const MapPage = () => {
     };
   };
 
-  // เลื่อนแผนที่ให้จุด (x%,y%) มาอยู่กลางจอ (ชดเชย zoom + rotation)
-  const centerOn = (xPerc, yPerc) => {
-    const img = imageRef.current; if (!img) return;
-    const dx = ((xPerc - 50) / 100) * img.clientWidth * zoom;
-    const dy = ((yPerc - 50) / 100) * img.clientHeight * zoom;
-    const rad = (rotation * Math.PI) / 180;
-    setOffset({
-      x: -(dx * Math.cos(rad) - dy * Math.sin(rad)),
-      y: -(dx * Math.sin(rad) + dy * Math.cos(rad)),
-    });
-  };
 
   const pinsHere = customPins[currentMapName] || [];
 
@@ -695,13 +688,13 @@ const MapPage = () => {
   };
 
   // ----------- QUEST ACTIONS -----------
-  const removeQuest = (e, questName) => {
+  const removeQuest = (e, questId) => {
     e.stopPropagation();
 
-    setTrackedQuests(trackedQuests.filter(q => q.name !== questName));
-    if (expandedQuestName === questName) setExpandedQuestName(null);
+    setTrackedQuests(trackedQuests.filter(q => q.id !== questId));
+    if (expandedQuestName === questId) setExpandedQuestName(null);
 
-    const rm_Quest = selectedQuests.find(q => q.name === questName);
+    const rm_Quest = selectedQuests.find(q => q.id === questId);
     // ลบ quest
     if (rm_Quest) {
       setSelectedQuests((prev) =>
@@ -734,8 +727,9 @@ const MapPage = () => {
     }));
   }
 
-  const nextQuest = (e, questName) => {
-    const quest = quests.find(q => q.name === questName);
+  const nextQuest = (e, questId) => {
+    const quest = quests.find(q => q.id === questId);
+    if (!quest) return;
 
     const newCompleted = QuestComponent.getPreviousQuestsList(quest.id, completedQuests);
     const idsToRemove = new Set(newCompleted.map(u => u.name));
@@ -1012,8 +1006,8 @@ const MapPage = () => {
           )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '12px 0' }}>
             {trackedQuests.map((tq) => {
-              const fullQuest = quests.find(qd => qd.name === tq.name);
-              const isExpanded = expandedQuestName === tq.name;
+              const fullQuest = findQuest(tq);
+              const isExpanded = expandedQuestName === tq.id;
 
               return (
                 <div
@@ -1024,7 +1018,7 @@ const MapPage = () => {
                     borderWidth: isExpanded ? '2px' : '1px',
                     opacity: tq.visible ? 1 : 0.6
                   }}
-                  onClick={() => setExpandedQuestName(isExpanded ? null : tq.name)}
+                  onClick={() => setExpandedQuestName(isExpanded ? null : tq.id)}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: tq.visible ? tq.color : '#475569' }} />
@@ -1049,7 +1043,7 @@ const MapPage = () => {
                       )}
                     </button>
                     <button
-                      onClick={(e) => removeQuest(e, tq.name)}
+                      onClick={(e) => removeQuest(e, tq.id)}
                       style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '18px' }}
                     >
                       ×
@@ -1064,7 +1058,7 @@ const MapPage = () => {
                             width: '100%', background: '#00c40aff', border: 'none',
                             borderRadius: "5px", color: '#ffffffff', cursor: 'default', fontSize: '15px', fontWeight: 'bold'
                           }}
-                          onClick={(e) => nextQuest(e, tq.name)}>Complete</button>
+                          onClick={(e) => nextQuest(e, tq.id)}>Complete</button>
                       </div>
                       <div style={{ marginBottom: '6px', color: '#94a3b8', fontWeight: 'bold' }}>Objectives:</div>
                       {fullQuest.objectives.map((obj, idx) => (
@@ -1502,8 +1496,9 @@ const MapPage = () => {
             {/* Quest Markers */}
             {!isLoading && trackedQuests.map(tq => {
               if (!tq.visible) return null;
-              const quest = quests.find(q => q.name === tq.name);
-              const isExpanded = expandedQuestName === quest.name;
+              const quest = findQuest(tq);
+              if (!quest) return null;
+              const isExpanded = expandedQuestName === tq.id;
 
               return quest.objectives.map((obj, objIdx) => {
                 const points = [];
@@ -1534,7 +1529,7 @@ const MapPage = () => {
                               transform: `translate(-50%, -50%) scale(${isExpanded ? markerScale * 1.8 : markerScale}) rotate(${rotation}deg)`,
                               zIndex: isExpanded ? 100 : 30,
                             }}
-                            onClick={() => { setQuestDescription(questDescription === obj.id ? null : obj.id); setExpandedQuestName(isExpanded ? null : tq.name); }}
+                            onClick={() => { setQuestDescription(questDescription === obj.id ? null : obj.id); setExpandedQuestName(isExpanded ? null : tq.id); }}
                           />
                           {questDescription === obj.id && idx === lastIndex && (
                             <div style={{
@@ -1546,7 +1541,7 @@ const MapPage = () => {
                               transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg)`,
                               zIndex: isExpanded ? 101 : 30,
                             }}
-                              onClick={() => { setQuestDescription(null); setExpandedQuestName(isExpanded ? null : tq.name); }}>
+                              onClick={() => { setQuestDescription(null); setExpandedQuestName(isExpanded ? null : tq.id); }}>
                               {obj.description}
                               <div style={{
                                 width: '100%', background: '#00c40aff', border: 'none',

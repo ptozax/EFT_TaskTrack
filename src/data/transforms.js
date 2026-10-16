@@ -14,6 +14,37 @@
  *   transformTasks(tasksJson, tasksEnJson, mapsEnJson, tradersJson, itemsJson, itemsEnJson) -> tasks[]
  * ========================================================================= */
 
+/**
+ * สลับราคาตลาด (flea market) ของ items เป็นของโหมด PvE
+ *
+ * PvE กับ PvP ใช้ตลาดคนละตัว ราคาต่างกัน 3,439 จาก 5,327 ไอเทม
+ * แต่ราคาเทรดเดอร์เท่ากันเป๊ะ -> แก้เฉพาะรายการ fleaMarket กับ lastLowPrice
+ * ทำตรงนี้ชั้นเดียว แล้ว transformPriceData / transformGear ที่ต่อจาก items
+ * จะได้ราคาถูกโหมดตามไปเอง ไม่ต้องแก้ทีละหน้า
+ *
+ * pveMap = { id: [ราคาขาย, ราคาซื้อ] } จาก public/pve_prices.json
+ */
+export function applyPveFlea(itemsArr, pveMap) {
+  if (!pveMap) return itemsArr;
+  const swap = (list, price) => {
+    const rest = (list || []).filter((e) => e.source !== 'fleaMarket');
+    if (price == null) return rest;
+    return [...rest, { source: 'fleaMarket', price, currency: 'RUB', priceRUB: price }];
+  };
+  return itemsArr.map((it) => {
+    const hit = pveMap[it.id];
+    if (!hit) {
+      // ไม่มีในตลาด PvE -> ถอดราคาตลาดของ PvP ออก ไม่งั้นจะโชว์ราคาผิดโหมด
+      const sellFor = (it.sellFor || []).filter((e) => e.source !== 'fleaMarket');
+      const buyFor = (it.buyFor || []).filter((e) => e.source !== 'fleaMarket');
+      if (sellFor.length === (it.sellFor || []).length && buyFor.length === (it.buyFor || []).length) return it;
+      return { ...it, sellFor, buyFor, lastLowPrice: null };
+    }
+    const [sell, buy] = hit;
+    return { ...it, sellFor: swap(it.sellFor, sell), buyFor: swap(it.buyFor, buy), lastLowPrice: sell ?? null };
+  });
+}
+
 /* ---------- helpers ------------------------------------------------------ */
 export const titleCase = (s) =>
   (s || '').split(/[-\s]/).map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w)).join(' ');
@@ -367,7 +398,15 @@ const TYPENAME = {
  * ไม่รวมเควสที่ต้องทำเพื่อดัน Loyalty Level 4 ให้ครบ 7 เทรดเดอร์ ซึ่งเป็นเงื่อนไขของ Collector ด้วย
  * -> ถ้าส่งรายชื่อจากวิกิเข้ามา จะ union กับธงเดิม (ไม่เคยถอดออก) ให้ได้เช็คลิสต์จริงที่ผู้เล่นใช้
  */
-export function transformTasks(tasksJson, tasksEnJson, mapsEnJson, tradersJson, itemsJson, itemsEnJson, kappaNames) {
+/**
+ * questLinks = src/data/quest_links.json (จากวิกิ) — optional
+ * เติมสองอย่างที่ json.tarkov.dev ไม่มี:
+ *   wikiPrev  -> id ของเควสก่อนหน้า ใช้ลากเส้นเพิ่มในผังเควส
+ *   loyalty   -> { level, quests } เงื่อนไข Loyalty Level ของเทรดเดอร์
+ * เก็บแยกจาก taskRequirements โดยตั้งใจ — ตรรกะปลดล็อก/นับความคืบหน้าของหน้า
+ * Home กับ Kappa ต้องอิงข้อมูลจากเกมเท่านั้น ไม่ปนกับข้อมูลวิกิที่อาจเก่า
+ */
+export function transformTasks(tasksJson, tasksEnJson, mapsEnJson, tradersJson, itemsJson, itemsEnJson, kappaNames, questLinks, traderOrder) {
   const T = tasksJson.data.tasks;
   const ten = tasksEnJson.data;
   const men = mapsEnJson.data;
@@ -440,6 +479,46 @@ export function transformTasks(tasksJson, tasksEnJson, mapsEnJson, tradersJson, 
 
   const kappaSet = new Set(kappaNames || []);
 
+  // ชื่อ -> id ไว้แปลง previous ของวิกิ (ซึ่งเป็นชื่อเควส) ให้เป็น id
+  const idByName = new Map();
+  Object.values(T).forEach((t) => { const n = tName(t.id); if (n) idByName.set(n, t.id); });
+  const linkOf = (name) => (questLinks || {})[name];
+
+  /* ลำดับเควสของเทรดเดอร์จากตารางในวิกิ (หน้า Quests) — API ไม่มีข้อมูลนี้
+     ใช้บอก "เควสแรกของเทรดเดอร์" และเรียงเควสที่ไม่มีเงื่อนไขก่อนหน้าให้ตรงลำดับที่เล่นจริง */
+  const rankOf = new Map();
+  Object.values(traderOrder || {}).forEach((names) => {
+    names.forEach((n, i) => { if (!rankOf.has(n)) rankOf.set(n, i); });
+  });
+
+  /* เส้นของวิกิบางเส้นขัดกับข้อมูลเกม เช่น
+     เกมบอก Thrifty -> Zhivchik -> Unprotected but Dangerous
+     แต่วิกิบอก previous ของ Thrifty คือ Unprotected but Dangerous (ย้อนทาง -> ครบวง)
+     ข้อมูลเกมถือเป็นหลัก เส้นวิกิที่ทำให้เกิดวงกลมจึงถูกตัดทิ้ง */
+  const gameNext = new Map();   // prereq -> [เควสที่ต้องใช้ prereq นั้น]
+  Object.values(T).forEach((t) => {
+    (t.taskRequirements || []).forEach((r) => {
+      if (!r.task || !T[r.task]) return;
+      if (!gameNext.has(r.task)) gameNext.set(r.task, []);
+      gameNext.get(r.task).push(t.id);
+    });
+  });
+  // เดินตามข้อมูลเกมจาก start ว่าไปถึง target ได้ไหม
+  const gameReaches = (start, target) => {
+    const seen = new Set([start]);
+    const stack = [start];
+    while (stack.length) {
+      const cur = stack.pop();
+      for (const next of gameNext.get(cur) || []) {
+        if (next === target) return true;
+        if (!seen.has(next)) { seen.add(next); stack.push(next); }
+      }
+    }
+    return false;
+  };
+  // wiki บอกว่า from มาก่อน to — ถ้าข้อมูลเกมบอกกลับกัน (to มาก่อน from) ให้ทิ้ง
+  const wikiEdgeOk = (from, to) => !gameReaches(to, from);
+
   return Object.values(T).map((t) => ({
     id: t.id, tarkovDataId: t.tarkovDataId ?? null, name: tName(t.id),
     kappaRequired: !!t.kappaRequired || kappaSet.has(tName(t.id)), lightkeeperRequired: !!t.lightkeeperRequired, experience: t.experience ?? 0,
@@ -451,5 +530,15 @@ export function transformTasks(tasksJson, tasksEnJson, mapsEnJson, tradersJson, 
     taskImageLink: t.taskImageLink ?? null, trader: { id: t.trader, name: trName(t.trader) },
     map: t.map ? { id: t.map, name: mapName(t.map) } : null,
     startRewards: buildRewards(t.startRewards), objectives: (t.objectives || []).map(buildObjective), finishRewards: buildRewards(t.finishRewards),
+    // --- จากวิกิ (ใช้แสดงผลเท่านั้น ไม่ใช้ตัดสินการปลดล็อก) ---
+    wikiPrev: (linkOf(tName(t.id))?.prev || [])
+      .map((n) => idByName.get(n))
+      .filter((id) => id && id !== t.id && wikiEdgeOk(id, t.id)),
+    traderRank: rankOf.has(tName(t.id)) ? rankOf.get(tName(t.id)) : null,
+    loyalty: (() => {
+      const l = linkOf(tName(t.id));
+      if (l?.ll === undefined && l?.llQuests === undefined) return null;
+      return { level: l.ll ?? null, quests: l.llQuests ?? null };
+    })(),
   }));
 }

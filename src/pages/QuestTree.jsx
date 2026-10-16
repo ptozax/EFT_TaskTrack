@@ -129,31 +129,41 @@ const QuestTree = () => {
     const activeSet = useMemo(() => new Set(curentQuest.map(q => q.id)), [curentQuest]);
 
     /* ---------------- ตรรกะการประมวลผลกราฟ ---------------- */
-    const { nodes, edges, layout, looseCount, looseTop, nodeById } = useMemo(() => {
-        const empty = { nodes: [], edges: [], layout: null, looseCount: 0, looseTop: null, nodeById: new Map() };
+    const { nodes, edges, layout, looseCount, looseTop, looseByTrader, nodeById } = useMemo(() => {
+        const empty = { nodes: [], edges: [], layout: null, looseCount: 0, looseTop: null, looseByTrader: [], nodeById: new Map() };
         if (!tasks.length) return empty;
 
-        let initialFiltered = tasks;
-        if (view.trader !== "All") initialFiltered = tasks.filter(t => t.trader.name === view.trader);
+        /* เควสที่แยกฝ่าย (Drip-Out, Textile, Our Own Land/Counteraction, Green Corridor/Road Closed)
+           มีทั้งเวอร์ชัน BEAR และ USEC ถ้าไม่กรองจะเห็นของฝ่ายตรงข้ามปนมา และชื่อซ้ำกันสองโหนด
+           ฝ่ายที่เลือกอยู่สลับได้ที่ AppNavbar */
+        const faction = (() => {
+            try { return JSON.parse(localStorage.getItem('eft_faction_name')) || 'BEAR'; } catch { return 'BEAR'; }
+        })();
+        const byFaction = tasks.filter(t => ['Any', faction].includes(t.factionName));
+
+        let initialFiltered = byFaction;
+        if (view.trader !== "All") initialFiltered = byFaction.filter(t => t.trader.name === view.trader);
+
+        const inFaction = new Set(byFaction.map(t => t.id));
 
         // สร้าง Set ของ ID ที่จะแสดง (รวม prerequisites ทั้งสาย)
         const visibleIds = new Set();
         const addWithPrereqs = (task) => {
-            if (!task || visibleIds.has(task.id)) return;
+            if (!task || visibleIds.has(task.id) || !inFaction.has(task.id)) return;
             visibleIds.add(task.id);
             task.taskRequirements?.forEach(req => {
-                const prereqTask = tasks.find(t => t.id === req.task.id);
+                const prereqTask = byFaction.find(t => t.id === req.task.id);
                 if (prereqTask) addWithPrereqs(prereqTask);
             });
         };
         initialFiltered.forEach(addWithPrereqs);
         if (searchTerm) {
-            tasks.forEach(task => {
+            byFaction.forEach(task => {
                 if (task.name.toLowerCase().includes(searchTerm.toLowerCase())) addWithPrereqs(task);
             });
         }
 
-        let finalTasks = tasks.filter(t => visibleIds.has(t.id));
+        let finalTasks = byFaction.filter(t => visibleIds.has(t.id));
 
         // ซ่อนเควสที่ทำเสร็จแล้ว (เก็บไว้เฉพาะที่ยังเป็นสะพานไปหาเควสที่ยังไม่เสร็จ)
         if (view.hideDone) {
@@ -190,6 +200,20 @@ const QuestTree = () => {
             });
         });
 
+        /* เส้นจากวิกิ (ช่อง previous) — json.tarkov.dev ไม่มีความสัมพันธ์พวกนี้เลย
+           เช็คแล้ว 243 จาก 515 เควสไม่มีทั้งแม่และลูกใน API และ 166 ตัวในนั้นไม่มีเงื่อนไขอะไรเลย
+           เส้นชุดนี้เพิ่มมาอีก ~68 เส้น วาดแยกสีไว้เพราะเป็นข้อมูลชุมชน ไม่ใช่จากเกม */
+        finalTasks.forEach(t => {
+            (t.wikiPrev || []).forEach(from => {
+                if (!visibleIds.has(from) || from === t.id) return;
+                const key = `${from}->${t.id}`;
+                if (edgeSeen.has(key)) return;
+                edgeSeen.add(key);
+                g.setEdge(from, t.id);
+                edgeData.push({ source: from, target: t.id, kind: 'wiki' });
+            });
+        });
+
         /* เควสที่ไม่มีเส้นเชื่อมเลย (ไม่มีทั้งแม่และลูก) มีถึง ~240 จาก 515
            ถ้าปล่อยให้ dagre จัด จะถูกวางเรียงลงมาเป็นแถวเดียว ผังสูงกว่า 33,000px
            เหลือแต่ความว่างเปล่า -> เอาออกจาก dagre แล้วจัดเป็นกริดต่อท้ายแทน */
@@ -209,27 +233,50 @@ const QuestTree = () => {
                 return { ...t, x: pos.x, y: pos.y };
             });
 
-        const cols = Math.max(1, Math.floor((treeWidth || (NODE_W * 6)) / (NODE_W + GAP_X)));
-        const looseStart = treeHeight + 160;
-        loose.forEach((t, i) => {
-            positionedNodes.push({
-                ...t,
-                isLoose: true,
-                x: (i % cols) * (NODE_W + GAP_X) + NODE_W / 2,
-                y: looseStart + Math.floor(i / cols) * (NODE_H + GAP_Y) + NODE_H / 2,
+        /* เควสที่เหลือไม่ได้ "ไม่เกี่ยวกับใคร" — ในเกมมันปลดล็อกด้วย Loyalty Level
+           ของเทรดเดอร์ + จำนวนเควสที่ทำกับเทรดเดอร์นั้น (ข้อมูล LL มาจากวิกิ)
+           จัดเป็นคอลัมน์ต่อเทรดเดอร์ แล้วเรียงตาม LL จากน้อยไปมาก = ลำดับที่ได้เล่นจริง
+           ดีกว่ากริดแบนที่ดูเหมือนเควสหลุดลอยไม่มีที่มา */
+        const looseStart = treeHeight + 190;
+        const looseByTrader = [];
+        if (loose.length) {
+            const groups = new Map();
+            loose.forEach(t => {
+                const k = t.trader?.name || '?';
+                if (!groups.has(k)) groups.set(k, []);
+                groups.get(k).push(t);
             });
-        });
+            const ordered = [...groups.entries()].sort((a, b) => b[1].length - a[1].length);
+            ordered.forEach(([trader, list], col) => {
+                list.sort((a, b) =>
+                    (a.loyalty?.level ?? 99) - (b.loyalty?.level ?? 99)
+                    || (a.minPlayerLevel || 0) - (b.minPlayerLevel || 0)
+                    || a.name.localeCompare(b.name));
+                const x = col * (NODE_W + GAP_X);
+                looseByTrader.push({ trader, x, count: list.length });
+                list.forEach((t, row) => {
+                    positionedNodes.push({
+                        ...t,
+                        isLoose: true,
+                        x: x + NODE_W / 2,
+                        y: looseStart + row * (NODE_H + GAP_Y) + NODE_H / 2,
+                    });
+                });
+            });
+        }
 
-        const looseRows = Math.ceil(loose.length / cols);
+        const looseRows = looseByTrader.reduce((m, g) => Math.max(m, g.count), 0);
+        const looseWidth = looseByTrader.length * (NODE_W + GAP_X);
         return {
             nodes: positionedNodes,
             edges: edgeData,
             layout: {
-                width: Math.max(treeWidth, loose.length ? cols * (NODE_W + GAP_X) : 0),
+                width: Math.max(treeWidth, looseWidth),
                 height: loose.length ? looseStart + looseRows * (NODE_H + GAP_Y) : treeHeight,
             },
             looseCount: loose.length,
             looseTop: loose.length ? looseStart : null,
+            looseByTrader,
             nodeById: new Map(positionedNodes.map(n => [n.id, n])),
         };
     }, [tasks, view.trader, view.hideDone, view.showLoose, searchTerm, doneSet]);
@@ -416,13 +463,25 @@ const QuestTree = () => {
                             {looseTop != null && (
                                 <>
                                     <line
-                                        x1={0} y1={looseTop - 70} x2={layout?.width || 0} y2={looseTop - 70}
+                                        x1={0} y1={looseTop - 150} x2={layout?.width || 0} y2={looseTop - 150}
                                         stroke="#54688f" strokeWidth={2} strokeDasharray="10 8"
                                     />
-                                    <text x={0} y={looseTop - 26} fill="#8ba1c6" fontSize={24} fontWeight={800}
+                                    <text x={0} y={looseTop - 118} fill="#8ba1c6" fontSize={24} fontWeight={800}
                                         style={{ textTransform: 'uppercase', letterSpacing: '.08em' }}>
-                                        Standalone quests ({looseCount}) — no prerequisites, no follow-ups
+                                        Unlocked by trader progression ({looseCount})
                                     </text>
+                                    <text x={0} y={looseTop - 86} fill="#6b7f9f" fontSize={15}>
+                                        No prerequisite quest in the data — these open up as the trader&apos;s loyalty level rises
+                                    </text>
+                                    {/* ป้ายเทรดเดอร์ประจำคอลัมน์ */}
+                                    {looseByTrader.map(g => (
+                                        <text key={g.trader} x={g.x} y={looseTop - 26}
+                                            fill={TRADER_THEMES[g.trader]?.bg || '#8ba1c6'}
+                                            fontSize={17} fontWeight={800}
+                                            style={{ textTransform: 'uppercase', letterSpacing: '.06em' }}>
+                                            {g.trader} ({g.count})
+                                        </text>
+                                    ))}
                                 </>
                             )}
 
@@ -444,7 +503,7 @@ const QuestTree = () => {
                                         d={`M ${x1} ${source.y} C ${mid} ${source.y}, ${mid} ${target.y}, ${x2} ${target.y}`}
                                         fill="none"
                                         markerEnd={onPath ? "url(#arrowHot)" : "url(#arrow)"}
-                                        stroke={onPath ? P.gold : edge.kind === 'failed' ? '#f87171' : '#5e739b'}
+                                        stroke={onPath ? P.gold : edge.kind === 'failed' ? '#f87171' : edge.kind === 'wiki' ? '#7c5cc4' : '#5e739b'}
                                         strokeWidth={onPath ? 3 : 1.8}
                                         strokeDasharray={edge.kind === 'complete' ? undefined : '6 5'}
                                         opacity={dimmed ? 0.18 : 1}
@@ -528,6 +587,7 @@ const QuestTree = () => {
                     <div style={{ height: 1, background: P.borderSoft, margin: '10px 0' }} />
                     <div style={{ display: 'grid', gap: 5, fontSize: 11, color: P.dim }}>
                         <div>— solid: must complete first</div>
+                        <div style={{ color: '#9b7ae0' }}>— purple: from the wiki (missing in the API)</div>
                         <div>– – dashed: unlocks while previous is active</div>
                         <div style={{ color: '#b45b5b' }}>– – red: previous must be failed</div>
                         <div style={{ color: P.gold }}>● gold dot: required for Kappa</div>

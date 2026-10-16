@@ -1,4 +1,4 @@
-
+/* global cv */
 import React, { useRef, useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import Tesseract from "tesseract.js";
@@ -17,30 +17,35 @@ const ItemPrice = () => {
   const streamRef = useRef(null);
   const [status, setStatus] = useState("Idle");
   const [itemList, setItemList] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [updatingIds, setUpdatingIds] = useState(new Set());
-  const chance = Math.random() < 0.9;
   const canvasCrop = useRef(null);
 
 
   const [search, setSearch] = useState("");
   const [searchResults, setResults] = useState([]);
 
+  /* detectIcon ถูกเรียกจาก setInterval ที่สร้างครั้งเดียวตอนกด Start
+     closure ของมันจึงค้างอยู่กับค่า items/itemList ของ render แรกตลอด
+     -> ข้อมูลสดจาก tarkov.dev ที่มาทีหลังจะไม่ถูกใช้ และการกันซ้ำก็เห็นลิสต์ว่างเสมอ
+     เก็บลง ref ให้อ่านค่าล่าสุดได้ */
+  const itemsRef = useRef(items);
+  const itemListRef = useRef(itemList);
+  useEffect(() => { itemsRef.current = items; }, [items]);
+  useEffect(() => { itemListRef.current = itemList; }, [itemList]);
 
-
+  /* ---------------- SEARCH ---------------- */
   useEffect(() => {
-
-    /* ---------------- SEARCH ---------------- */
-    setResults(items.filter((i) => i.name.toLowerCase().includes(search.toLowerCase()) && !itemList.some((s) => s.name === i.name)))
-
-  }, [search]);
+    if (!search.trim()) { setResults([]); return; }
+    const term = search.toLowerCase();
+    setResults(items.filter((i) => i.name.toLowerCase().includes(term) && !itemList.some((s) => s.id === i.id)));
+  }, [search, items, itemList]);
 
 
 
 
   // อ่านราคาจาก items.json (สด จาก update-items) โดยตรง — ไม่พึ่ง GraphQL (ที่ล่มอยู่)
   const getCurrentPrice = (id) => {
-    const data = items.find((i) => i.id === id);
+    const data = itemsRef.current.find((i) => i.id === id);
     if (!data) return;
     setItemList((currentItems) =>
       currentItems.map((item) =>
@@ -50,8 +55,38 @@ const ItemPrice = () => {
     setUpdatingIds((prev) => new Set(prev).add(id));
   };
 
+  /* OpenCV.js หนัก 10.5 MB — เดิมโหลดจาก index.html ทุกหน้าทั้งที่ใช้แค่หน้านี้
+     ย้ายมาโหลดตอนกด Start Capture ครั้งแรกแทน หน้าอื่นจะไม่โดนภาระนี้เลย */
+  const loadOpenCV = () => new Promise((resolve, reject) => {
+    if (window.cv?.imread) return resolve(window.cv);
+    const existing = document.getElementById('opencv-js');
+    const script = existing || Object.assign(document.createElement('script'), {
+      id: 'opencv-js',
+      // URL เดิมที่ใช้งานได้อยู่ /4.x/ จะ redirect ไปเวอร์ชันล่าสุดเสมอ
+      // ปักเวอร์ชันแทนไม่ได้ เพราะ docs.opencv.org ลบโฟลเดอร์เวอร์ชันเก่าทิ้ง
+      // (เช็คแล้ว 4.10/4.11/4.12 คืน 404 เหลือแต่ 4.13.0 กับ 4.9.0)
+      src: 'https://docs.opencv.org/4.x/opencv.js',
+      async: true,
+    });
+    const waitReady = () => {
+      if (window.cv?.imread) return resolve(window.cv);
+      if (window.cv?.onRuntimeInitialized !== undefined) {
+        window.cv.onRuntimeInitialized = () => resolve(window.cv);
+        return undefined;
+      }
+      return setTimeout(waitReady, 100);
+    };
+    script.addEventListener('load', waitReady);
+    script.addEventListener('error', () => reject(new Error('โหลด OpenCV.js ไม่สำเร็จ')));
+    if (!existing) document.body.appendChild(script);
+    else waitReady();
+  });
+
   const startCapture = async () => {
     try {
+      setStatus("Loading OpenCV...");
+      await loadOpenCV();
+
       const stream = await navigator.mediaDevices.getDisplayMedia({
         video: { frameRate: 10 },
       });
@@ -74,16 +109,25 @@ const ItemPrice = () => {
       };
     } catch (err) {
       console.error("Error starting capture:", err);
+      setStatus("Idle");
     }
   };
 
   const stopCapture = () => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
+    if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
     }
     setStatus("Stopped");
   };
+
+  /* ออกจากหน้านี้ตอนยังจับภาพอยู่ ของเดิมไม่มีการเก็บกวาดเลย
+     -> interval ยิงทุก 500ms ต่อไปเรื่อย ๆ และการแชร์หน้าจอก็ยังเปิดค้าง */
+  useEffect(() => () => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
+  }, []);
 
 
 
@@ -195,12 +239,8 @@ const ItemPrice = () => {
     if (matchL.maxVal >= 0.4) {
       // console.log("✅ Found LEFT icon", matchL.maxVal);
 
-      // ตำแหน่งจริงของ L
+      // ตำแหน่งจริงของ L (ใช้แค่แกน x — แกน y เท่ากับ cropY อยู่แล้ว)
       const leftX = cropX + matchL.maxLoc.x;
-      const leftY = cropY + matchL.maxLoc.y;
-
-      // ctx.strokeStyle = "#0000ff";
-      // ctx.strokeRect(leftX, leftY, templateL.cols, templateL.rows);
 
       // =========================
       // FINAL CROP (text only)
@@ -269,41 +309,42 @@ const ItemPrice = () => {
 
 
   const setItemListWithFetch = (obj) => {
-
+    let added = false;
     setItemList(prev => {
-      return prev.some(i => i.id === obj.id) ? prev :
-        [obj, ...prev]
+      if (prev.some(i => i.id === obj.id)) return prev;
+      added = true;
+      return [obj, ...prev];
     });
-    getCurrentPrice(obj.id);
+    // ของเดิมเรียกราคาใหม่ทุกครั้งแม้ไอเทมอยู่ในลิสต์แล้ว -> ตอนไอคอนค้างบนจอ
+    // จะยิง setState ซ้ำทุก 500ms เปล่า ๆ
+    if (added || !itemListRef.current.some(i => i.id === obj.id)) getCurrentPrice(obj.id);
   };
 
+  // OCR พลาดบ่อย ต้องมีเกณฑ์ขั้นต่ำ ไม่งั้นข้อความขยะก็ยังได้ไอเทม "ที่ใกล้ที่สุด" เสมอ
+  // (ทดสอบแล้ว: ข้อความว่างหรือ "xzqw" จะได้ "Awl" เพราะชื่อสั้นสุดชนะที่ระยะห่างดิบ)
+  const MAX_DISTANCE_RATIO = 0.35;
 
   const processImage = async (image) => {
-    const result = await Tesseract.recognize(
-      image,
-      'eng',
-      // { logger: m => console.log(m.status) }
-    );
-    // console.log(result.data.text.split('|\n')[0].trim());
+    const result = await Tesseract.recognize(image, 'eng');
     const text = result.data.text.split('|\n')[0].trim();
+    if (text.length < 3) return;
 
+    const pool = itemsRef.current;
     let min = Infinity;
-    const best = items.reduce((best, item) => {
+    const best = pool.reduce((best, item) => {
       const d = levenshtein(text, item.name);
       return d < min ? (min = d, item) : best;
     }, null);
-    if (best) {
-      // console.log(best);
-      if (itemList.some(i => i.id === best.id)) return;
+    if (!best) return;
 
-      setItemListWithFetch(best)
-
-      // setItemList(prev => {
-      //   return prev.some(i => i.id === best.id) ? prev :
-      //     [best, ...prev]
-      // });
-      // getCurrentPrice(best.id);
+    const ratio = min / Math.max(text.length, best.name.length);
+    if (ratio > MAX_DISTANCE_RATIO) {
+      setStatus(`No match (${text.slice(0, 24)})`);
+      return;
     }
+    if (itemListRef.current.some(i => i.id === best.id)) return;
+
+    setItemListWithFetch(best);
   };
 
 
@@ -457,19 +498,15 @@ const ItemPrice = () => {
 
 
           {/* <h4 className="mt-3 text-center">Item Lists</h4> */}
-          {(loading && itemList.length === 0) ? (
+          {itemList.length === 0 ? (
             <div
-              className="d-flex justify-content-center align-items-center"
+              className="d-flex flex-column justify-content-center align-items-center text-center"
               style={{ height: "calc(100vh - 25rem)" }}
             >
-              <h1>Loading prices...</h1>
-            </div>
-          ) : (!loading && itemList.length === 0) ? (
-            <div
-              className="d-flex justify-content-center align-items-center"
-              style={{ height: "calc(100vh - 25rem)" }}
-            >
-              <h1>{chance ? "No items in list" : "No items found"}</h1>
+              <h1>No items in list</h1>
+              <p className="text-secondary mt-2">
+                Search an item above, or press Start Capture to read prices off your screen.
+              </p>
             </div>
           ) : (
             <>

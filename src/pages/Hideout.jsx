@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { theme, hideoutStyles as styles, Icons } from '../Component/EftComponent';
 import * as QuestComponent from '../Component/QuestComponent';
 import hideoutStatic from '../data/hideout.json';
@@ -30,7 +30,7 @@ const Hideout = () => {
     });
 
     useEffect(() => {
-        const handleStorageChange = (event) => {
+        const handleStorageChange = () => {
             try {
                 // console.log("Storage changed detected! at Hideout");
                 resetProgress();
@@ -89,23 +89,11 @@ const Hideout = () => {
         //     }
         //     return true;
         // });
-        const filtered = modules;
-        return filtered;
-
-        return filtered.sort((a, b) => {
-            const nextA = getNextLevelData(a);
-            const nextB = getNextLevelData(b);
-            const aMax = !nextA;
-            const bMax = !nextB;
-            if (aMax && !bMax) return 1;
-            if (!aMax && bMax) return -1;
-            if (aMax && bMax) return a.localeCompare(b);
-            const reqsA = nextA.moduleRequirements ? nextA.moduleRequirements.length : 0;
-            const reqsB = nextB.moduleRequirements ? nextB.moduleRequirements.length : 0;
-            if (reqsA !== reqsB) return reqsA - reqsB;
-            return a.localeCompare(b);
-        });
-    }, [groupedModules, currentLevels]);
+        // หมายเหตุ: เดิมมีโค้ดเรียงลำดับ (ดันโมดูลที่อัปเต็มแล้วไปท้าย) อยู่ใต้ return
+        //           จึงไม่เคยทำงานเลย — ลบออกเพื่อไม่ให้เข้าใจผิดว่ามีการเรียงอยู่
+        //           ถ้าอยากให้เรียงจริง บอกได้ เปิดกลับมาได้ทันที
+        return modules;
+    }, [groupedModules]);
 
     // UPDATED: Shopping list now calculates ALL future requirements (Current Level -> Max)
     const shoppingList = useMemo(() => {
@@ -271,7 +259,7 @@ const Hideout = () => {
                                 <button
                                     key={modName}
                                     onClick={() => scrollToModule(modName)}
-                                    style={styles.navButton(level > 0, isMax)}
+                                    style={styles.navButton(level > 0)}
                                 >
                                     <span style={{ fontWeight: 'bold', fontSize: '12px', width: '100%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{modName}</span>
                                     <div style={{ marginTop: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
@@ -410,7 +398,7 @@ const Hideout = () => {
                                                     </h3>
                                                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
                                                         {nextLvlData.moduleRequirements.map(req => {
-                                                            const isTracked = currentLevels.hasOwnProperty(req.name);
+                                                            const isTracked = Object.prototype.hasOwnProperty.call(currentLevels, req.name);
                                                             const currentTrackedLevel = isTracked ? currentLevels[req.name] : 0;
                                                             const isMetAuto = isTracked && currentTrackedLevel >= req.level;
                                                             const isChecked = isTracked ? isMetAuto : isModuleReqChecked(moduleName, nextLvlData.level, req.id);

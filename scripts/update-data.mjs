@@ -35,6 +35,19 @@ const load = (name) => (CACHE[name] = CACHE[name] || fetchJson(`${BASE}/${name}`
 
 // รายชื่อเควส Kappa จากวิกิ (scripts/update-kappa.mjs) — ถ้ายังไม่มีก็ข้ามไป
 // ธง kappaRequired จาก json.tarkov.dev เองนับแค่ 13 เควส (ดูคำอธิบายใน update-kappa.mjs)
+const loadJsonData = async (file, pick, warn) => {
+  try {
+    return pick(JSON.parse(await readFile(resolve(DATA_DIR, file), 'utf8')));
+  } catch {
+    console.warn(`  ! ${warn}`);
+    return undefined;
+  }
+};
+
+const loadTraderOrder = () => loadJsonData('quest_links.json', (j) => j.traderOrder, 'ไม่มีลำดับเควสต่อเทรดเดอร์');
+const loadQuestLinks = () => loadJsonData('quest_links.json', (j) => j.quests,
+  'ไม่มี src/data/quest_links.json — ผังเควสจะขาดเส้นที่ API ไม่มี (รัน npm run update-quest-links)');
+
 const loadKappaNames = async () => {
   try {
     const { questNames } = JSON.parse(await readFile(resolve(DATA_DIR, 'kappa.json'), 'utf8'));
@@ -60,7 +73,7 @@ const DATASETS = {
   },
   tasks: {
     file: 'tasks.json', indent: 2,
-    build: async () => transformTasks(await load('tasks'), await load('tasks_en'), await load('maps_en'), await load('traders'), await load('items'), await load('items_en'), await loadKappaNames()),
+    build: async () => transformTasks(await load('tasks'), await load('tasks_en'), await load('maps_en'), await load('traders'), await load('items'), await load('items_en'), await loadKappaNames(), await loadQuestLinks(), await loadTraderOrder()),
   },
 };
 

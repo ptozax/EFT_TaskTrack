@@ -10,6 +10,8 @@ import { NavLink } from 'react-router-dom';
 import { GiHomeGarage, GiPc, GiTreeGrowth, GiTrophy, GiMachineGunMagazine, GiProgression, GiBullets, GiBulletImpacts, GiKevlarVest, GiGunStock, GiOpenBook } from 'react-icons/gi';
 import { FaGem, FaMap, FaQrcode, FaTools, FaExchangeAlt, FaCamera, FaStore } from 'react-icons/fa';
 import { kappaStyles as styles, COLORS } from './EftComponent';
+import * as QuestComponent from './QuestComponent';
+import { setGameMode } from '../data/gameStore';
 import BEAR from '/BEAR_Icon.webp';
 import USEC from '/USEC_Emblem.webp';
 
@@ -59,17 +61,31 @@ function AppNavbar() {
     });
 
     const ToggleFaction = () => {
-        if (factionName === 'BEAR') setFactionName('USEC')
-        else setFactionName('BEAR');
+        const next = factionName === 'BEAR' ? 'USEC' : 'BEAR';
+        setFactionName(next);
+        localStorage.setItem('eft_faction_name', JSON.stringify(next));
 
-        localStorage.setItem('eft_faction_name', JSON.stringify(factionName === 'BEAR' ? 'USEC' : 'BEAR'));
+        /* เควสที่แยกฝ่าย (Drip-Out, Textile, Our Own Land/Counteraction, Green Corridor/Road Closed)
+           ถ้าเพิ่มของฝ่ายเดิมไว้แล้วสลับฝ่าย มันจะค้างอยู่ในรายการที่กำลังทำ
+           ทั้งที่รับไม่ได้แล้ว -> ถอดออกให้พร้อมกับล้างความคืบหน้าของมัน */
+        try {
+            const active = JSON.parse(localStorage.getItem('eft_selected_quests') || '[]');
+            const drop = active.filter(q => q.factionName && !['Any', next].includes(q.factionName));
+            if (drop.length) QuestComponent.dropFromActive(drop.map(q => q.id));
+        } catch (err) {
+            console.error(err);
+        }
     };
 
     const ToggleGameplayMode = () => {
-        if (gameplayMode === 'pve') setGameplayMode('pvp')
-        else setGameplayMode('pve');
+        const next = gameplayMode === 'pve' ? 'pvp' : 'pve';
+        setGameplayMode(next);
+        localStorage.setItem('eft_gameplay_mode', JSON.stringify(next));
 
-        localStorage.setItem('eft_gameplay_mode', JSON.stringify(gameplayMode === 'pve' ? 'pvp' : 'pve'));
+        /* PvE กับ PvP ใช้ตลาดคนละตัว ราคาต่างกัน 3,439 จาก 5,327 ไอเทม
+           (ราคาเทรดเดอร์เท่ากันทั้งสองโหมด) — สั่งให้ชั้นข้อมูลสลับชุดราคาให้
+           เดิมปุ่มนี้เขียนลง localStorage เฉย ๆ ไม่มีใครอ่าน ราคาจึงเป็น PvP ตลอด */
+        setGameMode(next);
     }
 
     const handleResetClick = () => {
@@ -114,6 +130,12 @@ function AppNavbar() {
                     localStorage.removeItem('eft_hideout');
                 }
             });
+        }
+
+        /* เควสเริ่มต้นทั้ง 4 ไม่มีเงื่อนไขเควสก่อนหน้า ระบบจึงไม่มีวันเสนอให้เอง
+           ถ้าไม่ใส่กลับ หลัง reset จะเหลือรายการว่างและไม่มีจุดเริ่มเลย */
+        if (selectReset.length === 0 || selectReset.includes("Questline")) {
+            QuestComponent.seedStartQuests();
         }
 
         window.dispatchEvent(new Event("storage"));

@@ -1,698 +1,797 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "../Component/home.css"
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import "../Component/home.css";
 import questsStatic from "../data/tasks";
 import { useLiveData } from '../data/gameStore';
 import * as QuestComponent from '../Component/QuestComponent';
-import { TRADER_THEMES } from '../Component/EftComponent';
+import { Icons, TRADER_THEMES } from '../Component/EftComponent';
+import { P, card, chip, badge, label, Bar, SearchBox, Empty, useNavbarOffset } from '../Component/PanelUI.jsx';
 
 const STORAGE_KEY = "eft_selected_quests";
 const OBJECTIVE_CHECK_KEY = "eft_objective_checklist";
 const COMPLETE_KEY = "eft_completed_quests";
+const HIDDEN_KEY = "eft_hidden_objectives";   // เดิมเก็บแต่ใน state -> รีเฟรชทีเดียวหาย
+
+const getObjectiveKey = (questId, objectiveId) => `${questId}|${objectiveId}`;
+const readJSON = (key, fallback) => {
+  try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
+};
+
+/* สีพื้นตามระดับไอเทมของเกม (มากับข้อมูลในฟิลด์ item.backgroundColor) */
+const ITEM_BG = {
+  black: '#272727', blue: '#26343a', default: '#333333', green: '#1c2618',
+  grey: '#2a2a2a', orange: '#49290f', red: '#4a1b1b', violet: '#372348', yellow: '#45402a',
+};
+const itemBg = (item) => ITEM_BG[item?.backgroundColor] || ITEM_BG.default;
+
+/**
+ * ความคืบหน้าของเควส
+ * - นับเฉพาะ objective ที่ "บังคับ" (optional ไม่นับในตัวหาร ไม่งั้นทำครบแล้วยังไม่ถึง 100%)
+ * - objective ที่ซ่อนไว้ยังนับอยู่ — การซ่อนเป็นแค่การจัดหน้าจอ ถ้าหักออกจากตัวหารด้วย
+ *   จะกดซ่อนให้เหลือรายการเดียวแล้วได้ 100% ทั้งที่ยังไม่ได้ทำอะไร
+ */
+const progressOfQuest = (quest, checked) => {
+  const objs = quest.objectives || [];
+  const required = objs.filter((o) => !o.optional);
+  const optional = objs.filter((o) => o.optional);
+  const hit = (o) => !!checked[getObjectiveKey(quest.id, o.id)];
+  return {
+    done: required.filter(hit).length,
+    total: required.length,
+    optDone: optional.filter(hit).length,
+    optTotal: optional.length,
+  };
+};
+
+/* ปุ่มไอคอนเล็กท้ายรายการ (ทำเสร็จ / เอาออก / ซ่อน) */
+const MiniButton = ({ title, color, onClick, children }) => (
+  <button
+    title={title}
+    onClick={onClick}
+    style={{
+      width: 26, height: 26, flexShrink: 0, borderRadius: 7, cursor: 'pointer',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      border: `1px solid ${color}55`, background: `${color}18`, color,
+      transition: 'all .15s ease',
+    }}
+  >
+    {children}
+  </button>
+);
 
 const Home = () => {
   const quests = useLiveData(questsStatic, 'tasks'); // สดจาก tarkov.dev ถ้าโหลดเสร็จ ไม่งั้น static
+
   /* ---------------- SAVE STATE ---------------- */
-  const [selectedQuests, setSelectedQuests] = useState(() => {
-    const savedQuests = localStorage.getItem(STORAGE_KEY);
-    return savedQuests ? JSON.parse(savedQuests) : []
-  });
-  const [checkedObjectives, setCheckedObjectives] = useState(() => {
-    const savedChecklist = localStorage.getItem(OBJECTIVE_CHECK_KEY);
-    return savedChecklist ? JSON.parse(savedChecklist) : {}
-  });
-  const [completedQuests, setCompletedQuests] = useState(() => {
-    const savedCompleted = localStorage.getItem(COMPLETE_KEY);
-    return savedCompleted ? JSON.parse(savedCompleted) : []
-  });
+  const [selectedQuests, setSelectedQuests] = useState(() => readJSON(STORAGE_KEY, []));
+  const [checkedObjectives, setCheckedObjectives] = useState(() => readJSON(OBJECTIVE_CHECK_KEY, {}));
+  const [completedQuests, setCompletedQuests] = useState(() => readJSON(COMPLETE_KEY, []));
+  const [hiddenObjectives, setHiddenObjectives] = useState(() => readJSON(HIDDEN_KEY, {}));
 
   /* ---------------- STATE ---------------- */
   const [search, setSearch] = useState("");
   const [objectiveLocations, setObjectiveLocations] = useState([]);
+  const [selectedTraders, setSelectedTraders] = useState([]);
   const [currentQuestId, setCurrentQuestId] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [onlyTurnIn, setOnlyTurnIn] = useState(false);
+  const [suggest, setSuggest] = useState(null);       // { trader, quests } หลังทำเควสเสร็จ
+  const [suggestOpen, setSuggestOpen] = useState(false); // กางดูทั้งหมดหรือเอาแค่ 8 อันแรก
+  const [showHiddenOf, setShowHiddenOf] = useState({});   // questId -> เปิดดูรายการที่ซ่อนไว้
 
-
-  const [hiddenObjectives, setHiddenObjectives] = useState({});
-
-  const refs = useRef({}); // for focus to  task obj
-
-  /*------------- Click and focus to quest  -------------*/
+  const refs = useRef({});
+  const navTop = useNavbarOffset();   // ยึดแถบหนึบไว้ใต้ AppNavbar พอดี ไม่ให้มุดเข้าไปโดนบัง
 
   const scrollTo = (id) => {
-    // basic  scroll
-    // refs.current[id]?.scrollIntoView({
-    //   behavior: "smooth",
-    //   block: "center",
-    // });
-
-    //  scroll to box with offet 80px
     const el = refs.current[id];
     if (!el) return;
-
-    const y =
-      el.getBoundingClientRect().top + window.pageYOffset - 80;
-
-    window.scrollTo({
-      top: y,
-      behavior: "smooth",
-    });
-  };
-
-  /* ---------------- UTILS ---------------- */
-  const toggleHideObjective = (questId, objectiveId) => {
-    const key = getObjectiveKey(questId, objectiveId);
-    setHiddenObjectives((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
-  };
-
-
-  const getObjectiveKey = (questId, objectiveId) =>
-    `${questId}|${objectiveId}`;
-
-
-  const getAllObjectiveLocations = (quests) => {
-    const locations = new Set();
-
-    quests.forEach((quest) =>
-      quest.objectives?.forEach((obj) =>
-        obj.maps?.forEach((map) => map?.name && locations.add(map.name))
-      )
-    );
-
-    return ["Any", ...Array.from(locations)];
-  };
-
-  const allLocations = getAllObjectiveLocations(quests);
-
-  /* ---------------- LOCATION FILTER ---------------- */
-  const toggleLocation = (name) => {
-    if (name === "Any") {
-      setObjectiveLocations([]);
-      return;
-    }
-
-    setObjectiveLocations((prev) =>
-      prev.includes(name)
-        ? prev.filter((l) => l !== name)
-        : [...prev, name]
-    );
+    // เผื่อที่ให้ navbar + แถบหนึบ ไม่งั้นการ์ดที่กระโดดไปจะไปอยู่ใต้แถบพอดี
+    const offset = navTop + 76;
+    window.scrollTo({ top: el.getBoundingClientRect().top + window.pageYOffset - offset, behavior: "smooth" });
   };
 
   /* ---------------- LOAD ---------------- */
   useEffect(() => {
-
     const handleStorageChange = () => {
-      try {
-        console.log("Storage changed detected! at HOME");
-
-        const savedQuests = localStorage.getItem(STORAGE_KEY);
-        const savedChecklist = localStorage.getItem(OBJECTIVE_CHECK_KEY);
-        const savedCompleted = localStorage.getItem(COMPLETE_KEY);
-
-        setSelectedQuests(savedQuests ? JSON.parse(savedQuests) : []);
-        setCheckedObjectives(savedChecklist ? JSON.parse(savedChecklist) : {});
-        setCompletedQuests(savedCompleted ? JSON.parse(savedCompleted) : []);
-      } catch (err) {
-        console.error(err);
-      }
+      setSelectedQuests(readJSON(STORAGE_KEY, []));
+      setCheckedObjectives(readJSON(OBJECTIVE_CHECK_KEY, {}));
+      setCompletedQuests(readJSON(COMPLETE_KEY, []));
+      setHiddenObjectives(readJSON(HIDDEN_KEY, {}));
     };
     setIsLoaded(true);
-
-    // Add listener
     window.addEventListener("storage", handleStorageChange);
-
-    // Cleanup listener on unmount
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
-
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   /* ---------------- SAVE ---------------- */
-  useEffect(() => {
-    if (isLoaded) localStorage.setItem(STORAGE_KEY, JSON.stringify(selectedQuests));
-  }, [selectedQuests, isLoaded]);
+  useEffect(() => { if (isLoaded) localStorage.setItem(STORAGE_KEY, JSON.stringify(selectedQuests)); }, [selectedQuests, isLoaded]);
+  useEffect(() => { if (isLoaded) localStorage.setItem(OBJECTIVE_CHECK_KEY, JSON.stringify(checkedObjectives)); }, [checkedObjectives, isLoaded]);
+  useEffect(() => { if (isLoaded) localStorage.setItem(HIDDEN_KEY, JSON.stringify(hiddenObjectives)); }, [hiddenObjectives, isLoaded]);
 
   useEffect(() => {
-    if (isLoaded) localStorage.setItem(OBJECTIVE_CHECK_KEY, JSON.stringify(checkedObjectives));
-  }, [checkedObjectives, isLoaded]);
-
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem(COMPLETE_KEY, JSON.stringify(completedQuests));
-
-      if (currentQuestId) {
-
-        const nextQuestList = QuestComponent.getNextQuestLists(completedQuests, currentQuestId);
-        setSelectedQuests(prev => {
-          // Use a Map or Set to ensure IDs are unique
-          const allQuests = [...prev, ...nextQuestList];
-          const uniqueMap = new Map(allQuests.map(q => [q.id, q]));
-          return Array.from(uniqueMap.values());
-        });
-      }
-    }
+    if (!isLoaded) return;
+    localStorage.setItem(COMPLETE_KEY, JSON.stringify(completedQuests));
+    if (!currentQuestId) return;
+    const nextQuestList = QuestComponent.getNextQuestLists(completedQuests, currentQuestId);
+    setSelectedQuests((prev) => {
+      const uniqueMap = new Map([...prev, ...nextQuestList].map((q) => [q.id, q]));
+      return Array.from(uniqueMap.values());
+    });
   }, [completedQuests, currentQuestId, isLoaded]);
 
-  /* ---------------- TRADER ---------------- */
-  const traderOptions = useMemo(() => {
-    return ["Any",
-      ...new Set(
-        quests
-          .map((q) => q.trader?.name)
-          .filter(Boolean)
-      ),
-    ];
-  }, [selectedQuests]); // Only recalculate if selectedQuests changes
+  /* ---------------- FILTER OPTIONS ---------------- */
+  // ตัวเลือกคิดจาก "เควสที่เลือกไว้" เท่านั้น — ของเดิมไล่จาก quests ทั้ง 515 ตัว
+  // ทำให้ขึ้นชื่อแมพ/เทรดเดอร์ที่ไม่มีอยู่ในรายการเลย (และ dep ของ useMemo ก็ผิดด้วย)
+  const allLocations = useMemo(() => {
+    const s = new Set();
+    selectedQuests.forEach((q) => q.objectives?.forEach((o) => o.maps?.forEach((m) => m?.name && s.add(m.name))));
+    return [...s].sort();
+  }, [selectedQuests]);
 
-  const [selectedTraders, setSelectedTraders] = useState([]);
+  const traderOptions = useMemo(
+    () => [...new Set(selectedQuests.map((q) => q.trader?.name).filter(Boolean))].sort(),
+    [selectedQuests]
+  );
 
-  const toggleTrader = (trader) => {
-    if (trader === "Any") {
-      setSelectedTraders([]);
-      return;
-    }
-
-    setSelectedTraders((prev) =>
-      prev.includes(trader)
-        ? prev.filter((t) => t !== trader)
-        : [...prev, trader]
-    );
-  };
+  const toggleLocation = (name) => setObjectiveLocations((p) => p.includes(name) ? p.filter((l) => l !== name) : [...p, name]);
+  const toggleTrader = (name) => setSelectedTraders((p) => p.includes(name) ? p.filter((t) => t !== name) : [...p, name]);
 
   /* ---------------- QUEST ACTIONS ---------------- */
   const addQuest = (quest) => {
-    setSelectedQuests((prev) => [...prev, quest]);
+    setSelectedQuests((prev) => prev.some((q) => q.id === quest.id) ? prev : [...prev, quest]);
     setSearch("");
   };
 
-  const removeQuest = (questId) => {
-    // ลบ quest
-    setSelectedQuests((prev) =>
-      prev.filter((q) => q.id !== questId)
-    );
-
-    // ลบ objective progress ของ quest นี้
-    clearObjectiveProgress(questId);
-  };
-
-  const clearObjectiveProgress = (questId) => {
+  const clearObjectiveProgress = useCallback((questId) => {
     setCheckedObjectives((prev) => {
       const updated = { ...prev };
-
-      Object.keys(updated).forEach((key) => {
-        if (key.startsWith(`${questId}|`)) {
-          delete updated[key];
-        }
-      });
-
+      Object.keys(updated).forEach((k) => { if (k.startsWith(`${questId}|`)) delete updated[k]; });
       return updated;
     });
-  };
+  }, []);
+
+  const removeQuest = useCallback((questId) => {
+    setSelectedQuests((prev) => prev.filter((q) => q.id !== questId));
+    clearObjectiveProgress(questId);
+  }, [clearObjectiveProgress]);
 
   const toggleObjective = (questId, objectiveId) => {
     const key = getObjectiveKey(questId, objectiveId);
-    setCheckedObjectives((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
+    setCheckedObjectives((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const toggleHideObjective = (questId, objectiveId) => {
+    const key = getObjectiveKey(questId, objectiveId);
+    setHiddenObjectives((prev) => {
+      const next = { ...prev };
+      if (next[key]) delete next[key]; else next[key] = true;
+      return next;
+    });
   };
 
   const nextQuest = (questId) => {
-
+    const done = quests.find((q) => q.id === questId);
     const newCompleted = QuestComponent.getPreviousQuestsList(questId, completedQuests);
-    const idsToRemove = new Set(newCompleted.map(u => u.id));
+    const idsToRemove = new Set(newCompleted.map((u) => u.id));
     idsToRemove.add(questId);
-    idsToRemove.forEach(id => {
-      removeQuest(id);
-    })
-
+    idsToRemove.forEach(removeQuest);
     setCurrentQuestId(questId);
-    // Update state using a Set to ensure no duplicates
-    setCompletedQuests(prev => {
-      const uniqueSet = new Set([...prev, ...newCompleted]);
-      return Array.from(uniqueSet);
+    setCompletedQuests((prev) => {
+      const byId = new Map(prev.map((q) => [q.id, q]));
+      newCompleted.forEach((q) => byId.set(q.id, q));
+      return Array.from(byId.values());
     });
-  }
+
+    /* เควสสายต่อ (leads to) ถูกเพิ่มอัตโนมัติอยู่แล้วใน effect ของ completedQuests
+       แต่ 301 จาก 504 เควสไม่มีเงื่อนไขเควสก่อนหน้า (ปลดล็อกด้วย Loyalty Level
+       + เลเวลผู้เล่นซึ่งแอปไม่รู้) -> getNextQuestLists ตัดทิ้งหมด
+       เสนอของเทรดเดอร์คนเดิมให้เลือกเอง ไม่ยัดเข้ารายการ และไม่ดูเลเวล */
+    const trader = done?.trader?.name;
+    if (!trader) return;
+    // ดึงมาทั้งหมด แล้วค่อยตัดแสดงในการ์ด — ปุ่ม "Add all" จะได้รู้จำนวนจริง
+    const picks = QuestComponent.getTraderSuggestions(trader, {
+      completed: [...completedQuests, ...newCompleted, { id: questId }],
+      active: selectedQuests.filter((q) => !idsToRemove.has(q.id)),
+      limit: Infinity,
+    });
+    setSuggestOpen(false);
+    setSuggest(picks.length ? { trader, quests: picks } : null);
+  };
+
+  /* เพิ่มหลายเควสพร้อมกัน — ใช้กับปุ่ม Add all ในการ์ดแนะนำ
+     เขียน state รอบเดียว ไม่งั้นเรียก addQuest ทีละตัวจะทับกันเพราะอ่าน prev คนละรอบ */
+  const addQuests = (list) => {
+    if (!list.length) return;
+    setSelectedQuests((prev) => {
+      const byId = new Map(prev.map((q) => [q.id, q]));
+      list.forEach((q) => { if (!byId.has(q.id)) byId.set(q.id, q); });
+      return Array.from(byId.values());
+    });
+  };
 
   /* ---------------- SEARCH ---------------- */
-  const searchResults = quests.filter(
-    (q) =>
-      q.name.toLowerCase().includes(search.toLowerCase()) &&
-      !selectedQuests.some((s) => s.name === q.name)
-  );
+  // 12 เควสแยกฝ่าย BEAR/USEC — ไม่กรองแล้วจะเผลอเพิ่มของฝ่ายตรงข้ามเข้ารายการ
+  // (ฝ่ายสลับได้ที่ AppNavbar)
+  const searchResults = useMemo(() => {
+    if (!search.trim()) return [];
+    const faction = (() => {
+      try { return JSON.parse(localStorage.getItem('eft_faction_name')) || 'BEAR'; } catch { return 'BEAR'; }
+    })();
+    const term = search.toLowerCase();
+    return quests
+      .filter((q) => ['Any', faction].includes(q.factionName)
+        && q.name.toLowerCase().includes(term)
+        && !selectedQuests.some((s) => s.id === q.id))
+      .slice(0, 12);
+  }, [search, quests, selectedQuests]);
 
-  /* ---------------- UI ---------------- */
+  const progressOf = useCallback((quest) => progressOfQuest(quest, checkedObjectives), [checkedObjectives]);
 
-  const filteredQuests =
-    objectiveLocations.length === 0
-      ? selectedQuests
-      : selectedQuests.filter((quest) =>
-        quest.objectives?.some((obj) =>
-          obj.maps?.some((m) =>
-            objectiveLocations.includes(m.name)
-          )
-        )
-      );
+  /* เควสที่ติ๊ก objective บังคับครบแล้ว = ส่งงานได้เลย
+     นี่คือตัวเลขที่ใช้ตัดสินใจจริงตอนเปิดหน้านี้ ("ตอนนี้ส่งอะไรได้แล้ว")
+     ไม่ใช่ % รวมของรายการ ซึ่งตัวหารโตขึ้นทุกครั้งที่รับเควสใหม่ -> ทำ Debut จบได้ 100%
+     พอรับอีก 2 เควสเหลือ 17% ทั้งที่ไม่ได้ทำอะไรผิด วัดอะไรไม่ได้เลย */
+  const turnInIds = useMemo(() => {
+    const s = new Set();
+    selectedQuests.forEach((q) => {
+      const { done, total } = progressOf(q);
+      if (total > 0 && done === total) s.add(q.id);
+    });
+    return s;
+  }, [selectedQuests, progressOf]);
+
+  /* ---------------- รายการที่จะแสดง ---------------- */
+  const visibleQuests = useMemo(() => selectedQuests.filter((quest) => {
+    if (onlyTurnIn && !turnInIds.has(quest.id)) return false;
+    if (selectedTraders.length && !selectedTraders.includes(quest.trader?.name)) return false;
+    if (objectiveLocations.length
+      && !quest.objectives?.some((o) => o.maps?.some((m) => objectiveLocations.includes(m.name)))) return false;
+    return true;
+  // เควสที่ส่งงานได้ขึ้นก่อน — เป็นสิ่งที่ต้องทำต่อ ไม่ควรต้องเลื่อนหา
+  }).sort((a, b) => Number(turnInIds.has(b.id)) - Number(turnInIds.has(a.id))),
+  [selectedQuests, selectedTraders, objectiveLocations, onlyTurnIn, turnInIds]);
+
+  const filtersOn = objectiveLocations.length + selectedTraders.length + (onlyTurnIn ? 1 : 0);
 
   return (
-
-    <div className="container-fluid home-dark">
-      <div className="row justify-content-md-center">
-        <div className="col-md-11 ">
-
-          {/* HEADER */}
-          <h1 className="text-center fw-bold mb-4">
-            <span className="text-primary">EFT</span>{" "}
-            <span className="text-warning">TaskTrack</span>
-          </h1>
-
-          {/* SEARCH */}
-          <div className="row justify-content-center mb-4">
-            <div className="col-md-6">
-              <input
-                className="form-control form-control-lg rounded-pill shadow-sm px-4"
-                placeholder="🔍 Search quest..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+    <div style={{ background: P.bg, minHeight: '100vh', color: P.text }}>
+      {/* ---------------- hero: เลื่อนหายไปได้ ไม่ต้องหนึบ ----------------
+          วงแหวนเป็นตัวเลขสรุปที่ดูตอนเปิดหน้าครั้งเดียวก็พอ ไม่ได้ใช้ตอนไล่ทำเควส
+          จึงปล่อยให้เลื่อนหายไป แล้วเก็บเฉพาะของที่ใช้จริงไว้ในแถบหนึบด้านล่าง */}
+      <div style={{ maxWidth: 1500, margin: '0 auto', padding: '18px 20px 12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+          <div style={{ minWidth: 200 }}>
+            <h1 style={{ fontSize: '18px', fontWeight: 900, margin: 0 }}>
+              <span style={{ color: P.blue }}>EFT</span> <span style={{ color: P.gold }}>TaskTrack</span>
+            </h1>
+            {/* ตัวเลขนี้คือ "ทั้งหมดที่รับไว้" เสมอ ไม่ขยับตามตัวกรอง
+                ถ้ากรองอยู่จะบอกต่อท้ายว่าตอนนี้เห็นกี่อัน กันสับสนกับเลขในรายการซ้าย */}
+            <div style={{ ...label, marginTop: 3 }}>
+              {selectedQuests.length} quests
+              {visibleQuests.length !== selectedQuests.length && (
+                <span style={{ color: P.blue }}> · showing {visibleQuests.length}</span>
+              )}
             </div>
           </div>
 
-          {/* SEARCH RESULT */}
-          {search && (
-            <div className="row justify-content-center mb-4">
-              <div className="col-md-6">
-                <div className="card shadow">
-                  <ul className="list-group list-group-flush">
-                    {searchResults.map((q) => (
-                      <li
-                        key={`${q.id}-${q.name}`}
-                        className="list-group-item d-flex justify-content-between align-items-center"
-                      >
-                        <span className="fw-medium">{q.name}</span>
-                        <button
-                          className="btn btn-sm btn-success rounded-pill px-3"
-                          onClick={() => addQuest(q)}
-                        >
-                          + Add
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
+          {/* สิ่งที่ต้องลงมือทำ ไม่ใช่ % ที่วัดอะไรไม่ได้ */}
+          {turnInIds.size > 0 && (
+            <div style={{
+              ...card, padding: '10px 15px', display: 'flex', alignItems: 'center', gap: 11,
+              borderColor: `${P.green}66`, background: `${P.green}14`,
+            }}>
+              <span style={{ color: P.green, display: 'flex' }}><Icons.Check size={18} /></span>
+              <div>
+                <div style={{ fontSize: 17, fontWeight: 900, color: P.green, lineHeight: 1 }}>
+                  {turnInIds.size}
                 </div>
-              </div>
-            </div>
-          )}
-
-          {/* MAP FILTER */}
-          <div className="card shadow-sm mb-4">
-            <div className="card-body">
-              <h6 className="fw-bold mb-3">🗺️ Filter Objectives by Map</h6>
-              <div className="d-flex flex-wrap gap-2">
-                {allLocations.map((loc) => {
-                  const active =
-                    loc === "Any"
-                      ? objectiveLocations.length === 0
-                      : objectiveLocations.includes(loc);
-
-                  return (
-                    <button
-                      key={loc}
-                      onClick={() => toggleLocation(loc)}
-                      className={`btn btn-sm rounded-pill px-3 transition ${active
-                        ? "btn-primary shadow"
-                        : "btn-outline-secondary"
-                        }`}
-                    >
-                      {loc}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            {/* 🧑‍💼 TRADER FILTER */}
-            {traderOptions.length > 0 && (
-              <div className="card-body">
-                <h6 className="fw-bold mb-2">
-                  🧑‍💼 Filter by Trader
-                </h6>
-
-                <div className="d-flex flex-wrap gap-2">
-                  {traderOptions.map((trader) => {
-                    const active = trader === "Any" ? selectedTraders.length === 0 : selectedTraders.includes(trader);
-                    const theme = active ? TRADER_THEMES[trader] : { bg: "#1e293b", border: "#334155", text: "#f8fafc" };
-
-                    return (
-                      <button
-                        key={trader}
-                        className={'btn btn-sm'}
-                        style={{ background: theme.bg, border: `1px solid ${theme.border}`, color: theme.text }}
-                        onClick={() => toggleTrader(trader)}
-                      >
-                        {trader}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* SELECTED QUESTS */}
-          {selectedQuests.length > 0 && (
-            <div className="row g-4">
-
-              {/* LEFT : QUEST LIST */}
-              <div className="col-md-4">
-                <div className="card shadow-sm h-100">
-                  <div className="card-body">
-                    <h5 className="fw-bold mb-3">📜 Selected Quests</h5>
-
-                    <ul className="list-group">
-                      {filteredQuests.map((quest) => (
-                        (selectedTraders.length === 0 || selectedTraders.includes(quest.trader.name)) && (
-                          <li
-                            key={quest.id}
-                            className="list-group-item list-group-item-action"
-                            onClick={() => scrollTo(quest.id)}
-                            style={{ cursor: "pointer" }}
-                          >
-                            <div className="d-flex justify-content-between align-items-center gap-3">
-
-                              {/* LEFT : QUEST INFO */}
-                              <div className="flex-grow-1">
-                                <a
-                                  className="fw-bold text-info text-decoration-none"
-                                  href={quest.wikiLink}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  {quest.name}
-                                </a>
-
-                                <div className="text-muted small mt-1">
-                                  {quest.trader.name} | EXP: {quest.experience}
-
-                                  {quest.kappaRequired && (
-                                    <span className="badge rounded-pill bg-success ms-2">
-                                      Kappa
-                                    </span>
-                                  )}
-
-                                  {quest.lightkeeperRequired && (
-                                    <span className="badge rounded-pill bg-info ms-1">
-                                      LightKeeper
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="text-muted small">
-                                  Start at LV: {quest.minPlayerLevel}
-                                </div>
-                              </div>
-
-                              {/* RIGHT : ACTION BUTTONS */}
-                              <div className="d-flex align-items-center flex-shrink-0">
-                                <button
-                                  className="btn btn-sm btn-outline-success me-2"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    nextQuest(quest.id);
-                                  }}
-                                  title="Complete"
-                                >
-                                  ✓
-                                </button>
-
-                                <button
-                                  className="btn btn-sm btn-outline-danger"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    removeQuest(quest.id);
-                                  }}
-                                  title="Remove"
-                                >
-                                  ✕
-                                </button>
-                              </div>
-
-                            </div>
-                          </li>
-                        )))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              {/* RIGHT : OBJECTIVES */}
-              <div className="col-md-8">
-                <div className="card shadow-sm h-100 bg-dark text-light border-secondary">
-                  <div className="card-body">
-
-                    <h5 className="fw-bold mb-3 text-info">🎯 Objectives</h5>
-                    {filteredQuests.length === 0 && (
-                      <div
-                        className="mb-4 p-3 rounded border border-secondary bg-black bg-opacity-25 "
-                      >
-                        No quests match this filter.
-                      </div>
-                    )}
-                    {filteredQuests.map((quest) => {
-                      const filteredObjectives =
-                        quest.objectives?.filter(
-                          (obj) =>
-                            obj.type !== "giveItem" && (
-                              objectiveLocations.length === 0 ||
-                              obj.maps?.some((m) =>
-                                objectiveLocations.includes(m.name)
-                              ))
-                        ) || [];
-
-                      const giveItemList = quest.objectives?.filter(obj => obj.type === "giveItem") || [];
-
-                      if (selectedTraders.length > 0 && !selectedTraders.includes(quest.trader.name)) return null;
-                      if (filteredObjectives.length === 0 && giveItemList.length === 0) return null;
-
-                      return (
-                        <div
-                          key={quest.name}
-                          ref={(el) => (refs.current[quest.id] = el)}
-                          className="mb-4 p-3 rounded border border-secondary bg-black bg-opacity-25"
-                        >
-                          {/* QUEST HEADER */}
-                          <div className="d-flex justify-content-between align-items-center mb-2">
-                            <div>
-                              <a
-                                className="fw-bold text-primary"
-                                href={quest.wikiLink}
-                                target="_blank"
-                                rel="noreferrer"
-                              >
-                                {quest.name}
-                              </a>
-                              <span className="p-2">
-                                Start at LV: {quest.minPlayerLevel}
-                              </span>
-                            </div>
-                            <div>
-                              <button
-                                className="btn btn-sm btn-outline-success me-2"
-                                onClick={() => nextQuest(quest.id)}
-                              >
-                                ✓
-                              </button>
-                              <button
-                                className="btn btn-sm btn-outline-danger"
-                                onClick={() => removeQuest(quest.id)}
-                              >
-                                ✕
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* OBJECTIVES */}
-                          <ul className="list-unstyled mb-0">
-                            { giveItemList.length > 0 && <h5 className="text-center text-uppercase">Hand Over</h5>}
-                            {(giveItemList.length > 0) && (
-                              <li className="d-flex justify-content-center align-items-center mb-2 row">
-                                {giveItemList.map((obj) => {
-                                  const key = getObjectiveKey(quest.id, obj.id);
-                                  const checked = checkedObjectives[key];
-                                  const hidden = hiddenObjectives[key];
-                                  if (hidden) return null;
-
-                                  return (
-                                    <span
-                                      key={`${quest.id}-list-${key}`}
-                                      className={`col-2 mb-2 rounded position-relative
-                                        ${checked
-                                          ? "bg-success bg-opacity-25 border border-success"
-                                          : "bg-danger bg-opacity-25 border border-secondary"
-                                        }
-                                        badge ms-1 d-flex flex-column align-items-center justify-content-center`}
-                                      onClick={() => toggleObjective(quest.id, obj.id)}
-                                    >
-                                      <img
-                                        className="rounded"
-                                        src={obj.item.iconLink}
-                                        alt={obj.item.name}
-                                        style={{
-                                          objectFit: "contain",
-                                          height: "60px",
-                                          width: "auto",
-                                          cursor: "pointer",
-                                        }}
-                                      />
-                                      <button
-                                        className="position-absolute btn btn-sm btn-outline-warning top-0 end-0 m-1"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          toggleHideObjective(quest.id, obj.id);
-                                        }}
-                                      >
-                                        <i className="fa-regular fa-eye-slash"></i>
-                                      </button>
-                                      {/* Text stays at the bottom */}
-                                      <span className={`fw-medium mt-1
-                                      ${checked
-                                          ? "text-decoration-line-through text-muted"
-                                          : "text-light"
-                                        }`}>
-                                        {obj.item.shortName} <span className="text-info">x {obj.count}</span></span>
-                                    </span>
-                                  )
-                                })}
-                              </li>
-                            )}
-                            {filteredObjectives.map((obj) => {
-                              const key = getObjectiveKey(quest.id, obj.id);
-                              const checked = checkedObjectives[key];
-                              const hidden = hiddenObjectives[key];
-                              if (hidden) return null;
-                              return (
-                                <li
-                                  key={key}
-                                  className={`mb-2 p-2 rounded ${checked
-                                    ? "bg-success bg-opacity-10 border border-success"
-                                    : "bg-secondary bg-opacity-10 border border-secondary"
-                                    }`}
-                                  onClick={() =>
-                                    toggleObjective(quest.id, obj.id)
-                                  }
-                                  style={{ cursor: "pointer" }}
-                                >
-
-
-                                  <div className="d-flex align-items-start">
-                                    {obj.item && (
-                                      <img
-                                        src={obj.item.iconLink}
-                                        alt={obj.description}
-                                        className="me-3 rounded objective-img"
-                                        style={{
-                                          objectFit: "contain",
-                                          height: "60px",
-                                          width: "auto",
-                                          cursor: "pointer"
-                                        }}
-                                      />
-                                    )}
-
-                                    <div className="flex-grow-1">
-                                      <div className="d-flex justify-content-between align-items-start">
-                                        <span
-                                          className={`fw-medium ${checked
-                                            ? "text-decoration-line-through text-muted"
-                                            : "text-light"
-                                            }`}
-                                        >
-                                          {obj.description}
-                                          {["findItem", "TaskObjectiveShoot", "shoot", "kill"].includes(obj.type) && (
-                                            <span className="text-info"> x {obj.count}</span>
-                                          )}
-                                        </span>
-
-                                        <button
-                                          className="btn btn-sm btn-outline-warning ms-2"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            toggleHideObjective(quest.id, obj.id);
-                                          }}
-                                        >
-                                          <i className="fa-regular fa-eye-slash"></i>
-                                        </button>
-                                      </div>
-
-                                      {/* MAP TAGS */}
-                                      {obj.maps?.length > 0 && (
-                                        <div className="mt-2">
-                                          {obj.maps.map((m) => (
-                                            <span
-                                              key={m.name}
-                                              className={`badge rounded-pill me-1 ${checked ? "bg-success" : "bg-secondary"
-                                                }`}
-                                            >
-                                              {m.name}
-                                            </span>
-                                          ))}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-
-
-
-
-
-
-
-                                </li>
-                              );
-                            })}
-                          </ul>
-
-                          <span>Reward</span>
-                          <div className="d-flex justify-content-start align-items-center mb-2">
-
-
-                            {quest.finishRewards.items?.map(obj => (
-                              <span
-                                key={`${quest.id}-reward-${obj.item.id}`}
-                                // 1. Added d-flex, flex-column, align-items-center, justify-content-center
-                                className="badge  border 1px solid gray bg-dark bg-gradient  ms-1 d-flex flex-column align-items-center justify-content-center"
-                                style={{ minWidth: '60px' }} // Optional: prevents badge from being too skinny
-                              >
-                                <div
-                                  // 2. Changed paddingRight to mb-1 (margin-bottom) for vertical spacing
-                                  className="mb-1"
-                                  style={{ height: '4rem', display: 'flex', alignItems: 'center' }}
-                                >
-                                  <img
-                                    src={obj.item.baseImageLink}
-                                    alt={obj.item.name}
-                                    style={{ height: '4rem' }}
-                                  />
-                                </div>
-                                {/* Text stays at the bottom */}
-                                <span  >{obj.item.shortName} <span className="text-info">x {obj.count}</span></span>
-                              </span>
-                            ))}
-
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+                <div style={{ ...label, marginTop: 3 }}>ready to turn in</div>
               </div>
             </div>
           )}
         </div>
       </div>
+
+      {/* ---------------- แถบหนึบ: ค้นหา + ตัวกรอง + ความคืบหน้าแบบบาง ---------------- */}
+      <header style={{
+        position: 'sticky', top: navTop, zIndex: 30,
+        background: 'rgba(11,18,34,.95)', backdropFilter: 'blur(12px)',
+        borderBottom: `1px solid ${P.border}`,
+      }}>
+        <div style={{ maxWidth: 1500, margin: '0 auto', padding: '10px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <SearchBox value={search} onChange={setSearch} placeholder="Search a quest to add..." width={320} />
+
+            <span style={chip(showFilters || filtersOn > 0)} onClick={() => setShowFilters((v) => !v)}>
+              <Icons.Filter size={13} /> Filters{filtersOn > 0 ? ` (${filtersOn})` : ''}
+            </span>
+            {filtersOn > 0 && (
+              <span
+                style={{ ...label, cursor: 'pointer', color: P.red }}
+                onClick={() => { setObjectiveLocations([]); setSelectedTraders([]); setOnlyTurnIn(false); }}
+              >
+                Clear
+              </span>
+            )}
+
+            {/* กรองให้เหลือเฉพาะเควสที่ส่งงานได้ — ติดไปกับแถบหนึบ กดได้ตลอดตอนเลื่อน */}
+            {turnInIds.size > 0 && (
+              <span
+                style={{ ...chip(onlyTurnIn, P.green), marginLeft: 'auto' }}
+                onClick={() => setOnlyTurnIn((v) => !v)}
+              >
+                <Icons.Check size={13} /> Ready to turn in
+                <span style={{ opacity: .7 }}>{turnInIds.size}</span>
+              </span>
+            )}
+          </div>
+
+          {/* ผลการค้นหา — ขึ้นใต้ช่องค้นหาทันที กดเพิ่มได้เลย */}
+          {search.trim() && (
+            <div style={{ ...card, marginTop: 10, padding: 8, maxHeight: 280, overflowY: 'auto' }}>
+              {searchResults.length === 0 ? (
+                <div style={{ ...label, padding: '8px 6px' }}>No quest found (or already added)</div>
+              ) : searchResults.map((q) => (
+                <div
+                  key={q.id}
+                  onClick={() => addQuest(q)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 10, padding: '7px 8px',
+                    borderRadius: 8, cursor: 'pointer',
+                  }}
+                >
+                  <span style={{
+                    width: 4, height: 18, borderRadius: 2, flexShrink: 0,
+                    background: TRADER_THEMES[q.trader?.name]?.bg || '#334155',
+                  }} />
+                  <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600 }}>{q.name}</span>
+                  <span style={label}>{q.trader?.name}</span>
+                  {q.minPlayerLevel > 1 && <span style={badge(P.label)}>LV {q.minPlayerLevel}</span>}
+                  <span style={badge(P.green)}>+ Add</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ตัวกรอง — พับไว้ ไม่กินที่เหมือนการ์ดสองใบของเดิม */}
+          {showFilters && (
+            <div style={{ ...card, marginTop: 10, padding: 12 }}>
+              <div style={{ ...label, marginBottom: 7 }}>Maps</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 12 }}>
+                {allLocations.length === 0 && <span style={label}>— no map-based objectives —</span>}
+                {allLocations.map((loc) => (
+                  <span key={loc} style={chip(objectiveLocations.includes(loc), P.blue)} onClick={() => toggleLocation(loc)}>
+                    {loc}
+                  </span>
+                ))}
+              </div>
+              <div style={{ ...label, marginBottom: 7 }}>Traders</div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                {traderOptions.length === 0 && <span style={label}>— no quests added —</span>}
+                {traderOptions.map((t) => {
+                  const color = TRADER_THEMES[t]?.bg || P.label;
+                  return (
+                    <span key={t} style={chip(selectedTraders.includes(t), color)} onClick={() => toggleTrader(t)}>
+                      <span style={{ width: 7, height: 7, borderRadius: 999, background: color }} />
+                      {t}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      </header>
+
+      <main style={{ maxWidth: 1500, margin: '0 auto', padding: '18px 20px 64px' }}>
+        {/* เสนอเควสต่อของเทรดเดอร์คนเดิมหลังทำเสร็จ — พวกนี้ไม่มีเงื่อนไขเควสก่อนหน้า
+            ระบบเลยเพิ่มให้เองไม่ได้ ต้องให้เลือก เรียงตาม Loyalty Level */}
+        {suggest && (
+          <div style={{
+            ...card, padding: 14, marginBottom: 14,
+            borderColor: `${P.gold}55`, background: `${P.gold}10`,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
+              <span style={{
+                width: 5, height: 20, borderRadius: 3,
+                background: TRADER_THEMES[suggest.trader]?.bg || P.gold,
+              }} />
+              <span style={{ fontSize: 14, fontWeight: 800 }}>
+                More from {suggest.trader}
+              </span>
+              <span style={{ ...label, textTransform: 'none', letterSpacing: 0 }}>
+                unlocked by loyalty level, not by a previous quest
+              </span>
+              <div style={{ flex: 1 }} />
+              {(() => {
+                const shown = suggestOpen ? suggest.quests : suggest.quests.slice(0, 8);
+                return (
+                  <button
+                    onClick={() => { addQuests(shown); setSuggest(null); }}
+                    title={`Add ${shown.length} quest${shown.length > 1 ? 's' : ''} to your list`}
+                    style={{
+                      padding: '6px 13px', borderRadius: 999, cursor: 'pointer',
+                      fontSize: 12, fontWeight: 800, whiteSpace: 'nowrap',
+                      border: `1px solid ${P.green}`, background: `${P.green}22`, color: P.green,
+                    }}
+                  >
+                    + Add all ({shown.length})
+                  </button>
+                );
+              })()}
+              <button
+                onClick={() => setSuggest(null)}
+                title="Dismiss"
+                style={{ background: 'none', border: 'none', color: P.dim, cursor: 'pointer', display: 'flex' }}
+              >
+                <Icons.Close size={16} />
+              </button>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
+              {(suggestOpen ? suggest.quests : suggest.quests.slice(0, 8)).map((q) => (
+                <span
+                  key={q.id}
+                  onClick={() => {
+                    addQuest(q);
+                    setSuggest((s) => {
+                      const rest = s.quests.filter((x) => x.id !== q.id);
+                      return rest.length ? { ...s, quests: rest } : null;
+                    });
+                  }}
+                  style={{ ...chip(false, P.gold), cursor: 'pointer' }}
+                  title={`${q.loyalty?.level ? `Loyalty Level ${q.loyalty.level}` : 'Loyalty level unknown'}${q.minPlayerLevel > 1 ? ` · player level ${q.minPlayerLevel}` : ''}`}
+                >
+                  + {q.name}
+                  {q.loyalty?.level && <span style={{ opacity: .6 }}>LL{q.loyalty.level}</span>}
+                </span>
+              ))}
+            </div>
+
+            {/* บางเทรดเดอร์มีถึง 46 อัน ไม่กางทั้งหมดตั้งแต่แรก */}
+            {suggest.quests.length > 8 && (
+              <div
+                onClick={() => setSuggestOpen((v) => !v)}
+                style={{ ...label, marginTop: 10, cursor: 'pointer', color: P.blue }}
+              >
+                {suggestOpen
+                  ? '▴ Show fewer'
+                  : `▾ Show all ${suggest.quests.length} from ${suggest.trader}`}
+              </div>
+            )}
+          </div>
+        )}
+
+        {selectedQuests.length === 0 ? (
+          <Empty
+            icon={<Icons.Book size={44} />}
+            title="No active quests yet"
+            hint="Search a quest above to add it, or scan your in-game quest list on the Add Quest page."
+          />
+        ) : (
+          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+            {/* ---------------- รายการเควสด้านซ้าย ---------------- */}
+            <aside style={{
+              ...card, width: 300, flexShrink: 0, padding: 12,
+              // ใต้ navbar + แถบหนึบ (สูงราว 56px) ไม่ใช่ตัวเลขตายตัวเหมือนเดิม
+              position: 'sticky', top: navTop + 68,
+              maxHeight: `calc(100vh - ${navTop + 88}px)`, overflowY: 'auto',
+            }}>
+              <div style={{ ...label, marginBottom: 9 }}>
+                {visibleQuests.length === selectedQuests.length
+                  ? `Active quests (${selectedQuests.length})`
+                  : `Showing ${visibleQuests.length} of ${selectedQuests.length}`}
+              </div>
+              <div style={{ display: 'grid', gap: 6 }}>
+                {visibleQuests.map((quest) => {
+                  const { done, total } = progressOf(quest);
+                  const complete = total > 0 && done === total;
+                  return (
+                    <div
+                      key={quest.id}
+                      onClick={() => scrollTo(quest.id)}
+                      style={{
+                        display: 'flex', gap: 9, alignItems: 'flex-start', padding: '8px 9px',
+                        borderRadius: 9, cursor: 'pointer',
+                        background: P.inputBg, border: `1px solid ${complete ? `${P.green}66` : P.borderSoft}`,
+                      }}
+                    >
+                      <span style={{
+                        width: 4, height: 34, borderRadius: 2, flexShrink: 0, marginTop: 1,
+                        background: TRADER_THEMES[quest.trader?.name]?.bg || '#334155',
+                      }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{
+                          fontSize: 12.5, fontWeight: 700, color: complete ? P.green : P.text,
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        }}>
+                          {quest.name}
+                        </div>
+                        <div style={{ ...label, margin: '3px 0 5px' }}>
+                          {quest.trader?.name}{quest.minPlayerLevel > 1 ? ` · LV ${quest.minPlayerLevel}` : ''}
+                        </div>
+                        {complete
+                          ? <span style={{ ...badge(P.green), display: 'inline-block' }}>Turn in</span>
+                          : <Bar value={done} total={total} height={4} color={P.gold} />}
+                      </div>
+                      <span style={{ ...label, fontVariantNumeric: 'tabular-nums', marginTop: 1 }}>{done}/{total}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </aside>
+
+            {/* ---------------- การ์ด objective ด้านขวา ---------------- */}
+            <div style={{ flex: 1, minWidth: 0, display: 'grid', gap: 14 }}>
+              {visibleQuests.length === 0 && (
+                <Empty icon={<Icons.Filter size={40} />} title="No quests match these filters" />
+              )}
+
+              {visibleQuests.map((quest) => {
+                const keyOf = (o) => getObjectiveKey(quest.id, o.id);
+                const isHidden = (o) => !!hiddenObjectives[keyOf(o)];
+                const all = quest.objectives || [];
+                const visibleObjs = all.filter((o) => !isHidden(o));
+                const hiddenCount = all.length - visibleObjs.length;
+                const openHidden = showHiddenOf[quest.id];
+
+                const inLocation = (o) => objectiveLocations.length === 0
+                  || o.maps?.some((m) => objectiveLocations.includes(m.name));
+
+                const shown = (openHidden ? all : visibleObjs);
+                const handOver = shown.filter((o) => o.type === 'giveItem');
+                const others = shown.filter((o) => o.type !== 'giveItem' && inLocation(o));
+                const { done, total, optDone, optTotal } = progressOf(quest);
+                const trader = TRADER_THEMES[quest.trader?.name] || { bg: '#334155' };
+
+                // แถบบอกความคืบหน้าของ "ทั้งเควส" เสมอ ส่วนการ์ดอาจโชว์ไม่ครบเพราะตัวกรอง/การซ่อน
+                // ถ้าไม่บอกตรงนี้จะดูเหมือนตัวเลขผิด
+                const shownCount = handOver.length + others.length;
+                const notes = [];
+                if (shownCount !== all.length) notes.push(`showing ${shownCount} of ${all.length}`);
+                if (hiddenCount > 0) notes.push(`${hiddenCount} hidden`);
+                if (optTotal > 0) notes.push(`${optDone}/${optTotal} optional`);
+
+                return (
+                  <section
+                    key={quest.id}
+                    ref={(el) => (refs.current[quest.id] = el)}
+                    // ไม่ใส่ overflow:hidden เพราะจะไปตัดรูปตอน hover ที่ขยาย 2.5 เท่า
+                    // มุมโค้งของหัวการ์ดเลยกำหนดที่ตัวหัวการ์ดเองแทน
+                    style={card}
+                  >
+                    {/* หัวการ์ด */}
+                    <div style={{
+                      display: 'flex', alignItems: 'flex-start', gap: 12, padding: '13px 15px',
+                      borderBottom: `1px solid ${P.borderSoft}`, background: '#16223c',
+                      borderRadius: '13px 13px 0 0',
+                    }}>
+                      <span style={{ width: 5, alignSelf: 'stretch', borderRadius: 3, background: trader.bg }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <a
+                          href={quest.wikiLink} target="_blank" rel="noreferrer"
+                          style={{ fontSize: 15, fontWeight: 800, color: P.text, textDecoration: 'none' }}
+                        >
+                          {quest.name}
+                        </a>
+                        <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap', marginTop: 7 }}>
+                          <span style={badge(trader.bg)}>{quest.trader?.name}</span>
+                          {quest.minPlayerLevel > 1 && <span style={badge(P.label)}>LV {quest.minPlayerLevel}</span>}
+                          <span style={badge(P.blue)}>{(quest.experience || 0).toLocaleString()} XP</span>
+                          {quest.kappaRequired && <span style={badge(P.gold)}>Kappa</span>}
+                          {quest.lightkeeperRequired && <span style={badge('#38bdf8')}>Lightkeeper</span>}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginTop: 9, maxWidth: 380 }}>
+                          <Bar value={done} total={total} height={5} color={done === total && total > 0 ? P.green : P.gold} />
+                          <span style={{ ...label, fontVariantNumeric: 'tabular-nums' }}>{done}/{total}</span>
+                        </div>
+                        {notes.length > 0 && (
+                          <div style={{ ...label, marginTop: 5, textTransform: 'none', letterSpacing: 0 }}>
+                            {notes.join(' · ')}
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <MiniButton title="Mark complete" color={P.green} onClick={() => nextQuest(quest.id)}>
+                          <Icons.Check size={14} />
+                        </MiniButton>
+                        <MiniButton title="Remove from list" color={P.red} onClick={() => removeQuest(quest.id)}>
+                          <Icons.Close size={14} />
+                        </MiniButton>
+                      </div>
+                    </div>
+
+                    <div style={{ padding: '13px 15px' }}>
+                      {/* ของที่ต้องส่งมอบ */}
+                      {handOver.length > 0 && (
+                        <>
+                          <div style={{ ...label, marginBottom: 9 }}>Hand over</div>
+                          {/* ใช้ flex-wrap ไม่ใช่ grid คอลัมน์ตายตัว — ไอเทมอย่างปืนยาว/รางปืน
+                              ไอคอนกว้างกว่าช่อง 96px มาก ของเดิมรูปเลยล้นออกนอกกรอบ
+                              แบบนี้กรอบกว้างตามรูป (สูงสุด 220px) ของชิ้นเล็กก็ยังกว้าง 96px เท่าเดิม */}
+                          <div style={{
+                            display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16,
+                            alignItems: 'stretch',
+                          }}>
+                            {handOver.map((obj) => {
+                              const checked = checkedObjectives[keyOf(obj)];
+                              const hidden = isHidden(obj);
+                              return (
+                                <div
+                                  key={keyOf(obj)}
+                                  onClick={() => toggleObjective(quest.id, obj.id)}
+                                  title={obj.description}
+                                  style={{
+                                    position: 'relative', padding: '10px 8px 8px', borderRadius: 10,
+                                    cursor: 'pointer', textAlign: 'center', opacity: hidden ? .45 : 1,
+                                    border: `1px solid ${checked ? P.green : P.borderSoft}`,
+                                    // พื้นตามระดับไอเทมของเกม ทำให้กวาดตาหาของถูกชิ้นได้เร็วกว่าพื้นสีเดียวหมด
+                                    background: checked ? `${P.green}22` : itemBg(obj.item),
+                                    minWidth: 96, maxWidth: 236, flex: '0 1 auto',
+                                    display: 'flex', flexDirection: 'column',
+                                    alignItems: 'center', justifyContent: 'flex-end',
+                                  }}
+                                >
+                                  <button
+                                    title={hidden ? 'Unhide' : 'Hide'}
+                                    onClick={(e) => { e.stopPropagation(); toggleHideObjective(quest.id, obj.id); }}
+                                    style={{
+                                      position: 'absolute', top: 3, right: 3, width: 20, height: 20,
+                                      borderRadius: 6, cursor: 'pointer', display: 'flex',
+                                      alignItems: 'center', justifyContent: 'center',
+                                      border: 'none', background: 'rgba(0,0,0,.35)', color: P.dim,
+                                    }}
+                                  >
+                                    <Icons.Ban size={11} />
+                                  </button>
+                                  {obj.item?.iconLink && (
+                                    <img
+                                      src={obj.item.iconLink} alt={obj.item.name} className="objective-img"
+                                      style={{
+                                        height: 52, width: 'auto', maxWidth: 220,
+                                        objectFit: 'contain', display: 'block',
+                                      }}
+                                    />
+                                  )}
+                                  <div style={{
+                                    fontSize: 11, fontWeight: 700, marginTop: 5, maxWidth: 220,
+                                    color: checked ? P.dim : P.text,
+                                    textDecoration: checked ? 'line-through' : 'none',
+                                  }}>
+                                    {obj.item?.shortName || 'item'}
+                                    <span style={{ color: P.blue }}> ×{obj.count}</span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </>
+                      )}
+
+                      {/* objective อื่น ๆ */}
+                      {others.length > 0 && (
+                        <>
+                          <div style={{ ...label, marginBottom: 9 }}>Objectives</div>
+                          <div style={{ display: 'grid', gap: 7 }}>
+                            {others.map((obj) => {
+                              const checked = checkedObjectives[keyOf(obj)];
+                              const hidden = isHidden(obj);
+                              return (
+                                <div
+                                  key={keyOf(obj)}
+                                  onClick={() => toggleObjective(quest.id, obj.id)}
+                                  style={{
+                                    display: 'flex', alignItems: 'flex-start', gap: 11, padding: '9px 11px',
+                                    borderRadius: 10, cursor: 'pointer', opacity: hidden ? .45 : 1,
+                                    border: `1px solid ${checked ? `${P.green}66` : P.borderSoft}`,
+                                    background: checked ? `${P.green}14` : P.inputBg,
+                                  }}
+                                >
+                                  <span style={{
+                                    flexShrink: 0, width: 18, height: 18, marginTop: 1, borderRadius: 5,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    border: `1px solid ${checked ? P.green : '#2a3550'}`,
+                                    background: checked ? P.green : 'transparent',
+                                    color: checked ? '#06121f' : 'transparent',
+                                  }}>
+                                    <Icons.Check size={12} />
+                                  </span>
+
+                                  {obj.item?.iconLink && (
+                                    <img
+                                      src={obj.item.iconLink} alt="" className="objective-img"
+                                      // ไอคอนกว้าง ๆ เคยดันข้อความจนบีบแคบ เพราะ flexShrink:0 + ไม่จำกัดความกว้าง
+                                      style={{
+                                        height: 42, width: 'auto', maxWidth: 150,
+                                        objectFit: 'contain', flexShrink: 0,
+                                      }}
+                                    />
+                                  )}
+
+                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{
+                                      fontSize: 13, lineHeight: 1.45,
+                                      color: checked ? P.dim : P.text,
+                                      textDecoration: checked ? 'line-through' : 'none',
+                                    }}>
+                                      {obj.description}
+                                      {["findItem", "shoot", "kill", "plantItem", "mark"].includes(obj.type) && obj.count > 1 && (
+                                        <span style={{ color: P.blue, fontWeight: 700 }}> ×{obj.count}</span>
+                                      )}
+                                      {obj.optional && <span style={{ ...badge(P.dim), marginLeft: 6 }}>optional</span>}
+                                    </div>
+                                    {obj.maps?.length > 0 && (
+                                      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6 }}>
+                                        {obj.maps.map((m) => (
+                                          <span key={m.name} style={badge(checked ? P.green : P.blue)}>{m.name}</span>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+
+                                  <MiniButton
+                                    title={hidden ? 'Unhide' : 'Hide this objective'}
+                                    color={P.label}
+                                    onClick={(e) => { e.stopPropagation(); toggleHideObjective(quest.id, obj.id); }}
+                                  >
+                                    <Icons.Ban size={12} />
+                                  </MiniButton>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </>
+                      )}
+
+                      {/* ของเดิมซ่อนแล้วเอากลับไม่ได้เลย — ต้องมีทางเปิดดู */}
+                      {hiddenCount > 0 && (
+                        <div
+                          onClick={() => setShowHiddenOf((p) => ({ ...p, [quest.id]: !p[quest.id] }))}
+                          style={{ ...label, marginTop: 12, cursor: 'pointer', color: P.blue }}
+                        >
+                          {openHidden ? '▴ Hide' : '▾ Show'} {hiddenCount} hidden objective{hiddenCount > 1 ? 's' : ''}
+                        </div>
+                      )}
+
+                      {/* รางวัล */}
+                      {quest.finishRewards?.items?.length > 0 && (
+                        <>
+                          <div style={{ ...label, margin: '16px 0 9px' }}>Rewards</div>
+                          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                            {quest.finishRewards.items.map((rw) => (
+                              <div
+                                key={`${quest.id}-rw-${rw.item.id}`}
+                                title={rw.item.name}
+                                style={{
+                                  minWidth: 92, maxWidth: 216, padding: '8px 8px', borderRadius: 10,
+                                  textAlign: 'center', display: 'flex', flexDirection: 'column',
+                                  alignItems: 'center', justifyContent: 'flex-end',
+                                  border: `1px solid ${P.borderSoft}`, background: itemBg(rw.item),
+                                }}
+                              >
+                                <img
+                                  src={rw.item.baseImageLink} alt={rw.item.name}
+                                  style={{
+                                    height: 44, width: 'auto', maxWidth: 200,
+                                    objectFit: 'contain', display: 'block',
+                                  }}
+                                />
+                                <div style={{ fontSize: 11, fontWeight: 700, marginTop: 5, maxWidth: 200 }}>
+                                  {rw.item.shortName}
+                                  <span style={{ color: P.blue }}> ×{rw.count}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 };

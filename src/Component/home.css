@@ -1,9 +1,14 @@
 .objective-img {
     transition: transform 0.2s ease-in-out;
+    position: relative;
 }
 
+/* ซูมดูไอเทมตอนชี้เมาส์ — ต้องยกขึ้นมาทับการ์ดอื่น ไม่งั้นโดนรายการถัดไปบัง
+   ไอคอนของยาว (ปืน/ราง) ถูกจำกัดความกว้างไว้แล้ว ซูม 2.2 เท่าพอเห็นรายละเอียด
+   โดยไม่ล้นออกนอกจอ */
 .objective-img:hover {
-    transform: scale(2.5);
+    transform: scale(2.2);
+    z-index: 20;
 }
 
 /* --- Unified dark theme for Home (overrides Bootstrap light defaults) --- */

@@ -74,7 +74,7 @@ export const hideoutStyles = {
         gap: theme.spacing.sm,
         marginTop: theme.spacing.md,
     },
-    navButton: (active, isMax) => ({
+    navButton: (active) => ({
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',

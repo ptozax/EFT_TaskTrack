@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import questsStatic from "../data/tasks";
 import { useLiveData } from '../data/gameStore';
 import { Icons, TRADER_THEMES } from '../Component/EftComponent';
-import { P, card, chip, badge, label, Bar, Ring, SearchBox, Empty } from '../Component/PanelUI.jsx';
+import { P, card, chip, badge, label, Bar, Ring, SearchBox, Empty, useNavbarOffset } from '../Component/PanelUI.jsx';
 import * as QuestComponent from '../Component/QuestComponent';
 
 const STORE_KEY = 'eft_completed_quests';
@@ -38,12 +38,16 @@ const buildStatusFn = (tasks, completedIds) => {
     return false;
   };
 
-  return (quest) => {
+  const statusOf = (quest) => {
     if (done.has(quest.id)) return 'done';
     if (failed.has(quest.id)) return 'failed';
     const reqs = quest.taskRequirements || [];
     return reqs.every(reqMet) ? 'ready' : 'blocked';
   };
+  // เงื่อนไขที่ยังไม่ผ่าน ต้องใช้เกณฑ์เดียวกับที่ตัดสินสถานะ
+  // (ถ้าดูแค่ "ยังไม่ complete" เงื่อนไขแบบ failed/active ที่ผ่านแล้วจะถูกขึ้นเป็นตัวขวางผิด ๆ)
+  statusOf.unmetOf = (quest) => (quest.taskRequirements || []).filter((r) => !reqMet(r));
+  return statusOf;
 };
 
 const STATUS_META = {
@@ -185,6 +189,7 @@ const Kappa = () => {
     catch { return { filter: 'all', trader: 'All' }; }
   });
   const [expandedId, setExpandedId] = useState(null);
+  const navTop = useNavbarOffset();
 
   useEffect(() => {
     const handleStorageChange = () => {
@@ -232,6 +237,8 @@ const Kappa = () => {
           additions.forEach((q) => byId.set(q.id, q));
           return Array.from(byId.values());
         });
+        // ปิดเควสจากหน้านี้แล้วก็ต้องหลุดจากรายการ "กำลังทำ" ของหน้า Home เหมือนกัน
+        QuestComponent.dropFromActive(additions.map((q) => q.id));
       }
     }
   };
@@ -252,12 +259,10 @@ const Kappa = () => {
   // สถานะ + เควสที่ขวางอยู่ ของทุกเควส Kappa (คำนวณรอบเดียว ใช้ทั้งตัวนับและรายการ)
   const rows = useMemo(() => {
     const byId = new Map(quests.map((t) => [t.id, t]));
-    const doneIds = new Set(completedIds.filter((c) => c.status === 'complete').map((c) => c.id));
     return kappaQuests.map((q) => ({
       quest: q,
       status: statusOf(q),
-      blockers: (q.taskRequirements || [])
-        .filter((r) => !doneIds.has(r.task?.id))
+      blockers: statusOf.unmetOf(q)
         .map((r) => ({ id: r.task?.id, name: byId.get(r.task?.id)?.name || r.task?.name || '?' })),
     }));
   }, [kappaQuests, statusOf, quests, completedIds]);
@@ -283,7 +288,8 @@ const Kappa = () => {
 
   const visible = useMemo(() => rows.filter(({ quest, status }) => {
     if (view.trader !== 'All' && quest.trader.name !== view.trader) return false;
-    if (view.filter === 'done' && status !== 'done' && status !== 'failed') return false;
+    if (view.filter === 'done' && status !== 'done') return false;
+    if (view.filter === 'failed' && status !== 'failed') return false;
     if (view.filter === 'ready' && status !== 'ready') return false;
     if (view.filter === 'blocked' && status !== 'blocked') return false;
     if (searchTerm && !quest.name.toLowerCase().includes(searchTerm.toLowerCase())) return false;
@@ -294,67 +300,78 @@ const Kappa = () => {
 
   return (
     <div style={{ background: P.bg, minHeight: '100vh', color: P.text }}>
-      {/* ---------------- header ---------------- */}
-      <header style={{
-        position: 'sticky', top: 0, zIndex: 30,
-        background: 'rgba(11,18,34,.92)', backdropFilter: 'blur(12px)',
-        borderBottom: `1px solid ${P.border}`,
-      }}>
-        <div style={{ maxWidth: 1400, margin: '0 auto', padding: '16px 20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
-            <Ring value={counts.done} total={counts.all} />
-            <div style={{ flex: 1, minWidth: 220 }}>
-              <h1 style={{ fontSize: '19px', fontWeight: 900, margin: 0, letterSpacing: '-.01em' }}>
-                Kappa Tracker
-              </h1>
-              <div style={{ ...label, marginTop: 3 }}>
-                {counts.done} of {counts.all} quests complete
-              </div>
-              <div style={{ marginTop: 9, maxWidth: 460 }}>
-                <Bar value={counts.done} total={counts.all} />
-              </div>
+      {/* ---------------- hero: ปล่อยให้เลื่อนหาย ----------------
+          วงแหวน+การ์ดตัวเลขเป็นข้อมูลสรุปที่ดูตอนเปิดหน้า ไม่ได้ใช้ตอนไล่อ่านรายการ
+          ถ้าหนึบไว้ทั้งก้อนจะสูงเกิน 200px กินพื้นที่รายการไปเปล่า ๆ */}
+      <div style={{ maxWidth: 1400, margin: '0 auto', padding: '18px 20px 12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
+          <Ring value={counts.done} total={counts.all} />
+          <div style={{ flex: 1, minWidth: 220 }}>
+            <h1 style={{ fontSize: '19px', fontWeight: 900, margin: 0, letterSpacing: '-.01em' }}>
+              Kappa Tracker
+            </h1>
+            <div style={{ ...label, marginTop: 3 }}>
+              {counts.done} of {counts.all} quests complete
             </div>
-
-            {/* ตัวเลขสรุป — เห็นได้โดยไม่ต้องกดอะไร */}
-            <div style={{ display: 'flex', gap: 10 }}>
-              {[
-                { k: 'ready', n: counts.ready, t: 'Ready' },
-                { k: 'blocked', n: counts.blocked, t: 'Blocked' },
-                { k: 'done', n: counts.done, t: 'Done' },
-              ].map(({ k, n, t }) => (
-                <button
-                  key={k}
-                  onClick={() => set({ filter: view.filter === k ? 'all' : k })}
-                  style={{
-                    ...card, padding: '9px 14px', minWidth: 78, cursor: 'pointer',
-                    textAlign: 'center',
-                    borderColor: view.filter === k ? STATUS_META[k].color : P.border,
-                  }}
-                >
-                  <div style={{ fontSize: '19px', fontWeight: 900, color: STATUS_META[k].color, lineHeight: 1 }}>{n}</div>
-                  <div style={{ ...label, marginTop: 4 }}>{t}</div>
-                </button>
-              ))}
+            <div style={{ marginTop: 9, maxWidth: 460 }}>
+              <Bar value={counts.done} total={counts.all} />
             </div>
           </div>
 
+          {/* ตัวเลขสรุป — เห็นได้โดยไม่ต้องกดอะไร */}
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            {[
+              { k: 'ready', n: counts.ready, t: 'Ready' },
+              { k: 'blocked', n: counts.blocked, t: 'Blocked' },
+              { k: 'done', n: counts.done, t: 'Done' },
+            ].map(({ k, n, t }) => (
+              <button
+                key={k}
+                onClick={() => set({ filter: view.filter === k ? 'all' : k })}
+                style={{
+                  ...card, padding: '9px 14px', minWidth: 78, cursor: 'pointer',
+                  textAlign: 'center',
+                  borderColor: view.filter === k ? STATUS_META[k].color : P.border,
+                }}
+              >
+                <div style={{ fontSize: '19px', fontWeight: 900, color: STATUS_META[k].color, lineHeight: 1 }}>{n}</div>
+                <div style={{ ...label, marginTop: 4 }}>{t}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ---------------- แถบหนึบ: เฉพาะตัวควบคุมที่ใช้ตอนเลื่อน ---------------- */}
+      <header style={{
+        // ยึดใต้ AppNavbar (sticky-top ของ bootstrap, z-index 1020) ถ้าใช้ top:0 จะมุดเข้าไปโดนบัง
+        position: 'sticky', top: navTop, zIndex: 30,
+        background: 'rgba(11,18,34,.95)', backdropFilter: 'blur(12px)',
+        borderBottom: `1px solid ${P.border}`,
+      }}>
+        <div style={{ maxWidth: 1400, margin: '0 auto', padding: '10px 20px' }}>
           {/* ---------------- ตัวกรอง ---------------- */}
-          <div style={{ display: 'flex', gap: 10, marginTop: 14, flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
             <SearchBox value={searchTerm} onChange={setSearchTerm} placeholder="Search quest name..." width={280} />
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
               {FILTERS.map((f) => (
                 <span key={f.key} style={chip(view.filter === f.key)} onClick={() => set({ filter: f.key })}>
                   {f.text}
-                  <span style={{ opacity: .65 }}>
-                    {f.key === 'done' ? counts.done + counts.failed : counts[f.key]}
-                  </span>
+                  <span style={{ opacity: .65 }}>{counts[f.key]}</span>
                 </span>
               ))}
+              {/* เควสที่ทำพลาดมีน้อยแต่สำคัญ (เลือกสายอื่นไปแล้ว) — โผล่เฉพาะตอนมีจริง
+                  ของเดิมถูกนับรวมไว้ในชิป Done ทำให้เลขไม่ตรงกับการ์ด Done ด้านบน */}
+              {counts.failed > 0 && (
+                <span style={chip(view.filter === 'failed', P.red)} onClick={() => set({ filter: 'failed' })}>
+                  Failed<span style={{ opacity: .65 }}>{counts.failed}</span>
+                </span>
+              )}
             </div>
           </div>
 
           {/* แถวเทรดเดอร์ — แทนที่ accordion 8 อันของเดิม กดกรองได้ทันที เห็นความคืบหน้าพร้อมกัน */}
-          <div style={{ display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap', alignItems: 'center' }}>
             <span style={chip(view.trader === 'All')} onClick={() => set({ trader: 'All' })}>
               All traders
             </span>

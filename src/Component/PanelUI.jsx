@@ -5,8 +5,29 @@
  *
  * แยกออกมาเพื่อให้สองหน้านี้หน้าตาตรงกันจริง ไม่ต้องก๊อป style ไปมา
  * ========================================================================= */
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Icons } from './EftComponent.jsx';
+
+/**
+ * ความสูงของ AppNavbar ที่เป็น sticky-top ของ bootstrap (z-index 1020)
+ * header ของแต่ละหน้าถ้าตั้ง top:0 เหมือนกันจะเลื่อนไปมุดใต้ navbar แล้วโดนบัง
+ * -> ต้องยึดที่ใต้ navbar พอดี และความสูงเปลี่ยนได้เวลาจอแคบ (เมนูพับ) เลยต้องวัดจริง
+ */
+export const useNavbarOffset = () => {
+  const [top, setTop] = useState(0);
+  useEffect(() => {
+    if (typeof document === 'undefined') return undefined;
+    const el = document.querySelector('.navbar.sticky-top') || document.querySelector('.navbar');
+    if (!el) return undefined;
+    const update = () => setTop(Math.round(el.getBoundingClientRect().height));
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    window.addEventListener('resize', update);
+    return () => { ro.disconnect(); window.removeEventListener('resize', update); };
+  }, []);
+  return top;
+};
 
 export const P = {
   bg: '#0b1222',

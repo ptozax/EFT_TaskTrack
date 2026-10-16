@@ -78,9 +78,83 @@ const HOOBY_CLUB_ACTIVE = {
     unlocks: ['684009026ceedc792c09b2a7', '68400926706e0a55e90b0007']
 }
 
+const currentFaction = () => {
+    try { return JSON.parse(localStorage.getItem('eft_faction_name')) || 'BEAR'; } catch { return 'BEAR'; }
+};
+
+/** เรียงตามลำดับที่เล่นจริง: ลำดับในสายเทรดเดอร์ (จากวิกิ) -> Loyalty Level -> เลเวล -> ชื่อ */
+const byProgression = (a, b) =>
+    (a.traderRank ?? 999) - (b.traderRank ?? 999)
+    || (a.loyalty?.level ?? 99) - (b.loyalty?.level ?? 99)
+    || (a.minPlayerLevel || 0) - (b.minPlayerLevel || 0)
+    || a.name.localeCompare(b.name);
+
+/**
+ * เควสแรกของทุกเทรดเดอร์
+ *
+ * เดิม hardcode ไว้ 4 ชื่อ (First in Line, Shooting Cans, Burning Rubber, Saving the Mole)
+ * แต่ในเกมทุกเทรดเดอร์มีเควสเริ่มต้นของตัวเอง -> อีก 7 เทรดเดอร์ไม่มีจุดเริ่มเลย
+ *
+ * หาจากข้อมูลแทน: ตัวแรกในลำดับสายของเทรดเดอร์ (traderRank จากตารางในวิกิ)
+ * ที่ยังไม่มีเงื่อนไขเควสก่อนหน้า — เงื่อนไขข้อหลังสำคัญ เพราะตารางวิกิบางเทรดเดอร์
+ * ขึ้นต้นด้วยเควสกลางสาย (เช่น BTR Driver ขึ้น "Shipping Delay - Part 2" เป็นแถวแรก)
+ */
 export const getStartQuests = () => {
-    return ["First in Line", "Shooting Cans", "Burning Rubber", "Saving the Mole"]
-}
+    const faction = currentFaction();
+    const first = new Map();
+    TASKS()
+        .filter(q => (q.taskRequirements || []).length === 0
+            && ["Any", faction].includes(q.factionName)
+            && q.trader?.name)
+        .sort(byProgression)
+        .forEach(q => { if (!first.has(q.trader.name)) first.set(q.trader.name, q); });
+    return [...first.values()];
+};
+
+/**
+ * ใส่เควสเริ่มต้นลงรายการ "กำลังทำ"
+ *
+ * เควสทั้ง 4 ไม่มีเงื่อนไขเควสก่อนหน้า -> getNextQuestLists ไม่มีวันเสนอให้
+ * พอ reset แล้วรายการจึงว่างเปล่าและไม่มีจุดเริ่ม ต้องไปค้นชื่อเพิ่มเอง
+ * (เดิม getStartQuests มีอยู่แล้วแต่ไม่เคยถูกเรียกจากที่ไหนเลย)
+ */
+export const seedStartQuests = () => {
+    const starters = getStartQuests();
+    if (!starters.length) return [];
+
+    let saved = [];
+    try { saved = JSON.parse(localStorage.getItem('eft_selected_quests')) || []; } catch { saved = []; }
+    const byId = new Map(saved.map(q => [q.id, q]));
+    starters.forEach(q => { if (!byId.has(q.id)) byId.set(q.id, q); });
+
+    const next = Array.from(byId.values());
+    localStorage.setItem('eft_selected_quests', JSON.stringify(next));
+    return starters;
+};
+
+/**
+ * เควสที่น่าทำต่อของเทรดเดอร์หนึ่ง — ใช้เสนอหลังทำเควสของเทรดเดอร์นั้นเสร็จ
+ *
+ * 301 จาก 504 เควสไม่มีเงื่อนไขเควสก่อนหน้า (ในเกมปลดล็อกด้วย Loyalty Level
+ * + เลเวลผู้เล่น ซึ่งแอปไม่รู้) getNextQuestLists จึงตัดทิ้งหมดด้วยบรรทัด
+ * `if (requirements.length === 0) return false;` -> ไม่มีวันถูกเสนอเลย
+ *
+ * ตรงนี้เสนอให้เลือกเอง ไม่ยัดเข้ารายการอัตโนมัติ และไม่กรองด้วยเลเวลผู้เล่น
+ * เรียงตาม Loyalty Level (จากวิกิ) แล้วตามด้วยเลเวลขั้นต่ำ = ลำดับที่ได้เล่นจริง
+ */
+export const getTraderSuggestions = (traderName, { completed = [], active = [], limit = 8 } = {}) => {
+    if (!traderName) return [];
+    const taken = new Set([...completed.map(q => q.id), ...active.map(q => q.id)]);
+    const faction = currentFaction();
+
+    return TASKS()
+        .filter(q => q.trader?.name === traderName
+            && (q.taskRequirements || []).length === 0
+            && !taken.has(q.id)
+            && ["Any", faction].includes(q.factionName))
+        .sort(byProgression)
+        .slice(0, limit);
+};
 
 export const getQuestTreeComplete = (startQuestId) => {
     // 1. Get all the IDs recursively
@@ -301,6 +375,31 @@ export const getAllRequirements = (questId, visitedIds = new Set()) => {
     });
 
     return visitedIds;
+};
+
+/**
+ * ถอดเควสออกจากรายการ "กำลังทำ" + ล้างความคืบหน้า objective ของมัน
+ *
+ * ใช้ตอนทำเครื่องหมายว่าเควสเสร็จ/พลาดจากหน้าอื่น (Kappa, AddQuest โหมด Completed)
+ * หน้า Home ทำแบบนี้อยู่แล้วใน nextQuest แต่สองหน้านั้นเขียนแค่ eft_completed_quests
+ * ทำให้เควสเดียวกันค้างเป็น "กำลังทำ" ในหน้า Home พร้อมกับเป็น "เสร็จแล้ว"
+ */
+export const dropFromActive = (questIds) => {
+    const ids = new Set(questIds);
+    if (!ids.size) return;
+
+    const active = JSON.parse(localStorage.getItem('eft_selected_quests') || '[]');
+    const next = active.filter((q) => !ids.has(q.id));
+    if (next.length !== active.length) {
+        localStorage.setItem('eft_selected_quests', JSON.stringify(next));
+    }
+
+    const checks = JSON.parse(localStorage.getItem('eft_objective_checklist') || '{}');
+    let changed = false;
+    Object.keys(checks).forEach((k) => {
+        if (ids.has(k.split('|')[0])) { delete checks[k]; changed = true; }
+    });
+    if (changed) localStorage.setItem('eft_objective_checklist', JSON.stringify(checks));
 };
 
 export const callbackStorageChange = (handleStorageChange) => {

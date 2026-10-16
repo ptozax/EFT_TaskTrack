@@ -3,6 +3,9 @@ import { useParams } from "react-router-dom";
 import { StrictMode, lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 
+// AppNavbar ใช้ react-bootstrap และอยู่ทุกหน้า -> CSS ต้องโหลดตั้งแต่แรกแบบ global
+// (เดิมติดมากับ home.jsx โดยบังเอิญ พอ home เลิกใช้คลาสของ bootstrap ก็จะหลุดไปทั้งเว็บ)
+import 'bootstrap/dist/css/bootstrap.min.css';
 import './index.css';
 
 import Home from './home/home.jsx';
