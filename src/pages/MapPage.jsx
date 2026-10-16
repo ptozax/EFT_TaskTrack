@@ -1529,7 +1529,17 @@ const MapPage = () => {
                               transform: `translate(-50%, -50%) scale(${isExpanded ? markerScale * 1.8 : markerScale}) rotate(${rotation}deg)`,
                               zIndex: isExpanded ? 100 : 30,
                             }}
-                            onClick={() => { setQuestDescription(questDescription === obj.id ? null : obj.id); setExpandedQuestName(isExpanded ? null : tq.id); }}
+                            /* กดหมุดบนแมพไม่ควรลากแมพตามไปด้วย */
+                            onMouseDown={(e) => e.stopPropagation()}
+                            /* คิดจาก "กำลังจะเปิดหรือปิด" ครั้งเดียว แล้วตั้งทั้งสอง state ให้ตรงกัน
+                               ของเดิมสลับ questDescription กับ expandedQuestName แยกกัน
+                               (อันหลังอิง isExpanded) สองค่าเลยหลุดจากกันได้ */
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const opening = questDescription !== obj.id;
+                              setQuestDescription(opening ? obj.id : null);
+                              setExpandedQuestName(opening ? tq.id : null);
+                            }}
                           />
                           {questDescription === obj.id && idx === lastIndex && (
                             <div style={{
@@ -1538,18 +1548,23 @@ const MapPage = () => {
                               top: `${mk.y}%`,
                               display: 'flex',
                               flexDirection: 'column',
-                              transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg)`,
-                              zIndex: isExpanded ? 101 : 30,
+                              /* translate ตัวท้ายอยู่หลัง rotate จึงขยับใน "แกนจอ" ไม่ใช่แกนแมพ
+                                 -> ป้ายลอยขึ้นเหนือหมุดเสมอ ถึงจะหมุนแมพอยู่ก็ตาม */
+                              transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg) translate(0, calc(-50% - 16px))`,
+                              zIndex: isExpanded ? 101 : 60,
                             }}
-                              onClick={() => { setQuestDescription(null); setExpandedQuestName(isExpanded ? null : tq.id); }}>
-                              {obj.description}
-                              <div style={{
-                                width: '100%', background: '#00c40aff', border: 'none',
-                                borderRadius: "5px", color: '#ff3c00ff', cursor: 'default', fontSize: '15px'
-                              }}
-                                onClick={() => completeMark(quest.id, obj.id)}>
-                                DONE!!
-                              </div>
+                              onMouseDown={(e) => e.stopPropagation()}
+                              /* กดป้ายคือ "ปิดป้าย" อย่างเดียว ไม่ไปยุ่งกับการกางรายละเอียดในแผงซ้าย
+                                 ของเดิมสลับ expandedQuestName ด้วย ทำให้กดปิดแล้วกลับไปกางรายละเอียดขึ้นมา */
+                              onClick={(e) => { e.stopPropagation(); setQuestDescription(null); }}>
+                              <span>{obj.description}</span>
+                              <button
+                                style={styles.descriptionDone}
+                                onClick={(e) => { e.stopPropagation(); completeMark(quest.id, obj.id); }}
+                              >
+                                ✓ Done
+                              </button>
+                              <span style={styles.descriptionArrow} />
                             </div>
                           )}
                         </>
