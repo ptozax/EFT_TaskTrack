@@ -82,8 +82,13 @@ const AddQuest = () => {
   const autoMatchQuest = useCallback((text) => {
     const matched = [];
     let remaining = text.toLowerCase();
-    // เรียงชื่อยาวก่อน กัน "Debut" ไปกินคำใน "Debut - Part 2"
-    [...quests].sort((a, b) => b.name.length - a.name.length).forEach((quest) => {
+    /* กรองฝ่ายก่อน — Textile / Drip-Out / Our Own Land / Green Corridor มีทั้งเวอร์ชัน
+       BEAR และ USEC ชื่อเหมือนกันเป๊ะ ถ้าไม่กรอง ตัวที่โดนหยิบขึ้นกับลำดับในข้อมูล
+       ผู้เล่น USEC จึงได้เควสฝั่ง BEAR เข้ารายการ */
+    quests
+      .filter((q) => QuestComponent.inFaction(q))
+      // เรียงชื่อยาวก่อน กัน "Debut" ไปกินคำใน "Debut - Part 2"
+      .sort((a, b) => b.name.length - a.name.length).forEach((quest) => {
       const qName = quest.name.toLowerCase();
       if (!remaining.includes(qName)) return;
       const added = addQuest(quest);
@@ -132,12 +137,9 @@ const AddQuest = () => {
   // ไม่กรองแล้วจะเห็นชื่อซ้ำกันสองอันและเผลอเพิ่มของฝ่ายตรงข้าม — ฝ่ายสลับได้ที่ AppNavbar
   const searchResults = useMemo(() => {
     if (!search.trim()) return [];
-    const faction = (() => {
-      try { return JSON.parse(localStorage.getItem('eft_faction_name')) || 'BEAR'; } catch { return 'BEAR'; }
-    })();
     const term = search.toLowerCase();
     return quests
-      .filter((q) => ['Any', faction].includes(q.factionName) && q.name.toLowerCase().includes(term))
+      .filter((q) => QuestComponent.inFaction(q) && q.name.toLowerCase().includes(term))
       .slice(0, 14);
   }, [search, quests]);
 
@@ -157,7 +159,7 @@ const AddQuest = () => {
     <div style={{ background: P.bg, minHeight: '100vh', color: P.text }}>
       <div style={{ maxWidth: 980, margin: '0 auto', padding: '22px 20px 64px' }}>
 
-        <h1 style={{ fontSize: 20, fontWeight: 900, margin: '0 0 4px' }}>Add Quest</h1>
+        <h1 style={{ fontSize: 23, fontWeight: 900, margin: '0 0 4px' }}>Add Quest</h1>
         <div style={{ ...label, marginBottom: 18 }}>
           Add quests by name, or scan a screenshot of your in-game task list
         </div>
@@ -177,10 +179,10 @@ const AddQuest = () => {
                   background: mode === m.key ? `${m.color}1c` : P.inputBg,
                 }}
               >
-                <div style={{ fontSize: 13.5, fontWeight: 800, color: mode === m.key ? m.color : P.muted }}>
+                <div style={{ fontSize: 15.5, fontWeight: 800, color: mode === m.key ? m.color : P.muted }}>
                   {m.text}
                 </div>
-                <div style={{ fontSize: 11.5, color: P.dim, marginTop: 3 }}>{m.hint}</div>
+                <div style={{ fontSize: 13.5, color: P.dim, marginTop: 3 }}>{m.hint}</div>
               </button>
             ))}
           </div>
@@ -210,7 +212,7 @@ const AddQuest = () => {
                     width: 4, height: 18, borderRadius: 2, flexShrink: 0,
                     background: TRADER_THEMES[q.trader?.name]?.bg || '#334155',
                   }} />
-                  <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600 }}>{q.name}</span>
+                  <span style={{ flex: 1, fontSize: 15.5, fontWeight: 600 }}>{q.name}</span>
                   <span style={label}>{q.trader?.name}</span>
                   {q.minPlayerLevel > 1 && <span style={badge(P.label)}>LV {q.minPlayerLevel}</span>}
                   <span style={badge(already ? P.dim : modeMeta.color)}>{already ? 'Added' : '+ Add'}</span>
@@ -245,10 +247,10 @@ const AddQuest = () => {
           <div style={{ color: dragOver ? P.gold : P.dim, display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
             <Icons.Crosshair size={30} />
           </div>
-          <div style={{ fontSize: 14, fontWeight: 800, color: P.muted }}>
+          <div style={{ fontSize: 16, fontWeight: 800, color: P.muted }}>
             Scan quests from a screenshot
           </div>
-          <div style={{ fontSize: 12, color: P.dim, marginTop: 6 }}>
+          <div style={{ fontSize: 14, color: P.dim, marginTop: 6 }}>
             Drop an image here, click to choose a file, or press Ctrl + V to paste
           </div>
 
@@ -300,7 +302,7 @@ const AddQuest = () => {
               <details style={{ marginTop: 14 }}>
                 <summary style={{ ...label, cursor: 'pointer' }}>Unrecognised text</summary>
                 <pre style={{
-                  whiteSpace: 'pre-wrap', fontSize: 11.5, color: P.dim, marginTop: 8,
+                  whiteSpace: 'pre-wrap', fontSize: 13.5, color: P.dim, marginTop: 8,
                   background: P.inputBg, border: `1px solid ${P.borderSoft}`,
                   borderRadius: 9, padding: 10, maxHeight: 180, overflowY: 'auto',
                 }}>
@@ -349,7 +351,7 @@ const AddQuest = () => {
                   }} />
                   <a
                     href={quest.wikiLink} target="_blank" rel="noreferrer"
-                    style={{ flex: 1, minWidth: 0, fontSize: 13.5, fontWeight: 700, color: P.text, textDecoration: 'none' }}
+                    style={{ flex: 1, minWidth: 0, fontSize: 15.5, fontWeight: 700, color: P.text, textDecoration: 'none' }}
                   >
                     {quest.name}
                   </a>

@@ -12,6 +12,8 @@ const COMPLETE_KEY = "eft_completed_quests";
 const HIDDEN_KEY = "eft_hidden_objectives";   // เดิมเก็บแต่ใน state -> รีเฟรชทีเดียวหาย
 
 const getObjectiveKey = (questId, objectiveId) => `${questId}|${objectiveId}`;
+// จำนวนเควสที่เสนอครั้งแรกในการ์ด (กางดูทั้งหมดได้) — เดิม 8 ซึ่งเยอะไปต่อเทรดเดอร์
+const SUGGEST_PREVIEW = 5;
 const readJSON = (key, fallback) => {
   try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
 };
@@ -74,9 +76,12 @@ const Home = () => {
   const [currentQuestId, setCurrentQuestId] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [showLoyalty, setShowLoyalty] = useState(false);
+  const [traderLevels, setTraderLevels] = useState(() => QuestComponent.getTraderLevels());
   const [onlyTurnIn, setOnlyTurnIn] = useState(false);
   const [suggest, setSuggest] = useState(null);       // { trader, quests } หลังทำเควสเสร็จ
-  const [suggestOpen, setSuggestOpen] = useState(false); // กางดูทั้งหมดหรือเอาแค่ 8 อันแรก
+  const [suggestOpen, setSuggestOpen] = useState(false); // กางดูทั้งหมดหรือเอาแค่ไม่กี่อันแรก
+  const [suggestMin, setSuggestMin] = useState(false);   // ย่อเป็นปุ่มเล็กมุมจอ
   const [showHiddenOf, setShowHiddenOf] = useState({});   // questId -> เปิดดูรายการที่ซ่อนไว้
 
   const refs = useRef({});
@@ -98,7 +103,13 @@ const Home = () => {
       setCompletedQuests(readJSON(COMPLETE_KEY, []));
       setHiddenObjectives(readJSON(HIDDEN_KEY, {}));
     };
+    /* เก็บกวาดเควสผิดฝ่ายที่ค้างอยู่จากก่อนหน้านี้ — การสแกนรูปใน Add Quest เคยไม่กรองฝ่าย
+       เลยมีโอกาสเพิ่มเวอร์ชันของอีกฝ่ายเข้ามา (Textile / Drip-Out ชื่อเหมือนกันทั้งสองฝ่าย) */
+    const stale = readJSON(STORAGE_KEY, []).filter((q) => !QuestComponent.inFaction(q));
+    if (stale.length) QuestComponent.dropFromActive(stale.map((q) => q.id));
+
     setIsLoaded(true);
+    handleStorageChange();
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
@@ -131,6 +142,12 @@ const Home = () => {
   const traderOptions = useMemo(
     () => [...new Set(selectedQuests.map((q) => q.trader?.name).filter(Boolean))].sort(),
     [selectedQuests]
+  );
+
+  // เทรดเดอร์ทุกคนในเกม (ไม่ใช่แค่ที่มีเควสอยู่ในรายการ) — ใช้กับแผง Loyalty Level
+  const traderNames = useMemo(
+    () => [...new Set(quests.map((q) => q.trader?.name).filter(Boolean))].sort(),
+    [quests]
   );
 
   const toggleLocation = (name) => setObjectiveLocations((p) => p.includes(name) ? p.filter((l) => l !== name) : [...p, name]);
@@ -188,13 +205,24 @@ const Home = () => {
        เสนอของเทรดเดอร์คนเดิมให้เลือกเอง ไม่ยัดเข้ารายการ และไม่ดูเลเวล */
     const trader = done?.trader?.name;
     if (!trader) return;
+    const stillActive = selectedQuests.filter((q) => !idsToRemove.has(q.id));
+
+    /* เสนอเฉพาะตอน "เคลียร์คิวของเทรดเดอร์คนนั้นหมดแล้ว"
+       ของเดิมเสนอทุกครั้งที่ทำเสร็จ ซึ่งทวีคูณ: เพิ่มทีละ 8 แล้วทำเสร็จทั้ง 8
+       ก็เด้งข้อเสนออีก 8 ครั้ง ๆ ละ 8 อัน รายการบวมจนรก
+       ถ้ายังมีเควสของเทรดเดอร์นี้ค้างอยู่ แปลว่ายังมีงานให้ทำ ไม่ต้องเสนอเพิ่ม */
+    if (stillActive.some((q) => q.trader?.name === trader)) {
+      setSuggest(null);
+      return;
+    }
+
     // ดึงมาทั้งหมด แล้วค่อยตัดแสดงในการ์ด — ปุ่ม "Add all" จะได้รู้จำนวนจริง
     const picks = QuestComponent.getTraderSuggestions(trader, {
       completed: [...completedQuests, ...newCompleted, { id: questId }],
-      active: selectedQuests.filter((q) => !idsToRemove.has(q.id)),
+      active: stillActive,
       limit: Infinity,
     });
-    setSuggestOpen(false);
+    setSuggestOpen(false); setSuggestMin(false);
     setSuggest(picks.length ? { trader, quests: picks } : null);
   };
 
@@ -214,12 +242,9 @@ const Home = () => {
   // (ฝ่ายสลับได้ที่ AppNavbar)
   const searchResults = useMemo(() => {
     if (!search.trim()) return [];
-    const faction = (() => {
-      try { return JSON.parse(localStorage.getItem('eft_faction_name')) || 'BEAR'; } catch { return 'BEAR'; }
-    })();
     const term = search.toLowerCase();
     return quests
-      .filter((q) => ['Any', faction].includes(q.factionName)
+      .filter((q) => QuestComponent.inFaction(q)
         && q.name.toLowerCase().includes(term)
         && !selectedQuests.some((s) => s.id === q.id))
       .slice(0, 12);
@@ -261,7 +286,7 @@ const Home = () => {
       <div style={{ maxWidth: 1500, margin: '0 auto', padding: '18px 20px 12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
           <div style={{ minWidth: 200 }}>
-            <h1 style={{ fontSize: '18px', fontWeight: 900, margin: 0 }}>
+            <h1 style={{ fontSize: '21px', fontWeight: 900, margin: 0 }}>
               <span style={{ color: P.blue }}>EFT</span> <span style={{ color: P.gold }}>TaskTrack</span>
             </h1>
             {/* ตัวเลขนี้คือ "ทั้งหมดที่รับไว้" เสมอ ไม่ขยับตามตัวกรอง
@@ -282,7 +307,7 @@ const Home = () => {
             }}>
               <span style={{ color: P.green, display: 'flex' }}><Icons.Check size={18} /></span>
               <div>
-                <div style={{ fontSize: 17, fontWeight: 900, color: P.green, lineHeight: 1 }}>
+                <div style={{ fontSize: 19.5, fontWeight: 900, color: P.green, lineHeight: 1 }}>
                   {turnInIds.size}
                 </div>
                 <div style={{ ...label, marginTop: 3 }}>ready to turn in</div>
@@ -304,6 +329,10 @@ const Home = () => {
 
             <span style={chip(showFilters || filtersOn > 0)} onClick={() => setShowFilters((v) => !v)}>
               <Icons.Filter size={13} /> Filters{filtersOn > 0 ? ` (${filtersOn})` : ''}
+            </span>
+            {/* LL ที่กรอกเองเป็นตัวตัดกองเควสที่ยังเปิดไม่ถึงออกจากข้อเสนอ */}
+            <span style={chip(showLoyalty, P.gold)} onClick={() => setShowLoyalty((v) => !v)}>
+              <Icons.Crown size={13} /> Loyalty
             </span>
             {filtersOn > 0 && (
               <span
@@ -344,12 +373,75 @@ const Home = () => {
                     width: 4, height: 18, borderRadius: 2, flexShrink: 0,
                     background: TRADER_THEMES[q.trader?.name]?.bg || '#334155',
                   }} />
-                  <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600 }}>{q.name}</span>
+                  <span style={{ flex: 1, fontSize: 15.5, fontWeight: 600 }}>{q.name}</span>
                   <span style={label}>{q.trader?.name}</span>
                   {q.minPlayerLevel > 1 && <span style={badge(P.label)}>LV {q.minPlayerLevel}</span>}
                   <span style={badge(P.green)}>+ Add</span>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Loyalty Level ที่กรอกเอง — แอปไม่มีทางรู้เอง แต่มันเป็นตัวตัดสินว่า
+              เควสไหนเปิดแล้ว (Prapor 46 อัน อยู่ LL1 เหลือ 11) */}
+          {showLoyalty && (
+            <div style={{ ...card, marginTop: 10, padding: 12 }}>
+              <div style={{ ...label, marginBottom: 2 }}>Your loyalty level</div>
+              <div style={{ ...label, textTransform: 'none', letterSpacing: 0, marginBottom: 10 }}>
+                used to hide quests you haven&apos;t unlocked yet from the suggestions
+              </div>
+              <div style={{
+                display: 'grid', gap: 8,
+                gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))',
+              }}>
+                {traderNames.map((t) => {
+                  const color = TRADER_THEMES[t]?.bg || P.label;
+                  const lvl = traderLevels[t] ?? 1;
+                  return (
+                    <div key={t} style={{
+                      display: 'flex', alignItems: 'center', gap: 8,
+                      padding: '7px 10px', borderRadius: 9,
+                      background: P.inputBg, border: `1px solid ${P.borderSoft}`,
+                    }}>
+                      <span style={{ width: 7, height: 7, borderRadius: 999, background: color, flexShrink: 0 }} />
+                      <span style={{ flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 600 }}>{t}</span>
+                      <div style={{ display: 'flex', gap: 3 }}>
+                        {[1, 2, 3, 4].map((n) => (
+                          <button
+                            key={n}
+                            onClick={() => {
+                              const prev = traderLevels[t] ?? 1;
+                              setTraderLevels(QuestComponent.setTraderLevel(t, n));
+                              if (n <= prev) return;
+                              /* LL ขึ้น = เควสชุดใหม่เปิด แต่ระบบเสนอเควสผูกกับ "ทำเควสเสร็จ"
+                                 เลยไม่มีอะไรมาต่อจนกว่าจะไปเพิ่มเควสเองแล้วทำให้จบ
+                                 -> เด้งให้เลือกตรงนี้เลย เอาเฉพาะที่เพิ่งเปิด ไม่ปนของเดิม */
+                              const picks = QuestComponent.getTraderSuggestions(t, {
+                                completed: completedQuests,
+                                active: selectedQuests,
+                                aboveLevel: prev,
+                                limit: Infinity,
+                              });
+                              setSuggestOpen(false);
+                              setSuggest(picks.length ? { trader: t, quests: picks, newLevel: n } : null);
+                            }}
+                            title={`Loyalty Level ${n}`}
+                            style={{
+                              width: 24, height: 24, borderRadius: 7, cursor: 'pointer',
+                              fontSize: 13.5, fontWeight: 800,
+                              border: `1px solid ${n === lvl ? P.gold : '#2a3550'}`,
+                              background: n === lvl ? `${P.gold}26` : 'transparent',
+                              color: n === lvl ? P.gold : P.dim,
+                            }}
+                          >
+                            {n}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
 
@@ -389,100 +481,138 @@ const Home = () => {
           ลอยติดมุมจอ ไม่ใช่วางบนสุดของรายการ — ปุ่ม ✓ อยู่ตามการ์ดเควสซึ่งกระจายอยู่
           ทั่วหน้า กดจากตัวที่อยู่ล่าง ๆ แล้วการ์ดแนะนำโผล่บนสุดก็มองไม่เห็น
           ต้องเลื่อนขึ้นไปหาทุกครั้ง */}
-      {suggest && (
+      {/* ---------------- การ์ดเสนอเควส ---------------- *
+          ลอยมุมขวาล่าง ไม่วางบนสุดของรายการ — ปุ่ม ✓ กระจายอยู่ทั่วหน้า
+          กดจากตัวล่าง ๆ แล้วการ์ดโผล่บนสุดก็มองไม่เห็น
+          ย่อเป็นปุ่มเล็กได้ เพราะบางทีกำลังอ่าน objective อยู่แล้วไม่อยากให้บัง */}
+      {suggest && (suggestMin ? (
+        <button
+          className="suggest-card"
+          onClick={() => setSuggestMin(false)}
+          title={`${suggest.quests.length} quests from ${suggest.trader}`}
+          style={{
+            position: 'fixed', right: 20, bottom: 20, zIndex: 50,
+            display: 'flex', alignItems: 'center', gap: 10,
+            padding: '11px 16px', borderRadius: 999, cursor: 'pointer',
+            border: `1px solid ${P.gold}66`,
+            background: 'linear-gradient(180deg,#1d2440 0%,#141c33 100%)',
+            boxShadow: '0 10px 28px rgba(0,0,0,.5)',
+            color: P.text, fontSize: 15, fontWeight: 700,
+          }}
+        >
+          <span style={{
+            width: 10, height: 10, borderRadius: 999,
+            background: TRADER_THEMES[suggest.trader]?.bg || P.gold,
+          }} />
+          {suggest.trader}
+          <span style={badge(P.gold)}>{suggest.quests.length}</span>
+          <span style={{ color: P.dim, display: 'flex' }}><Icons.ChevronUp size={17} /></span>
+        </button>
+      ) : (
         <div className="suggest-card" style={{
-          ...card, padding: 18,
+          ...card, padding: 16,
           position: 'fixed', right: 20, bottom: 20, zIndex: 50,
-          width: 'min(620px, calc(100vw - 32px))',
-          maxHeight: 'min(72vh, 680px)', overflowY: 'auto',
-          borderColor: `${P.gold}66`,
+          width: 'min(560px, calc(100vw - 32px))',
+          maxHeight: 'min(70vh, 640px)', overflowY: 'auto',
+          borderColor: `${P.gold}55`,
           background: 'linear-gradient(180deg,#1d2440 0%,#141c33 100%)',
           boxShadow: '0 12px 34px rgba(0,0,0,.55)',
         }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginBottom: 13, flexWrap: 'wrap' }}>
-              <span style={{
-                width: 6, height: 26, borderRadius: 3,
-                background: TRADER_THEMES[suggest.trader]?.bg || P.gold,
-              }} />
-              <span style={{ fontSize: 17, fontWeight: 800 }}>
-                More from {suggest.trader}
-              </span>
-              <span style={{ ...label, fontSize: 12, textTransform: 'none', letterSpacing: 0 }}>
-                unlocked by loyalty level, not by a previous quest
-              </span>
-              <div style={{ flex: 1 }} />
-              {(() => {
-                const shown = suggestOpen ? suggest.quests : suggest.quests.slice(0, 8);
-                return (
-                  <button
-                    onClick={() => { addQuests(shown); setSuggest(null); }}
-                    title={`Add ${shown.length} quest${shown.length > 1 ? 's' : ''} to your list`}
-                    style={{
-                      padding: '8px 16px', borderRadius: 999, cursor: 'pointer',
-                      fontSize: 13.5, fontWeight: 800, whiteSpace: 'nowrap',
-                      border: `1px solid ${P.green}`, background: `${P.green}22`, color: P.green,
-                    }}
-                  >
-                    + Add all ({shown.length})
-                  </button>
-                );
-              })()}
-              <button
-                onClick={() => setSuggest(null)}
-                title="Dismiss"
-                style={{ background: 'none', border: 'none', color: P.dim, cursor: 'pointer', display: 'flex' }}
-              >
-                <Icons.Close size={19} />
-              </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+            <span style={{
+              width: 5, height: 24, borderRadius: 3, flexShrink: 0,
+              background: TRADER_THEMES[suggest.trader]?.bg || P.gold,
+            }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 17, fontWeight: 800 }}>
+                {suggest.newLevel
+                  ? `${suggest.trader} reached LL${suggest.newLevel}`
+                  : `More from ${suggest.trader}`}
+              </div>
+              <div style={{ ...label, textTransform: 'none', letterSpacing: 0, marginTop: 2 }}>
+                {suggest.newLevel
+                  ? `${suggest.quests.length} quest${suggest.quests.length > 1 ? 's' : ''} just opened up`
+                  : 'unlocked by loyalty level, not by a previous quest'}
+              </div>
             </div>
+            <button
+              onClick={() => setSuggestMin(true)}
+              title="Minimise"
+              style={{ background: 'none', border: 'none', color: P.dim, cursor: 'pointer', display: 'flex', padding: 4 }}
+            >
+              <Icons.ChevronDown size={19} />
+            </button>
+            <button
+              onClick={() => setSuggest(null)}
+              title="Dismiss"
+              style={{ background: 'none', border: 'none', color: P.dim, cursor: 'pointer', display: 'flex', padding: 4 }}
+            >
+              <Icons.Close size={19} />
+            </button>
+          </div>
 
-            {/* เรียงเป็นแถว ไม่ใช่ชิปพันกันเป็นก้อน — ชื่อเควสยาวและมีหลายอัน อ่านทีละบรรทัดง่ายกว่า */}
-            <div style={{ display: 'grid', gap: 6 }}>
-              {(suggestOpen ? suggest.quests : suggest.quests.slice(0, 8)).map((q) => (
-                <div
-                  key={q.id}
-                  onClick={() => {
-                    addQuest(q);
-                    setSuggest((s) => {
-                      const rest = s.quests.filter((x) => x.id !== q.id);
-                      return rest.length ? { ...s, quests: rest } : null;
-                    });
-                  }}
-                  title="Add to your active quests"
+          <div style={{ display: 'grid', gap: 5 }}>
+            {(suggestOpen ? suggest.quests : suggest.quests.slice(0, SUGGEST_PREVIEW)).map((q) => (
+              <div
+                key={q.id}
+                onClick={() => {
+                  addQuest(q);
+                  setSuggest((s) => {
+                    const rest = s.quests.filter((x) => x.id !== q.id);
+                    return rest.length ? { ...s, quests: rest } : null;
+                  });
+                }}
+                title="Add to your active quests"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  padding: '9px 11px', borderRadius: 9, cursor: 'pointer',
+                  background: P.inputBg, border: `1px solid ${P.borderSoft}`,
+                }}
+              >
+                <span style={{
+                  flexShrink: 0, width: 22, height: 22, borderRadius: 7,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  border: `1px solid ${P.gold}66`, background: `${P.gold}1c`,
+                  color: P.gold, fontSize: 16, fontWeight: 800, lineHeight: 1,
+                }}>+</span>
+                <span style={{ flex: 1, minWidth: 0, fontSize: 15.5, fontWeight: 600 }}>
+                  {q.name}
+                </span>
+                {q.loyalty?.level && <span style={badge(P.gold)}>LL {q.loyalty.level}</span>}
+                {q.minPlayerLevel > 1 && <span style={badge(P.label)}>LV {q.minPlayerLevel}</span>}
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
+            {(() => {
+              const shown = suggestOpen ? suggest.quests : suggest.quests.slice(0, SUGGEST_PREVIEW);
+              return (
+                <button
+                  onClick={() => { addQuests(shown); setSuggest(null); }}
+                  title={`Add ${shown.length} quest${shown.length > 1 ? 's' : ''} to your list`}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 10,
-                    padding: '10px 12px', borderRadius: 10, cursor: 'pointer',
-                    background: P.inputBg, border: `1px solid ${P.borderSoft}`,
+                    padding: '9px 18px', borderRadius: 999, cursor: 'pointer',
+                    fontSize: 15, fontWeight: 800, whiteSpace: 'nowrap',
+                    border: `1px solid ${P.green}`, background: `${P.green}22`, color: P.green,
                   }}
                 >
-                  <span style={{
-                    flexShrink: 0, width: 22, height: 22, borderRadius: 7,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    border: `1px solid ${P.gold}66`, background: `${P.gold}1c`,
-                    color: P.gold, fontSize: 15, fontWeight: 800, lineHeight: 1,
-                  }}>+</span>
-                  <span style={{ flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 600 }}>
-                    {q.name}
-                  </span>
-                  {q.loyalty?.level && <span style={badge(P.gold)}>LL {q.loyalty.level}</span>}
-                  {q.minPlayerLevel > 1 && <span style={badge(P.label)}>LV {q.minPlayerLevel}</span>}
-                </div>
-              ))}
-            </div>
-
+                  + Add all ({shown.length})
+                </button>
+              );
+            })()}
             {/* บางเทรดเดอร์มีถึง 46 อัน ไม่กางทั้งหมดตั้งแต่แรก */}
-            {suggest.quests.length > 8 && (
-              <div
+            {suggest.quests.length > SUGGEST_PREVIEW && (
+              <span
                 onClick={() => setSuggestOpen((v) => !v)}
-                style={{ ...label, fontSize: 12, marginTop: 12, cursor: 'pointer', color: P.blue }}
+                style={{ ...label, cursor: 'pointer', color: P.blue }}
               >
-                {suggestOpen
-                  ? '▴ Show fewer'
-                  : `▾ Show all ${suggest.quests.length} from ${suggest.trader}`}
-              </div>
+                {suggestOpen ? '▴ Show fewer' : `▾ Show all ${suggest.quests.length}`}
+              </span>
             )}
+          </div>
         </div>
-      )}
+      ))}
 
       <main style={{ maxWidth: 1500, margin: '0 auto', padding: '18px 20px 64px' }}>
         {selectedQuests.length === 0 ? (
@@ -525,7 +655,7 @@ const Home = () => {
                       }} />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{
-                          fontSize: 12.5, fontWeight: 700, color: complete ? P.green : P.text,
+                          fontSize: 14.5, fontWeight: 700, color: complete ? P.green : P.text,
                           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                         }}>
                           {quest.name}
@@ -593,7 +723,7 @@ const Home = () => {
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <a
                           href={quest.wikiLink} target="_blank" rel="noreferrer"
-                          style={{ fontSize: 15, fontWeight: 800, color: P.text, textDecoration: 'none' }}
+                          style={{ fontSize: 17.5, fontWeight: 800, color: P.text, textDecoration: 'none' }}
                         >
                           {quest.name}
                         </a>
@@ -677,7 +807,7 @@ const Home = () => {
                                     />
                                   )}
                                   <div style={{
-                                    fontSize: 11, fontWeight: 700, marginTop: 5, maxWidth: 220,
+                                    fontSize: 13, fontWeight: 700, marginTop: 5, maxWidth: 220,
                                     color: checked ? P.dim : P.text,
                                     textDecoration: checked ? 'line-through' : 'none',
                                   }}>
@@ -733,7 +863,7 @@ const Home = () => {
 
                                   <div style={{ flex: 1, minWidth: 0 }}>
                                     <div style={{
-                                      fontSize: 13, lineHeight: 1.45,
+                                      fontSize: 15, lineHeight: 1.45,
                                       color: checked ? P.dim : P.text,
                                       textDecoration: checked ? 'line-through' : 'none',
                                     }}>
@@ -799,7 +929,7 @@ const Home = () => {
                                     objectFit: 'contain', display: 'block',
                                   }}
                                 />
-                                <div style={{ fontSize: 11, fontWeight: 700, marginTop: 5, maxWidth: 200 }}>
+                                <div style={{ fontSize: 13, fontWeight: 700, marginTop: 5, maxWidth: 200 }}>
                                   {rw.item.shortName}
                                   <span style={{ color: P.blue }}> ×{rw.count}</span>
                                 </div>

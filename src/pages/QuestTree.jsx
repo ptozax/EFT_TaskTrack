@@ -136,10 +136,7 @@ const QuestTree = () => {
         /* เควสที่แยกฝ่าย (Drip-Out, Textile, Our Own Land/Counteraction, Green Corridor/Road Closed)
            มีทั้งเวอร์ชัน BEAR และ USEC ถ้าไม่กรองจะเห็นของฝ่ายตรงข้ามปนมา และชื่อซ้ำกันสองโหนด
            ฝ่ายที่เลือกอยู่สลับได้ที่ AppNavbar */
-        const faction = (() => {
-            try { return JSON.parse(localStorage.getItem('eft_faction_name')) || 'BEAR'; } catch { return 'BEAR'; }
-        })();
-        const byFaction = tasks.filter(t => ['Any', faction].includes(t.factionName));
+        const byFaction = tasks.filter(t => QuestComponent.inFaction(t));
 
         let initialFiltered = byFaction;
         if (view.trader !== "All") initialFiltered = byFaction.filter(t => t.trader.name === view.trader);
@@ -393,7 +390,7 @@ const QuestTree = () => {
                 display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', zIndex: 20,
             }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
-                    <h1 style={{ fontSize: '17px', fontWeight: 900, margin: 0 }}>Quest Tree</h1>
+                    <h1 style={{ fontSize: '19.5px', fontWeight: 900, margin: 0 }}>Quest Tree</h1>
                     <span style={{ ...label }}>{nodes.length} quests · {edges.length} links</span>
                 </div>
 
@@ -422,8 +419,8 @@ const QuestTree = () => {
                 </span>
 
                 <div style={{ display: 'flex', gap: 5 }}>
-                    <IconButton title="Zoom in" onClick={() => zoomBy(1.4)}><span style={{ fontSize: 16, fontWeight: 700 }}>+</span></IconButton>
-                    <IconButton title="Zoom out" onClick={() => zoomBy(1 / 1.4)}><span style={{ fontSize: 18, fontWeight: 700 }}>−</span></IconButton>
+                    <IconButton title="Zoom in" onClick={() => zoomBy(1.4)}><span style={{ fontSize: 18.5, fontWeight: 700 }}>+</span></IconButton>
+                    <IconButton title="Zoom out" onClick={() => zoomBy(1 / 1.4)}><span style={{ fontSize: 21, fontWeight: 700 }}>−</span></IconButton>
                     <IconButton title="Fit to screen" onClick={() => fitView(500)}><Icons.Crosshair size={15} /></IconButton>
                 </div>
             </header>
@@ -575,7 +572,7 @@ const QuestTree = () => {
                             ['ready', `Ready (${stats.ready})`],
                             ['blocked', `Blocked (${stats.blocked})`],
                         ].map(([k, text]) => (
-                            <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11.5, color: P.muted }}>
+                            <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, color: P.muted }}>
                                 <span style={{
                                     width: 12, height: 12, borderRadius: 4,
                                     background: NODE_STATE[k].fill, border: `1.5px solid ${NODE_STATE[k].stroke}`,
@@ -585,7 +582,7 @@ const QuestTree = () => {
                         ))}
                     </div>
                     <div style={{ height: 1, background: P.borderSoft, margin: '10px 0' }} />
-                    <div style={{ display: 'grid', gap: 5, fontSize: 11, color: P.dim }}>
+                    <div style={{ display: 'grid', gap: 5, fontSize: 13, color: P.dim }}>
                         <div>— solid: must complete first</div>
                         <div style={{ color: '#9b7ae0' }}>— purple: from the wiki (missing in the API)</div>
                         <div>– – dashed: unlocks while previous is active</div>
@@ -608,7 +605,7 @@ const QuestTree = () => {
                             width: 5, height: 26, borderRadius: 3,
                             background: TRADER_THEMES[selectedQuest.trader.name]?.bg || '#334155',
                         }} />
-                        <h2 style={{ flex: 1, fontSize: '16px', fontWeight: 800, margin: 0, lineHeight: 1.3 }}>
+                        <h2 style={{ flex: 1, fontSize: '18.5px', fontWeight: 800, margin: 0, lineHeight: 1.3 }}>
                             {selectedQuest.name}
                         </h2>
                         <button
@@ -641,7 +638,7 @@ const QuestTree = () => {
                         disabled={doneSet.has(selectedQuest.id)}
                         style={{
                             width: '100%', padding: '10px', borderRadius: 10, marginBottom: 16,
-                            fontSize: 13, fontWeight: 800, cursor: doneSet.has(selectedQuest.id) ? 'default' : 'pointer',
+                            fontSize: 15, fontWeight: 800, cursor: doneSet.has(selectedQuest.id) ? 'default' : 'pointer',
                             border: `1px solid ${doneSet.has(selectedQuest.id) ? '#1f6f4a' : P.green}`,
                             background: doneSet.has(selectedQuest.id) ? '#10281c' : `${P.green}22`,
                             color: doneSet.has(selectedQuest.id) ? '#6ee7a8' : P.green,
@@ -654,7 +651,7 @@ const QuestTree = () => {
                     <ul style={{ margin: '0 0 16px', padding: 0, listStyle: 'none', display: 'grid', gap: 6 }}>
                         {selectedQuest.objectives.map((obj, i) => (
                             <li key={i} style={{
-                                fontSize: 12.5, color: P.muted, lineHeight: 1.5,
+                                fontSize: 14.5, color: P.muted, lineHeight: 1.5,
                                 paddingLeft: 14, position: 'relative',
                             }}>
                                 <span style={{
@@ -699,7 +696,7 @@ const QuestTree = () => {
                             href={selectedQuest.wikiLink} target="_blank" rel="noreferrer"
                             style={{
                                 display: 'inline-flex', alignItems: 'center', gap: 6,
-                                color: P.blue, textDecoration: 'none', fontSize: 12.5, fontWeight: 700,
+                                color: P.blue, textDecoration: 'none', fontSize: 14.5, fontWeight: 700,
                             }}
                         >
                             Open on Wiki <Icons.ExternalLink size={13} />

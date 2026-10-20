@@ -49,7 +49,7 @@ export const P = {
 
 /** หัวข้อเล็กตัวใหญ่ ใช้นำหน้าทุกกลุ่ม */
 export const label = {
-  fontSize: '10px', color: P.dim, textTransform: 'uppercase',
+  fontSize: '12px', color: P.dim, textTransform: 'uppercase',
   letterSpacing: '.1em', fontWeight: 700,
 };
 
@@ -63,8 +63,8 @@ export const card = {
 /** ปุ่มกลม ๆ แบบ chip — ใช้เป็นตัวกรองที่กดสลับได้ */
 export const chip = (active, color = P.gold) => ({
   display: 'inline-flex', alignItems: 'center', gap: '6px',
-  padding: '6px 12px', borderRadius: '999px', cursor: 'pointer', userSelect: 'none',
-  fontSize: '12px', fontWeight: 700, whiteSpace: 'nowrap',
+  padding: '7px 14px', borderRadius: '999px', cursor: 'pointer', userSelect: 'none',
+  fontSize: '13.5px', fontWeight: 700, whiteSpace: 'nowrap',
   transition: 'all .15s ease',
   border: `1px solid ${active ? color : '#2a3550'}`,
   background: active ? `${color}22` : 'transparent',
@@ -73,8 +73,8 @@ export const chip = (active, color = P.gold) => ({
 
 /** ป้ายสถานะเล็ก ๆ */
 export const badge = (color = P.label) => ({
-  fontSize: '10px', fontWeight: 800, letterSpacing: '.04em',
-  padding: '2px 7px', borderRadius: '999px',
+  fontSize: '11.5px', fontWeight: 800, letterSpacing: '.04em',
+  padding: '3px 8px', borderRadius: '999px',
   background: `${color}1f`, color, whiteSpace: 'nowrap',
 });
 
@@ -82,8 +82,8 @@ export const input = {
   background: P.inputBg,
   border: `1px solid ${P.border}`,
   borderRadius: '10px',
-  padding: '9px 12px 9px 36px',
-  fontSize: '13px',
+  padding: '10px 12px 10px 38px',
+  fontSize: '14.5px',
   color: P.text,
   outline: 'none',
   width: '100%',
@@ -121,7 +121,7 @@ export const Ring = ({ value, total, size = 74, stroke = 7, color = P.gold }) =>
         position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center', lineHeight: 1,
       }}>
-        <div style={{ fontSize: '17px', fontWeight: 900, color: P.text }}>{Math.round(pct * 100)}%</div>
+        <div style={{ fontSize: '19px', fontWeight: 900, color: P.text }}>{Math.round(pct * 100)}%</div>
       </div>
     </div>
   );
@@ -134,7 +134,7 @@ export const SearchBox = ({ value, onChange, placeholder = 'Search...', width })
       position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)',
       color: P.dim, display: 'flex', pointerEvents: 'none',
     }}>
-      <Icons.Crosshair size={15} />
+      <Icons.Crosshair size={17} />
     </span>
     <input
       style={input}
@@ -184,7 +184,7 @@ export const Empty = ({ icon, title, hint }) => (
     background: 'rgba(13,23,41,.5)',
   }}>
     <div style={{ color: P.dim, display: 'flex', justifyContent: 'center', marginBottom: 12 }}>{icon}</div>
-    <div style={{ fontSize: '15px', fontWeight: 700, color: P.muted }}>{title}</div>
-    {hint && <div style={{ fontSize: '13px', color: P.dim, marginTop: 6 }}>{hint}</div>}
+    <div style={{ fontSize: '17px', fontWeight: 700, color: P.muted }}>{title}</div>
+    {hint && <div style={{ fontSize: '14.5px', color: P.dim, marginTop: 6 }}>{hint}</div>}
   </div>
 );

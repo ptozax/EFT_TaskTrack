@@ -78,9 +78,32 @@ const HOOBY_CLUB_ACTIVE = {
     unlocks: ['684009026ceedc792c09b2a7', '68400926706e0a55e90b0007']
 }
 
-const currentFaction = () => {
-    try { return JSON.parse(localStorage.getItem('eft_faction_name')) || 'BEAR'; } catch { return 'BEAR'; }
+export const FACTION_KEY = 'eft_faction_name';
+export const FACTIONS = ['BEAR', 'USEC'];
+
+/**
+ * ฝ่ายที่เลือกอยู่ — คืน 'BEAR' หรือ 'USEC' เสมอ
+ *
+ * AppNavbar เก็บผ่าน JSON.stringify จึงได้ค่าเป็น "USEC" (มีเครื่องหมายคำพูด)
+ * แต่ถ้าเคยมีเวอร์ชันไหนเขียนเป็นข้อความดิบ USEC ไว้ JSON.parse จะโยน error
+ * -> ที่ไม่มี try/catch (getNextQuestLists) จะพังทั้งฟังก์ชัน
+ *    ส่วนที่มี catch ก็เงียบ ๆ ตกไปเป็น BEAR ทั้งที่ผู้เล่นเป็น USEC
+ * ตรงนี้รับได้ทั้งสองแบบ และกันค่าแปลกปลอมด้วย
+ */
+export const getFaction = () => {
+    let raw;
+    try { raw = localStorage.getItem(FACTION_KEY); } catch { return 'BEAR'; }
+    if (!raw) return 'BEAR';
+    let value = raw;
+    try { const parsed = JSON.parse(raw); if (typeof parsed === 'string') value = parsed; } catch { /* เก็บเป็นข้อความดิบ */ }
+    return FACTIONS.includes(value) ? value : 'BEAR';
 };
+
+/** เควสนี้เล่นได้ด้วยฝ่ายที่เลือกอยู่ไหม ('Any' = ทุกฝ่าย) */
+export const inFaction = (quest, faction = getFaction()) =>
+    !quest?.factionName || ['Any', faction].includes(quest.factionName);
+
+const currentFaction = getFaction;
 
 /** เรียงตามลำดับที่เล่นจริง: ลำดับในสายเทรดเดอร์ (จากวิกิ) -> Loyalty Level -> เลเวล -> ชื่อ */
 const byProgression = (a, b) =>
@@ -99,16 +122,59 @@ const byProgression = (a, b) =>
  * ที่ยังไม่มีเงื่อนไขเควสก่อนหน้า — เงื่อนไขข้อหลังสำคัญ เพราะตารางวิกิบางเทรดเดอร์
  * ขึ้นต้นด้วยเควสกลางสาย (เช่น BTR Driver ขึ้น "Shipping Delay - Part 2" เป็นแถวแรก)
  */
+const SPECIAL_UNLOCKS = [
+    {
+        trigger: '597a0e5786f77426d66c0636',
+        unlocks: CHEMICAL_ALTERNATIVE_IDS
+    },
+    {
+        trigger: '6179aff8f57fb279792c60a1',
+        unlocks: ONE_LESS_LOOSE_END_ALTERNATIVE_IDS
+    },
+    {
+        trigger: ['5edabd13218d181e29451442', '5edaba7c0c502106f869bc02', '5f04886a3937dc337a6b8238'],
+        unlocks: COLLEAGUES_3_ALTERNATIVE
+    },
+    {
+        trigger: '5969f9e986f7741dde183a50',
+        unlocks: SUPPLY_PLANS_ALTERNETIVE
+    },
+    WET_JOB_5_ACTIVE, TROPHY_ACTIVE, ICE_CREAM_CONES_ACTIVE, PVP,
+    REVISION_RESERVE_ACTIVE, SENSORY_ANALYSIS_1_ACTIVE, DISEASE_HISTORY_ACTIVE,
+    HEALTH_CARE_4_ACTIVE, HLEPING_HAND_ACTIVE, INEVITABLE_RESPONSE_ACTIVE,
+    MINIBUS_ACTIVE, FARMING_3_ACTIVE, THE_GOOD_TIMES_1_ACTIVE, PUNISHER_5_ACTIVE,
+    WOODS_KEEPER_ACTIVE, DANDIES_ACTIVE, HOOBY_CLUB_ACTIVE,
+];
+
+/* เควสที่ต้องมี "ตัวจุดชนวน" ก่อนถึงจะรับได้ แต่ API ให้ taskRequirements = []
+   เช่น One Less Loose End / A Healthy Alternative ที่ต้องเก็บไดอารี่จาก Overpopulation ก่อน
+   แล้วค่อยเลือกส่งให้ Therapist หรือ Peacekeeper — วิกิเองก็ไม่ได้ใส่ไว้ในช่อง previous
+   รายการนี้ในโค้ดเป็นแหล่งเดียวที่รู้ จึงเอามากันไม่ให้ไปโผล่ในข้อเสนอ */
+const GATED_IDS = new Set([
+    ...SPECIAL_UNLOCKS.flatMap((s) => s.unlocks || []),
+    ...CHEMICAL_ALTERNATIVE_IDS,
+    ...ONE_LESS_LOOSE_END_ALTERNATIVE_IDS,
+    ...COLLEAGUES_3_ALTERNATIVE,
+    ...SUPPLY_PLANS_ALTERNETIVE,
+]);
+
 export const getStartQuests = () => {
     const faction = currentFaction();
     const first = new Map();
     TASKS()
         .filter(q => (q.taskRequirements || []).length === 0
+            && !GATED_IDS.has(q.id)          // เควสทางเลือกไม่ใช่เควสเริ่มต้นของใคร
             && ["Any", faction].includes(q.factionName)
             && q.trader?.name)
         .sort(byProgression)
         .forEach(q => { if (!first.has(q.trader.name)) first.set(q.trader.name, q); });
-    return [...first.values()];
+
+    /* บางเทรดเดอร์ต้องปลดล็อกด้วยเควสของเทรดเดอร์อื่นก่อน
+       (Jaeger: Acquaintance ต้องทำ Introduction ของ Mechanic ก่อน)
+       เควสแบบนี้ยังเป็น "เควสแรกของเทรดเดอร์คนนั้น" อยู่ แต่ใส่ตอน reset ไม่ได้
+       เพราะยังทำไม่ได้จริง -> ข้ามทั้งเทรดเดอร์ ไม่ถอยไปหยิบเควสถัดไปในสาย
+       (เควสปลดล็อกเองจะโผล่มาตามปกติจากข้อเสนอของเทรดเดอร์ต้นทาง) */
+    return [...first.values()].filter(q => (q.wikiPrev || []).length === 0);
 };
 
 /**
@@ -142,16 +208,44 @@ export const seedStartQuests = () => {
  * ตรงนี้เสนอให้เลือกเอง ไม่ยัดเข้ารายการอัตโนมัติ และไม่กรองด้วยเลเวลผู้เล่น
  * เรียงตาม Loyalty Level (จากวิกิ) แล้วตามด้วยเลเวลขั้นต่ำ = ลำดับที่ได้เล่นจริง
  */
-export const getTraderSuggestions = (traderName, { completed = [], active = [], limit = 8 } = {}) => {
+export const TRADER_LEVELS_KEY = 'eft_trader_levels';
+export const MAX_LOYALTY = 4;
+
+/** Loyalty Level ของผู้เล่นต่อเทรดเดอร์ (กรอกเอง) — ไม่ได้ตั้งไว้ถือว่า 1 */
+export const getTraderLevels = () => {
+    try { return JSON.parse(localStorage.getItem(TRADER_LEVELS_KEY)) || {}; } catch { return {}; }
+};
+
+export const setTraderLevel = (traderName, level) => {
+    const next = { ...getTraderLevels(), [traderName]: Math.min(MAX_LOYALTY, Math.max(1, level)) };
+    localStorage.setItem(TRADER_LEVELS_KEY, JSON.stringify(next));
+    return next;
+};
+
+/**
+ * @param aboveLevel  เอาเฉพาะเควสที่ต้องการ Loyalty Level สูงกว่าค่านี้
+ *                    ใช้ตอน LL ขยับขึ้น เพื่อโชว์เฉพาะ "ของที่เพิ่งเปิด"
+ *                    ไม่ปนกับของเดิมที่เห็นมาตั้งแต่ LL ก่อนหน้า
+ */
+export const getTraderSuggestions = (traderName, { completed = [], active = [], limit = 8, aboveLevel = null } = {}) => {
     if (!traderName) return [];
     const taken = new Set([...completed.map(q => q.id), ...active.map(q => q.id)]);
     const faction = currentFaction();
+    const myLevel = getTraderLevels()[traderName] ?? 1;
 
+    /* กรองด้วย Loyalty Level ที่ผู้เล่นกรอกเอง — ตัดกองที่ยังเปิดไม่ถึงออก
+       (Prapor อยู่ LL1 เหลือ 11 จาก 46)
+       เควสที่วิกิไม่บอก LL ให้ผ่านไว้ก่อน ไม่งั้นเทรดเดอร์อย่าง Jaeger
+       ที่ไม่มีข้อมูล LL เลย 40 จาก 42 อัน จะไม่เหลืออะไรให้เสนอ */
     return TASKS()
         .filter(q => q.trader?.name === traderName
             && (q.taskRequirements || []).length === 0
+            && (q.wikiPrev || []).length === 0   // วิกิรู้ว่ามีเควสก่อนหน้า แม้ API ไม่รู้
+            && !GATED_IDS.has(q.id)              // ต้องมีตัวจุดชนวนก่อน (ดูคำอธิบายที่ GATED_IDS)
             && !taken.has(q.id)
-            && ["Any", faction].includes(q.factionName))
+            && ["Any", faction].includes(q.factionName)
+            && (q.loyalty?.level == null || q.loyalty.level <= myLevel)
+            && (aboveLevel == null || (q.loyalty?.level != null && q.loyalty.level > aboveLevel)))
         .sort(byProgression)
         .slice(0, limit);
 };
@@ -232,7 +326,7 @@ export const getNextQuestLists = (completedQuests, triggeringQuestId = null) => 
 
     let relatedTriggerIds = [triggeringQuestId];
     const blockedIds = new Set();
-    const factionName = JSON.parse(localStorage.getItem('eft_faction_name')) || 'BEAR';
+    const factionName = getFaction();
     CONFLICT_GROUPS.forEach(group => {
         // A. General Blocking Logic
         const hasCompletedOne = group.find(id => completedIds.has(id));
@@ -299,30 +393,6 @@ export const getNextQuestLists = (completedQuests, triggeringQuestId = null) => 
     });
 
     // If 'trigger' is complete, we force the 'unlocks' to appear (unless blocked).
-    const SPECIAL_UNLOCKS = [
-        {
-            trigger: '597a0e5786f77426d66c0636',
-            unlocks: CHEMICAL_ALTERNATIVE_IDS
-        },
-        {
-            trigger: '6179aff8f57fb279792c60a1',
-            unlocks: ONE_LESS_LOOSE_END_ALTERNATIVE_IDS
-        },
-        {
-            trigger: ['5edabd13218d181e29451442', '5edaba7c0c502106f869bc02', '5f04886a3937dc337a6b8238'],
-            unlocks: COLLEAGUES_3_ALTERNATIVE
-        },
-        {
-            trigger: '5969f9e986f7741dde183a50',
-            unlocks: SUPPLY_PLANS_ALTERNETIVE
-        },
-        WET_JOB_5_ACTIVE, TROPHY_ACTIVE, ICE_CREAM_CONES_ACTIVE, PVP,
-        REVISION_RESERVE_ACTIVE, SENSORY_ANALYSIS_1_ACTIVE, DISEASE_HISTORY_ACTIVE,
-        HEALTH_CARE_4_ACTIVE, HLEPING_HAND_ACTIVE, INEVITABLE_RESPONSE_ACTIVE,
-        MINIBUS_ACTIVE, FARMING_3_ACTIVE, THE_GOOD_TIMES_1_ACTIVE, PUNISHER_5_ACTIVE,
-        WOODS_KEEPER_ACTIVE, DANDIES_ACTIVE, HOOBY_CLUB_ACTIVE,
-    ];
-
     // 6. Apply Special "Force Add" Logic
     SPECIAL_UNLOCKS.forEach(special => {
         

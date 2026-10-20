@@ -51,8 +51,7 @@ function AppNavbar() {
     const [selectReset, setSelectReset] = useState([]);
 
     const [factionName, setFactionName] = useState(() => {
-        const saveFaction = localStorage.getItem('eft_faction_name');
-        return saveFaction ? JSON.parse(saveFaction) : 'BEAR'
+        return QuestComponent.getFaction();
     });
 
     const [gameplayMode, setGameplayMode] = useState(() => {

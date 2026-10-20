@@ -525,7 +525,12 @@ export function transformTasks(tasksJson, tasksEnJson, mapsEnJson, tradersJson, 
     wikiLink: t.wikiLink ?? null, minPlayerLevel: t.minPlayerLevel ?? 0,
     taskRequirements: (t.taskRequirements || []).map((r) => ({ status: r.status || [], task: { id: r.task, name: tName(r.task) } })),
     traderLevelRequirements: (t.traderRequirements || []).filter((r) => r.requirementType === 'level').map((r) => ({ level: r.value, trader: { id: r.trader, name: trName(r.trader) } })),
-    factionName: t.factionName ?? null,
+    /* json.tarkov.dev ให้ "Any" กับเควสที่จริง ๆ รับได้ฝ่ายเดียวอยู่ 10 ตัว
+       (เช่น Tigr Safari ที่วิกิเขียนว่า "only obtainable by USEC PMCs")
+       -> ถ้า API ไม่ได้ระบุฝ่าย แต่วิกิระบุ ใช้ของวิกิ ส่วนที่ API ระบุแล้วเชื่อ API */
+    factionName: (t.factionName && t.factionName !== 'Any')
+      ? t.factionName
+      : (linkOf(tName(t.id))?.faction ?? t.factionName ?? null),
     neededKeys: (t.neededKeys || []).map((nk) => ({ map: { id: nk.map, name: mapName(nk.map) }, keys: (nk.keys || []).map(itemPart).filter(Boolean) })),
     taskImageLink: t.taskImageLink ?? null, trader: { id: t.trader, name: trName(t.trader) },
     map: t.map ? { id: t.map, name: mapName(t.map) } : null,

@@ -96,6 +96,17 @@ const field = (text, key) => {
 const links = (value) => [...(value || '').matchAll(/\[\[([^\]|]+)/g)].map((m) => m[1].trim());
 
 /**
+ * ข้อจำกัดฝ่ายที่เขียนไว้ในเนื้อหน้า เช่น
+ *   "This quest is only obtainable by [[USEC]] PMCs."
+ * json.tarkov.dev ให้ factionName = "Any" กับเควสพวกนี้หลายตัว (เช่น Tigr Safari)
+ * ทั้งที่ในเกมรับได้ฝ่ายเดียว -> เสนอเควสที่เล่นไม่ได้ให้ผู้เล่น
+ */
+const factionLimit = (text) => {
+  const m = text.match(/only\s+(?:be\s+)?(?:obtainable|available|accessible|completed|started|acquired)[^.\n]*?\[\[(USEC|BEAR)\]\]/i);
+  return m ? m[1].toUpperCase() : null;
+};
+
+/**
  * ลำดับเควสของแต่ละเทรดเดอร์ จากตารางในหน้า "Quests" (แท็บละเทรดเดอร์)
  *
  * เป็นแหล่งเดียวที่บอก "เควสแรกของเทรดเดอร์" ได้ — API ไม่มีข้อมูลนี้เลย
@@ -152,6 +163,9 @@ async function main() {
     const llq = field(text, 'LL quests');
     if (/^\d+$/.test(llq)) entry.llQuests = Number(llq);
 
+    const only = factionLimit(text);
+    if (only) entry.faction = only;
+
     if (Object.keys(entry).length) quests[name] = entry;
   }
 
@@ -169,6 +183,25 @@ async function main() {
         if (!have.has(p.id) && p.id !== t.id) newEdges += 1;
       });
     });
+    const factionFix = tasks.filter((t) => {
+      const w = quests[t.name]?.faction;
+      return w && (!t.factionName || t.factionName === 'Any');
+    });
+    console.log(`  ข้อจำกัดฝ่ายที่วิกิมีแต่ API ไม่มี: ${factionFix.length} เควส`);
+    if (factionFix.length) console.log(`    ${factionFix.slice(0, 8).map((t) => `${t.name} -> ${quests[t.name].faction}`).join(' | ')}`);
+
+    /* เตือนเมื่อวิกิกับ API ไม่ตรงกัน — ข้อมูลทั้งสองฝั่งเปลี่ยนได้ตลอด
+       ถ้าไม่เตือน เควสผิดฝ่ายจะกลับมาโผล่ให้ผู้เล่นแบบเงียบ ๆ อีก
+       (เควสที่มีสองเวอร์ชันแยกฝ่ายอยู่แล้วไม่นับ เพราะวิกิมีหน้าเดียวระบุได้ฝ่ายเดียว) */
+    const nameCount = tasks.reduce((m, t) => m.set(t.name, (m.get(t.name) || 0) + 1), new Map());
+    const conflicts = tasks.filter((t) => {
+      const w = quests[t.name]?.faction;
+      return w && ['BEAR', 'USEC'].includes(t.factionName) && w !== t.factionName && nameCount.get(t.name) === 1;
+    });
+    if (conflicts.length) {
+      console.warn(`  ! วิกิกับ API ระบุฝ่ายไม่ตรงกัน ${conflicts.length} เควส — ตรวจก่อนใช้:`);
+      conflicts.forEach((t) => console.warn(`      ${t.name}: API=${t.factionName} วิกิ=${quests[t.name].faction}`));
+    }
     const withLL = tasks.filter((t) => quests[t.name]?.ll !== undefined).length;
     console.log(`  เส้นเชื่อมที่เพิ่มให้ผัง: ${newEdges} | เควสที่รู้ Loyalty Level: ${withLL} | ชื่อที่จับคู่ไม่ได้: ${unmatched}`);
     // เควสแรกของแต่ละเทรดเดอร์ = ตัวแรกในลำดับที่ยังไม่มีเงื่อนไขเควสก่อนหน้า

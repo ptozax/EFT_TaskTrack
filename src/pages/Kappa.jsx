@@ -103,7 +103,7 @@ const QuestRow = ({ quest, status, blockers, expanded, onExpand, onToggle }) => 
               width: 4, height: 20, borderRadius: 2, background: trader.bg, flexShrink: 0,
             }} />
             <span style={{
-              flex: 1, minWidth: 0, fontSize: '14px', fontWeight: 700,
+              flex: 1, minWidth: 0, fontSize: '16px', fontWeight: 700,
               color: status === 'done' ? P.dim : P.text,
               textDecoration: status === 'done' ? 'line-through' : 'none',
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
@@ -145,7 +145,7 @@ const QuestRow = ({ quest, status, blockers, expanded, onExpand, onToggle }) => 
           <ul style={{ margin: 0, padding: 0, listStyle: 'none', display: 'grid', gap: 5 }}>
             {quest.objectives.map((obj, i) => (
               <li key={i} style={{
-                fontSize: '12.5px', color: P.muted, lineHeight: 1.5,
+                fontSize: '14.5px', color: P.muted, lineHeight: 1.5,
                 paddingLeft: 14, position: 'relative',
               }}>
                 <span style={{
@@ -163,7 +163,7 @@ const QuestRow = ({ quest, status, blockers, expanded, onExpand, onToggle }) => 
               href={quest.wikiLink} target="_blank" rel="noopener noreferrer"
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: 6,
-                fontSize: '12px', fontWeight: 700, color: P.blue, textDecoration: 'none',
+                fontSize: '14px', fontWeight: 700, color: P.blue, textDecoration: 'none',
               }}
             >
               Wiki <Icons.ExternalLink size={13} />
@@ -246,11 +246,8 @@ const Kappa = () => {
   /* เควส Kappa ทั้งหมดของฝ่ายที่เลือก (Textile / Drip-Out ฯลฯ มีเวอร์ชัน BEAR กับ USEC แยกกัน
      ถ้าไม่กรองจะขึ้นซ้ำสองและทำให้ตัวหารเกินจริง) */
   const kappaQuests = useMemo(() => {
-    const faction = (() => {
-      try { return JSON.parse(localStorage.getItem('eft_faction_name')) || 'BEAR'; } catch { return 'BEAR'; }
-    })();
     return quests
-      .filter((q) => q.kappaRequired && ['Any', faction].includes(q.factionName))
+      .filter((q) => q.kappaRequired && QuestComponent.inFaction(q))
       .sort((a, b) => (a.minPlayerLevel - b.minPlayerLevel) || a.name.localeCompare(b.name));
   }, [quests]);
 
@@ -307,7 +304,7 @@ const Kappa = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: 18, flexWrap: 'wrap' }}>
           <Ring value={counts.done} total={counts.all} />
           <div style={{ flex: 1, minWidth: 220 }}>
-            <h1 style={{ fontSize: '19px', fontWeight: 900, margin: 0, letterSpacing: '-.01em' }}>
+            <h1 style={{ fontSize: '22px', fontWeight: 900, margin: 0, letterSpacing: '-.01em' }}>
               Kappa Tracker
             </h1>
             <div style={{ ...label, marginTop: 3 }}>
@@ -334,7 +331,7 @@ const Kappa = () => {
                   borderColor: view.filter === k ? STATUS_META[k].color : P.border,
                 }}
               >
-                <div style={{ fontSize: '19px', fontWeight: 900, color: STATUS_META[k].color, lineHeight: 1 }}>{n}</div>
+                <div style={{ fontSize: '22px', fontWeight: 900, color: STATUS_META[k].color, lineHeight: 1 }}>{n}</div>
                 <div style={{ ...label, marginTop: 4 }}>{t}</div>
               </button>
             ))}
