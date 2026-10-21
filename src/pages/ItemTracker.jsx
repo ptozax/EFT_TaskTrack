@@ -60,7 +60,7 @@ export default function ItemTracker({ items, loot, mapId, mapName, tracked, colo
     display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', userSelect: 'none',
     padding: '10px 12px', borderRadius: open ? '12px 12px 0 0' : '12px',
     background: open ? '#16223c' : '#111c33', border: '1px solid #24324f',
-    fontSize: '11px', fontWeight: 800, color: '#9fb0d0',
+    fontSize: '13px', fontWeight: 800, color: '#9fb0d0',
     textTransform: 'uppercase', letterSpacing: '.1em',
   };
   const bodyStyle = {
@@ -71,10 +71,10 @@ export default function ItemTracker({ items, loot, mapId, mapName, tracked, colo
   return (
     <div style={{ marginBottom: '10px' }}>
       <div onClick={() => setOpen((o) => !o)} style={headStyle}>
-        <span style={{ fontSize: '13px' }}>📦</span>
+        <span style={{ fontSize: '15.5px' }}>📦</span>
         <span style={{ flex: 1 }}>Item spawns</span>
         <span style={{
-          fontSize: '10px', fontWeight: 800, padding: '1px 6px', borderRadius: '999px',
+          fontSize: '12px', fontWeight: 800, padding: '1px 6px', borderRadius: '999px',
           background: tracked.length ? 'rgba(56,189,248,.12)' : 'rgba(124,141,176,.12)',
           color: tracked.length ? '#38bdf8' : '#7c8db0',
         }}>
@@ -89,7 +89,7 @@ export default function ItemTracker({ items, loot, mapId, mapName, tracked, colo
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Search item to track…"
-          style={{ width: '100%', marginTop: '10px', padding: '7px 10px', borderRadius: 6, border: '1px solid #334155', background: '#0b1220', color: '#e2e8f0', fontSize: 12 }}
+          style={{ width: '100%', marginTop: '10px', padding: '7px 10px', borderRadius: 6, border: '1px solid #334155', background: '#0b1220', color: '#e2e8f0', fontSize: 14 }}
         />
         {results.length > 0 && (
           <div style={{ ...box, maxHeight: 220, overflowY: 'auto' }}>
@@ -101,14 +101,14 @@ export default function ItemTracker({ items, loot, mapId, mapName, tracked, colo
               >
                 {icon(it) && <img src={icon(it)} alt="" style={{ width: 24, height: 24, objectFit: 'contain' }} />}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12, color: '#e2e8f0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{it.name}</div>
-                  <div style={{ fontSize: 10, color: '#64748b' }}>
+                  <div style={{ fontSize: 14, color: '#e2e8f0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{it.name}</div>
+                  <div style={{ fontSize: 12, color: '#64748b' }}>
                     {mapsWithItem[it.id]
                       ? `📍 ${mapsWithItem[it.id]} map${mapsWithItem[it.id] > 1 ? 's' : ''}`
                       : '— no spawn data'} {raidOnly(it) && '· raid-only'}
                   </div>
                 </div>
-                <span style={{ color: '#22c55e', fontSize: 16 }}>＋</span>
+                <span style={{ color: '#22c55e', fontSize: 19 }}>＋</span>
               </div>
             ))}
           </div>
@@ -116,7 +116,7 @@ export default function ItemTracker({ items, loot, mapId, mapName, tracked, colo
 
         {/* watchlist */}
         {tracked.length === 0 ? (
-          <div style={{ fontSize: 11, color: '#64748b', marginTop: 8 }}>No items tracked — search above to add one</div>
+          <div style={{ fontSize: 13, color: '#64748b', marginTop: 8 }}>No items tracked — search above to add one</div>
         ) : (
           <div style={{ marginTop: 4 }}>
             {tracked.map((t) => {
@@ -134,8 +134,8 @@ export default function ItemTracker({ items, loot, mapId, mapName, tracked, colo
                   <span style={{ width: isExp ? 14 : 10, height: isExp ? 14 : 10, borderRadius: '50%', background: c, flexShrink: 0, boxShadow: isExp ? `0 0 6px ${c}` : '0 0 3px #000', transition: 'all .12s' }} />
                   {icon(it) && <img src={icon(it)} alt="" style={{ width: 22, height: 22, objectFit: 'contain' }} />}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12, color: '#e2e8f0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{it?.name || t.id}</div>
-                    <div style={{ fontSize: 10, color: here ? (isExp ? c : '#4ade80') : '#94a3b8' }}>
+                    <div style={{ fontSize: 14, color: '#e2e8f0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{it?.name || t.id}</div>
+                    <div style={{ fontSize: 12, color: here ? (isExp ? c : '#4ade80') : '#94a3b8' }}>
                       {/* ข้อมูลต้นทาง (lootLoose) ระบุจุดเกิดไว้แค่ 314 ไอเทม
                           ของอย่าง Bolts / Screw nuts / Salewa ดรอปตามพื้นในเกมจริงแต่ไม่มีในข้อมูล
                           จึงห้ามเขียนว่า "container only" เพราะไม่จริง */}
@@ -147,11 +147,11 @@ export default function ItemTracker({ items, loot, mapId, mapName, tracked, colo
                     </div>
                   </div>
                   <button title={t.hidden ? 'Show pins' : 'Hide pins'} onClick={(e) => { e.stopPropagation(); toggle(t.id); }}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: t.hidden ? '#64748b' : '#facc15' }}>
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16.5, color: t.hidden ? '#64748b' : '#facc15' }}>
                     {t.hidden ? '🚫' : '👁'}
                   </button>
                   <button title="Remove" onClick={(e) => { e.stopPropagation(); remove(t.id); }}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 16, color: '#ef4444', lineHeight: 1 }}>×</button>
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 19, color: '#ef4444', lineHeight: 1 }}>×</button>
                 </div>
               );
             })}
