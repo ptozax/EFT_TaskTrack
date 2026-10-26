@@ -188,3 +188,85 @@ export const Empty = ({ icon, title, hint }) => (
     {hint && <div style={{ fontSize: '14.5px', color: P.dim, marginTop: 6 }}>{hint}</div>}
   </div>
 );
+
+/* สีพื้นตามระดับไอเทมของเกม (มากับข้อมูลในฟิลด์ item.backgroundColor) */
+const ITEM_BG = {
+  black: '#272727', blue: '#26343a', default: '#333333', green: '#1c2618',
+  grey: '#2a2a2a', orange: '#49290f', red: '#4a1b1b', violet: '#372348', yellow: '#45402a',
+};
+
+/**
+ * ป้ายกุญแจ — รูป + ชื่อ ใช้ร่วมกันทั้งหน้า Home และหน้า Map
+ * ไม่ยึดกับพาเลตของหน้าไหน (ใช้สีโปร่งล้วน) เพราะสองหน้านี้พื้นหลังคนละโทน
+ *
+ * กดแล้วคัดลอก "ชื่อเต็ม" ลงคลิปบอร์ด เอาไปวางค้นในตลาดหรือในเกมต่อได้
+ * (คัดลอกชื่อเต็มเสมอ ถึงป้ายจะโชว์ชื่อย่อก็ตาม — ชื่อย่อค้นไม่เจอ)
+ *
+ * @param compact  ย่อสำหรับป้ายหมุดบนแมพที่พื้นที่แคบ
+ */
+export const copyKeyName = (item, e) => {
+  /* สำคัญบนแมพ: ป้ายหมุดมี onClick ที่สั่งปิดตัวเอง
+     ถ้าไม่หยุด event ไว้ กดกุญแจทีป้ายก็ปิดไปด้วย */
+  e?.stopPropagation?.();
+  // คัดลอก "ชื่อเต็ม" เสมอ ถึงป้ายจะโชว์ชื่อย่อ — ชื่อย่อเอาไปค้นไม่เจอ
+  // clipboard ไม่มีบน http หรือเบราว์เซอร์เก่า -> คืน false ไม่ให้หน้าเว็บพัง
+  if (!globalThis.navigator?.clipboard) return Promise.resolve(false);
+  return navigator.clipboard.writeText(item.name).then(() => true, () => false);
+};
+
+export const KeyChip = ({ item, compact = false, showMap = false }) => {
+  const px = compact ? 26 : 34;
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!copied) return undefined;
+    const t = setTimeout(() => setCopied(false), 1200);
+    return () => clearTimeout(t);
+  }, [copied]);
+
+  const copy = (e) => { copyKeyName(item, e).then((done) => done && setCopied(true)); };
+
+  return (
+    <span
+      role="button"
+      tabIndex={0}
+      title={`${item.name} — คลิกเพื่อคัดลอกชื่อ`}
+      onClick={copy}
+      onMouseDown={(e) => e.stopPropagation()}   // กันลากแมพตามไปด้วย
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') copy(e); }}
+      style={{
+        display: 'inline-flex', alignItems: 'center', gap: compact ? 6 : 8,
+        padding: compact ? '3px 8px 3px 3px' : '4px 10px 4px 4px',
+        borderRadius: 9, maxWidth: '100%', cursor: 'pointer', userSelect: 'none',
+        background: copied ? 'rgba(34,197,94,.18)' : 'rgba(148,163,184,.10)',
+        border: `1px solid ${copied ? 'rgba(34,197,94,.65)' : 'rgba(148,163,184,.24)'}`,
+        transition: 'background .15s ease, border-color .15s ease',
+      }}
+    >
+      <img
+        src={item.gridImageLink || item.baseImageLink}
+        alt=""
+        loading="lazy"
+        style={{
+          width: px, height: px, objectFit: 'contain', flexShrink: 0,
+          borderRadius: 5, background: ITEM_BG[item.backgroundColor] || ITEM_BG.default,
+        }}
+      />
+      <span style={{ minWidth: 0 }}>
+        <span style={{
+          display: 'block', fontSize: compact ? '12.5px' : '14px', fontWeight: 600,
+          color: copied ? '#6ee7a8' : '#e2e8f0',
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+        }}>
+          {/* ชื่อเต็มยาวมาก ("Health Resort west wing room 306 key") -> ป้ายแคบใช้ตัวย่อ */}
+          {copied ? 'Copied!' : (compact ? (item.shortName || item.name) : item.name)}
+        </span>
+        {showMap && item.mapName && (
+          <span style={{ display: 'block', fontSize: '11.5px', color: '#7c8db0', marginTop: 1 }}>
+            {item.mapName}
+          </span>
+        )}
+      </span>
+    </span>
+  );
+};

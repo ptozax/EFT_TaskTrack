@@ -481,3 +481,51 @@ export const callbackStorageChange = (handleStorageChange) => {
         window.removeEventListener("storage", handleStorageChange);
     };
 }
+/**
+ * แยกผลการค้นหาเควสตามสถานะ — รับไว้แล้ว / ทำจบไปแล้ว / ยังไม่ได้รับ
+ *
+ * ช่องค้นหาในหน้า Home เดิมมีไว้ "เพิ่มเควส" อย่างเดียว เลยตัดเควสที่รับไว้แล้วทิ้ง
+ * พอรายการโตเป็นหลายสิบอันก็ตอบคำถามที่ถามบ่อยสุดไม่ได้ — "เควสนี้เรามีหรือยัง"
+ *
+ * @param term      คำค้น (ตัดช่องว่างแล้ว) — ว่าง = คืน null
+ * @param quests    เควสทั้งหมดในเกม
+ * @param active    เควสที่รับไว้ (วัตถุเควสเต็ม)
+ * @param completed ประวัติที่ทำจบ [{ id, status }]
+ */
+export const splitSearchHits = (term, { quests = [], active = [], completed = [] } = {}) => {
+    const q = String(term || '').trim().toLowerCase();
+    if (!q) return null;
+
+    const match = (t) => t?.name?.toLowerCase().includes(q);
+    const activeIds = new Set(active.map(t => t.id));
+    const doneIds = new Set(completed.map(t => t.id));
+
+    // เควสที่รับไว้ไม่ต้องกรองฝ่าย — ถืออยู่ในมือแล้ว
+    const inList = active.filter(match).slice(0, 8);
+    const rest = quests.filter(t => match(t) && inFaction(t) && !activeIds.has(t.id));
+
+    return {
+        active: inList,
+        done: rest.filter(t => doneIds.has(t.id)).slice(0, 6),
+        add: rest.filter(t => !doneIds.has(t.id)).slice(0, 10),
+    };
+};
+
+/**
+ * กุญแจที่เควสต้องใช้ (data: quest.neededKeys = [{ map, keys: [...] }])
+ * มี 56 จาก 503 เควสที่ต้องใช้กุญแจ
+ *
+ * @param mapName  จำกัดเฉพาะแมพนี้ (null = เอาทุกแมพ)
+ *                 รับ "Ground Zero 21+" เป็นแมพเดียวกับ "Ground Zero" ด้วย
+ * @returns [{ ...key, mapName }] ยุบกุญแจดอกซ้ำแล้ว
+ */
+export const questKeys = (quest, mapName = null) => {
+    const out = [];
+    (quest?.neededKeys || []).forEach(group => {
+        const onMap = group.map?.name;
+        if (mapName && onMap !== mapName && onMap !== `${mapName} 21+`) return;
+        (group.keys || []).forEach(k => k?.id && out.push({ ...k, mapName: onMap }));
+    });
+    // กุญแจดอกเดียวอาจอยู่หลายกลุ่ม (คนละ objective) -> เหลือดอกละรายการ
+    return [...new Map(out.map(k => [k.id, k])).values()];
+};
