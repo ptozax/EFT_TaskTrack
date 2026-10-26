@@ -95,3 +95,66 @@
 .home-dark h6 {
     color: #e2e8f0;
 }
+/* ---------------------------------------------------------------------------
+ * แผงตั้งค่าด้านข้างของหน้า Home (Filters + Loyalty)
+ *
+ * เดิมสองแผงนี้กางอยู่ข้างใน <header> ที่เป็น position: sticky — พอเปิดแล้ว
+ * แถบหนึบสูงขึ้นหลายร้อย px และเลื่อนตามจอไปด้วย เลยบังการ์ดเควสทิ้งไว้ตลอด
+ * ย้ายมาเป็นแผงข้างที่ fixed อยู่ขอบขวา แล้วดันเนื้อหาหลบด้วย margin แทน
+ * จอกว้าง -> ไม่ทับอะไรเลย เปิดค้างไว้ปรับไปดูผลไปได้
+ * จอแคบ -> ไม่มีที่ให้ดัน เลยให้ทับแล้วมีฉากหลังกดปิด
+ * ------------------------------------------------------------------------- */
+.eft-home {
+    --drawer: 0px;
+}
+
+.eft-home.has-drawer {
+    --drawer: 380px;
+}
+
+.eft-drawer-backdrop {
+    display: none;
+}
+
+@media (max-width: 1100px) {
+    .eft-home.has-drawer {
+        --drawer: 0px;
+    }
+
+    .eft-home.has-drawer .eft-drawer-backdrop {
+        display: block;
+    }
+}
+
+/* แถวตัวกรองในแถบหนึบ — ชิปต้องไม่ถูกบีบ ไม่งั้นชื่อแมพยาว ๆ จะโดนหั่น */
+.eft-filter-row > * {
+    flex-shrink: 0;
+}
+
+/* แถบเลื่อนบาง ๆ พอให้รู้ว่ามีต่อ แต่ไม่กินที่ในแถบหนึบ */
+.eft-filter-row {
+    scrollbar-width: thin;
+    scrollbar-color: #2a3550 transparent;
+}
+
+.eft-filter-row::-webkit-scrollbar {
+    height: 5px;
+}
+
+.eft-filter-row::-webkit-scrollbar-thumb {
+    background: #2a3550;
+    border-radius: 999px;
+}
+
+.eft-filter-row::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* สองแถวตัวกรองในแถบหนึบ — โชว์ค้างไว้ตลอด ไม่ยุบตอนเลื่อน
+   ที่กันไม่ให้แถบสูงจนบังเควสคือ .eft-filter-row ที่เลื่อนแนวนอนแทนการตัดบรรทัด
+   (ไม่ตั้ง max-height ตรงนี้ — เคยตั้งแล้วแถว Traders โดนหั่นครึ่ง) */
+.eft-filters {
+    display: grid;
+    gap: 6px;
+    margin-top: 9px;
+}
