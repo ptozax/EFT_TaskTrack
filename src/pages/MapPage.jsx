@@ -4,9 +4,10 @@ import questsStatic from "../data/tasks";
 import mapFeaturesStatic from "../data/maps";
 import itemsStatic from "../data/items.json";
 import { useLiveData, getData } from '../data/gameStore';
-import { mapStyles as styles, Icons } from '../Component/EftComponent';
+import { mapStyles as styles, Icons, TRADER_THEMES } from '../Component/EftComponent';
 import * as QuestComponent from '../Component/QuestComponent';
 import { usePersisted, readStored } from '../Component/usePersisted';
+import { KeyChip } from '../Component/PanelUI.jsx';
 import ItemTracker from './ItemTracker';
 import {
   findMapLayers, usableFloors, isMarkerVisible, mapCredit,
@@ -24,6 +25,7 @@ const MAP_KEY = "eft_selected_map";
 const COMPLETE_KEY = "eft_completed_quests";
 const HIDDEN_KEY = "eft_select_quest_hidden";
 const SECTIONS_KEY = "eft_map_sections";
+const TAB_KEYS = ['quests', 'items', 'view'];   // 'keys' ยุบไปอยู่ในแท็บ Quests แล้ว
 
 /* ---------------- MAP CONFIG ---------------- */
 const maps = [
@@ -69,6 +71,14 @@ const UI = {
     border: `1px solid ${active ? color : '#2a3550'}`,
     background: active ? `${color}22` : '#0e1730',
     color: active ? color : '#64748b',
+  }),
+  /* ปุ่มไอคอนในการ์ดเควส — เดิมเป็นไอคอนเปล่า ๆ กับตัว × ขนาด 21px
+     ไม่มีพื้นที่กดชัดเจน เล็งยาก และดูไม่เป็นปุ่ม */
+  iconBtn: (color) => ({
+    width: '27px', height: '27px', borderRadius: '8px', cursor: 'pointer',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    border: `1px solid ${color}55`, background: `${color}18`, color,
+    transition: 'all .15s ease',
   }),
   // ป้ายเล็ก ๆ ท้ายหัวข้อ บอกสถานะได้แม้พับ section ไว้
   badge: (color = '#7c8db0') => ({
@@ -143,8 +153,7 @@ const MapPage = () => {
     [quests]);
   const [expandedQuestName, setExpandedQuestName] = useState(null);
   const [questKeys, setQuestKeys] = useState([]);
-  const [showQuestKey, setShowQuestKey] = useState(true);
-  const [copiedKeyIndex, setCopiedKeyIndex] = useState(null);
+  const [showQuestKey, setShowQuestKey] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [questDescription, setQuestDescription] = useState(null);
   const [keyDescription, setKeyDescription] = useState(null);
@@ -175,6 +184,9 @@ const MapPage = () => {
 
   // แท็บของไซด์บาร์ — จำไว้ข้ามครั้ง จะได้ไม่ต้องกดกลับมาแท็บเดิมทุกรอบ
   const [tab, setTab] = usePersisted(SECTIONS_KEY, 'quests');
+  /* คนที่ค้างอยู่แท็บ Keys ตอนปิดเว็บ จะกลับมาเจอค่า 'keys' ที่ไม่ตรงกับแท็บไหนแล้ว
+     -> แถบข้างว่างเปล่าและไม่มีปุ่มไหนถูกเลือก พาไปแท็บแรกแทน */
+  useEffect(() => { if (!TAB_KEYS.includes(tab)) setTab('quests'); }, [tab, setTab]);
 
   // ในแท็บ View ยังพับ Markers/Floors แยกกันได้
   const [openSec, setOpenSec] = useState({ layers: true, floors: true, quests: true });
@@ -204,6 +216,7 @@ const MapPage = () => {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   const imageRef = useRef(null);
+  const viewportRef = useRef(null);   // กรอบที่ตัดขอบแมพ — ใช้คำนวณขอบเขตการลาก
 
   /* ---------- แมพหลายชั้น (SVG แยก layer ต่อชั้น) ---------- */
   // ต้อง inline SVG ลง DOM ถึงจะเปิด/ปิด <g> ของแต่ละชั้นได้ (<img> ทำไม่ได้)
@@ -426,36 +439,21 @@ const MapPage = () => {
       return Array.from(byId.values());
     });
   }, [completedQuests, currentQuestId, setSelectedQuests]);
+  /* รายการกุญแจรวมของแมพที่เปิดอยู่ = "ต้องพกอะไรลงเรดนี้บ้าง"
+     ยุบตาม id — ของเดิมดันแถวต่อคู่ (เควส, กุญแจ) กุญแจดอกเดียวที่ 3 เควสใช้
+     เลยโผล่ 3 แถว ตอนนี้เหลือแถวเดียวแล้วไล่ชื่อเควสไว้ข้างใต้แทน */
   useEffect(() => {
-    const accumulatedKeys = [];
-
+    const byKey = new Map();
     trackedQuests.forEach((tq) => {
       const fullQuest = findQuest(tq);
-
-      // Safety check: skip if quest data isn't found
-      if (!fullQuest || !fullQuest.neededKeys) return;
-
-      fullQuest.neededKeys.forEach((keyGroup) => {
-        // Check if the key is for the current map
-        if (keyGroup.map?.name === currentMapName) {
-
-          keyGroup.keys.forEach((subkey) => {
-            // Push to the main array
-            accumulatedKeys.push({
-              questName: tq.name, // Useful to know WHICH quest needs this key
-              keyName: subkey.name,
-              image: subkey.baseImageLink,
-              id: subkey.id, // specific ID if available, good for react keys
-              backgroundColor: subkey.backgroundColor
-            });
-          });
-
-        }
+      if (!fullQuest) return;
+      QuestComponent.questKeys(fullQuest, currentMapName).forEach((k) => {
+        const row = byKey.get(k.id) || { ...k, quests: [] };
+        if (!row.quests.includes(tq.name)) row.quests.push(tq.name);
+        byKey.set(k.id, row);
       });
     });
-
-    // 3. Update state with the final array
-    setQuestKeys(accumulatedKeys);
+    setQuestKeys([...byKey.values()]);
   }, [trackedQuests, currentMapName, findQuest]);
 
   // HELPER FUNCTIONS
@@ -548,7 +546,7 @@ const MapPage = () => {
    * จำกัดระยะเลื่อนไม่ให้ลากแมพออกไปพ้นจอจนกลับมาหาไม่เจอ
    * เหลือให้แมพค้างในจออย่างน้อย ~25% ของด้านที่สั้นกว่าเสมอ
    */
-  const clampOffset = (next, zoomValue, viewport) => {
+  const clampOffset = useCallback((next, zoomValue, viewport) => {
     const el = imageRef.current;
     if (!el || !viewport) return next;
     const limit = (contentSize, viewSize) => {
@@ -562,20 +560,43 @@ const MapPage = () => {
       x: Math.max(-lx, Math.min(lx, next.x)),
       y: Math.max(-ly, Math.min(ly, next.y)),
     };
-  };
+  }, []);
+
+  /* ลากแมพ: ผูก mousemove/mouseup ไว้ที่ window ไม่ใช่ที่ตัว div
+     ของเดิมผูกไว้กับ div ของแมพ พอลากแล้วเมาส์วิ่งออกไปโดนแถบข้าง ป้ายหมุด
+     หรือการ์ดต่าง ๆ มันก็หยุดส่ง mousemove -> แมพสะดุด และถ้าปล่อยเมาส์
+     นอกหน้าต่างไปเลยก็ไม่มี mouseup มาปิด แมพเลยค้างในโหมดลาก
+
+     ระหว่างลากปิด user-select ทั้งหน้าด้วย — ไม่งั้นลากผ่านอะไรก็คลุมดำไปหมด */
+  useEffect(() => {
+    if (!isDragging) return undefined;
+    const move = (e) => {
+      const el = viewportRef.current;
+      if (!el) return;
+      setOffset(clampOffset(
+        { x: e.clientX - dragStart.x, y: e.clientY - dragStart.y },
+        zoom,
+        el.getBoundingClientRect(),
+      ));
+    };
+    const up = () => setIsDragging(false);
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+    const prevSelect = document.body.style.userSelect;
+    document.body.style.userSelect = 'none';
+    return () => {
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', up);
+      document.body.style.userSelect = prevSelect;
+    };
+  }, [isDragging, dragStart, zoom, clampOffset]);
 
   const handleMouseMove = (e) => {
     if (!imageRef.current) return;
     // ตอนลากแมพ ข้ามการอัปเดตตัวอ่านพิกัดใต้เมาส์ -> setState น้อยลงครึ่งหนึ่งต่อเฟรม
     // (ค่าพิกัดไม่มีประโยชน์ระหว่างลาก และการ re-render ถี่ ๆ ทำให้ SVG ที่ inline ไว้กระตุก)
-    if (isDragging) {
-      setOffset(clampOffset(
-        { x: e.clientX - dragStart.x, y: e.clientY - dragStart.y },
-        zoom,
-        e.currentTarget.getBoundingClientRect(),
-      ));
-      return;
-    }
+    // ตัวการลากเองย้ายไปอยู่ที่ listener บน window ด้านบนแล้ว
+    if (isDragging) return;
     const rect = imageRef.current.getBoundingClientRect();
 
     // Exact percentage of the mouse over the image
@@ -636,15 +657,6 @@ const MapPage = () => {
   };
 
   const markerScale = 1 / zoom;
-
-  const handleCopyName = (name, index) => {
-    navigator.clipboard.writeText(name).then(() => {
-      // Set the specific index as "copied"
-      setCopiedKeyIndex(index);
-      // Reset back to normal after 1.5 seconds
-      setTimeout(() => setCopiedKeyIndex(null), 500);
-    });
-  };
 
   // ----------- QUEST ACTIONS -----------
   const removeQuest = (e, questId) => {
@@ -708,8 +720,10 @@ const MapPage = () => {
     });
   }
 
+  // ไม่มี onMouseUp ที่กรอบนอกแล้ว — listener บน window จบการลากให้ทุกกรณี
+  // รวมถึงตอนปล่อยเมาส์นอกหน้าต่าง ซึ่งของเดิมจับไม่ได้ แมพเลยค้างในโหมดลาก
   return (
-    <div style={styles.container} onMouseUp={() => setIsDragging(false)}>
+    <div style={styles.container}>
       {/* Sidebar Toggle Button */}
       {!isSidebarOpen && (
         <button
@@ -750,9 +764,14 @@ const MapPage = () => {
             </button>
           </div>
 
+          {/* ช่องเลือกแมพ — มีป้ายหัวช่องกำกับ ไม่ใช่กล่องลอย ๆ ที่ต้องเดาว่าคืออะไร */}
+          <label style={{ ...styles.fieldLabel, marginTop: '10px' }} htmlFor="eft-map-select">Map</label>
           <select
-            style={{ ...styles.select, marginBottom: satelliteAvailable && abstractAvailable ? '8px' : 0 }}
+            id="eft-map-select"
+            style={{ ...styles.select, marginBottom: satelliteAvailable && abstractAvailable ? '10px' : 0 }}
             value={selectedMapId}
+            onFocus={(e) => { e.currentTarget.style.borderColor = '#38bdf8'; }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = '#2a3a5c'; }}
             onChange={(e) => {
               setSelectedMapId(Number(e.target.value));   // usePersisted บันทึกให้เอง
               setTrackedQuests([]);
@@ -804,8 +823,8 @@ const MapPage = () => {
           borderBottom: '1px solid #1e293b', flexShrink: 0, background: '#0d1526',
         }}>
           {[
+            // Keys ยุบไปอยู่บนสุดของแท็บ Quests แล้ว — เหลือ 3 ช่อง กว้างขึ้นจาก ~72px เป็น ~96px
             { k: 'quests', label: 'Quests', n: trackedQuests.length, color: '#38bdf8' },
-            { k: 'keys', label: 'Keys', n: questKeys.length, color: '#eab308' },
             { k: 'items', label: 'Items', n: trackedItems.length, color: '#a78bfa' },
             { k: 'view', label: 'View', n: 0, color: '#10b981' },
           ].map((t) => {
@@ -851,6 +870,30 @@ const MapPage = () => {
         {tab === 'quests' && (<>
         {/* ---- สิ่งที่ดูระหว่างเล่น ---- */}
 
+        {/* กุญแจรวมของแมพนี้ อยู่บนสุดเพราะเป็นของที่เช็คก่อนลงเรด
+            เดิมแยกเป็นแท็บของตัวเอง แต่ว่างเกือบตลอด (ทั้งเกมมีแค่ 56 จาก 503 เควส
+            ที่ใช้กุญแจ และนับเฉพาะเควสที่ track บนแมพนี้อีกที) */}
+        {questKeys.length > 0 && (
+          <Section
+            icon="🔑" title="Keys needed" badge={questKeys.length} badgeColor="#eab308"
+            open={showQuestKey} onToggle={() => setShowQuestKey(!showQuestKey)}
+          >
+            {(
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
+                {questKeys.map((k) => (
+                  <div key={k.id}>
+                    <KeyChip item={k} />
+                    {/* กุญแจดอกเดียวอาจใช้ได้หลายเควส — บอกว่าของใครบ้าง */}
+                    <div style={{ fontSize: '12.5px', color: '#64748b', marginTop: '3px', lineHeight: 1.35 }}>
+                      {k.quests.join(' · ')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Section>
+        )}
+
         <Section
           icon="🎯" title="Tracked quests" badge={trackedQuests.length || 'none'}
           badgeColor={trackedQuests.length ? '#38bdf8' : '#64748b'}
@@ -878,55 +921,116 @@ const MapPage = () => {
                   }}
                   onClick={() => setExpandedQuestName(isExpanded ? null : tq.id)}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: tq.visible ? tq.color : '#475569' }} />
-                    <span style={{ display: 'flex', flexDirection: 'column', flex: 1, }}>
-                      <div style={{ width: '100%', fontSize: '15.5px', fontWeight: '700', color: tq.visible ? '#f8fafc' : '#94a3b8' }}>{tq.name}</div>
-                      <div>
-                        <span style={{ width: '100%', fontSize: '15.5px', color: tq.visible ? '#f8fafc' : '#94a3b8' }}>{fullQuest.trader.name}</span>
-                        {fullQuest.kappaRequired && (<span className={`badge rounded-pill m-1 bg-success `} >Kappa</span>)}
-                        {fullQuest.lightkeeperRequired && (<span className={`badge rounded-pill m-1  bg-info `} >LightKeeper</span>)}
+                  {/* แถบสีเทรดเดอร์ชิดซ้าย แทนจุดกลมเล็ก ๆ — กวาดตาหาเควสของเทรดเดอร์
+                      คนเดียวกันได้เร็วกว่า และยังบอกสถานะซ่อน/แสดงด้วยความทึบ */}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '11px' }}>
+                    <span style={{
+                      width: '4px', alignSelf: 'stretch', minHeight: '34px', borderRadius: '2px', flexShrink: 0,
+                      background: tq.visible ? tq.color : '#475569',
+                    }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{
+                        fontSize: '15.5px', fontWeight: 700, lineHeight: 1.3,
+                        color: tq.visible ? '#f8fafc' : '#94a3b8',
+                      }}>
+                        {tq.name}
                       </div>
-                      <span style={{ width: '100%', fontSize: '15.5px', color: tq.visible ? '#f8fafc' : '#94a3b8' }}>Start at LV: {fullQuest.minPlayerLevel}</span>
-                    </span>
-                    <button
-                      onClick={(e) => toggleQuestVisibility(e, tq.id)}
-                      style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '0 4px', display: 'flex', alignItems: 'center' }}
-                      title={tq.visible ? "Hide markers" : "Show markers"}
-                    >
-                      {tq.visible ? (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
-                      ) : (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
-                      )}
-                    </button>
-                    <button
-                      onClick={(e) => removeQuest(e, tq.id)}
-                      style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '21px' }}
-                    >
-                      ×
-                    </button>
+                      {/* ป้ายทั้งแถวใช้สไตล์เดียวกัน — ของเดิมผสม badge ของ bootstrap
+                          (เขียว/ฟ้าทึบ ฟอนต์คนละตัว) กับข้อความเปล่า เลยดูคนละชุด */}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '5px', marginTop: '5px' }}>
+                        <span style={UI.badge(TRADER_THEMES[fullQuest.trader?.name]?.bg || '#64748b')}>
+                          {fullQuest.trader?.name}
+                        </span>
+                        {fullQuest.minPlayerLevel > 1 && (
+                          <span style={UI.badge('#64748b')}>LV {fullQuest.minPlayerLevel}</span>
+                        )}
+                        {fullQuest.kappaRequired && <span style={UI.badge('#eab308')}>Kappa</span>}
+                        {fullQuest.lightkeeperRequired && <span style={UI.badge('#38bdf8')}>Lightkeeper</span>}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                      <button
+                        onClick={(e) => toggleQuestVisibility(e, tq.id)}
+                        style={UI.iconBtn(tq.visible ? '#38bdf8' : '#64748b')}
+                        title={tq.visible ? "Hide markers" : "Show markers"}
+                      >
+                        {tq.visible ? (
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+                        ) : (
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
+                        )}
+                      </button>
+                      <button
+                        onClick={(e) => removeQuest(e, tq.id)}
+                        style={UI.iconBtn('#ef4444')}
+                        title="Remove from list"
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                      </button>
+                    </div>
                   </div>
 
                   {isExpanded && (
-                    <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #334155', fontSize: '13px' }}>
-                      <div>
-                        <button
-                          style={{
-                            width: '100%', background: '#00c40aff', border: 'none',
-                            borderRadius: "5px", color: '#ffffffff', cursor: 'default', fontSize: '17.5px', fontWeight: 'bold'
-                          }}
-                          onClick={(e) => nextQuest(e, tq.id)}>Complete</button>
-                      </div>
-                      <div style={{ marginBottom: '6px', color: '#94a3b8', fontWeight: 'bold' }}>Objectives:</div>
-                      {fullQuest.objectives.map((obj, idx) => (
-                        <div key={idx} style={{ marginBottom: '6px', color: '#cbd5e1', lineHeight: '1.4' }}>
-                          • {obj.description}{["giveItem", "TaskObjectiveShoot", "shoot", "kill"].includes(obj.type) && <> <span className='text-info'>x {obj.count}</span> </>}
-                          {(checkedObjectives[getObjectiveKey(fullQuest.id, obj.id)]) ? ' ✅' : ''}
-                        </div>
-                      ))}
-                      <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ color: '#10b981', fontWeight: 'bold' }}>+{fullQuest.experience} XP</span>
+                    <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #2a3a5c', fontSize: '14px' }}>
+                      {/* เดิมเป็นเขียวสด #00c40a ตัวหนังสือขาว ซึ่งดังกว่าทุกอย่างในแผง
+                          และตั้ง cursor: default ไว้ด้วย เลยไม่เหมือนปุ่มที่กดได้ */}
+                      <button
+                        style={{
+                          width: '100%', padding: '9px', borderRadius: '9px', cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '7px',
+                          border: '1px solid #22c55e', background: 'rgba(34,197,94,.16)', color: '#6ee7a8',
+                          fontSize: '15px', fontWeight: 800, letterSpacing: '.03em',
+                          transition: 'all .15s ease',
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(34,197,94,.28)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(34,197,94,.16)'; }}
+                        onClick={(e) => nextQuest(e, tq.id)}
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                        Complete
+                      </button>
+                      {/* กุญแจที่เควสนี้ต้องใช้ — เอาทุกแมพ ไม่ใช่แค่แมพที่เปิดอยู่
+                          จะได้รู้ตั้งแต่ตอนวางแผนว่าต้องหาดอกไหนเพิ่ม */}
+                      {(() => {
+                        const keys = QuestComponent.questKeys(fullQuest);
+                        if (keys.length === 0) return null;
+                        return (
+                          <>
+                            <div style={{ ...styles.fieldLabel, margin: '13px 0 7px' }}>Keys needed</div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 12 }}>
+                              {keys.map((k) => <KeyChip key={k.id} item={k} showMap />)}
+                            </div>
+                          </>
+                        );
+                      })()}
+                      <div style={{ ...styles.fieldLabel, margin: '13px 0 7px' }}>Objectives</div>
+                      {fullQuest.objectives.map((obj, idx) => {
+                        const ticked = !!checkedObjectives[getObjectiveKey(fullQuest.id, obj.id)];
+                        return (
+                          /* ติ๊กแล้วบอกด้วยสี + ขีดฆ่า แทนการต่อท้ายด้วยอิโมจิ ✅
+                             ซึ่งกวาดตาแล้วแยกยากเวลามี objective หลายอัน */
+                          <div key={idx} style={{
+                            display: 'flex', gap: '7px', marginBottom: '7px', lineHeight: 1.45,
+                            color: ticked ? '#4b5a74' : '#cbd5e1',
+                            textDecoration: ticked ? 'line-through' : 'none',
+                          }}>
+                            <span style={{ flexShrink: 0, color: ticked ? '#22c55e' : '#475569' }}>
+                              {ticked ? '✓' : '•'}
+                            </span>
+                            <span>
+                              {obj.description}
+                              {["giveItem", "TaskObjectiveShoot", "shoot", "kill"].includes(obj.type) && (
+                                <span style={{ color: ticked ? '#4b5a74' : '#38bdf8', fontWeight: 700 }}> ×{obj.count}</span>
+                              )}
+                            </span>
+                          </div>
+                        );
+                      })}
+                      <div style={{
+                        marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #1e293b',
+                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                      }}>
+                        <span style={UI.badge('#10b981')}>+{(fullQuest.experience || 0).toLocaleString()} XP</span>
                         <a
                           href={fullQuest.wikiLink}
                           target="_blank"
@@ -945,67 +1049,6 @@ const MapPage = () => {
           </div>
           </>)}
         </Section>
-        </>)}
-
-        {tab === 'keys' && (<>
-        {questKeys.length > 0 && (
-          <Section
-            icon="🔑" title="Keys needed" badge={questKeys.length} badgeColor="#eab308"
-            open={showQuestKey} onToggle={() => setShowQuestKey(!showQuestKey)}
-          >
-            {(
-              <div style={{
-                display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '15.5px', fontWeight: '700',
-                overflowY: questKeys.length > 5 ? 'scroll' : 'none',
-                maxHeight: '400px'
-              }}>
-                {questKeys.map((keyItem, index) => {
-                  const isJustCopied = copiedKeyIndex === index
-                  return (
-                    <div key={`${keyItem.questName}-${keyItem.keyName}-${index}`}
-                      style={{
-                        display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', borderRadius: '6px',
-                        backgroundColor: isJustCopied ? '#166534' : '#1e293b', // Green if copied, Dark Blue normal
-                        border: isJustCopied ? '1px solid #22c55e' : '1px solid #334155',
-                        transition: 'all 0.2s ease',
-                        width: '100%',
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isJustCopied) e.currentTarget.style.backgroundColor = '#334155';
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isJustCopied) e.currentTarget.style.backgroundColor = '#1e293b';
-                      }}
-                      onClick={() => handleCopyName(keyItem.keyName, index)}>
-                      <div style={{ width: '60%' }}>
-                        <div style={{ width: '100%' }}>
-                          {keyItem.questName} :
-                        </div>
-                        {keyItem.keyName}
-                      </div>
-                      <img src={keyItem.image} alt={keyItem.keyName} />
-                      <div style={{ display: 'flex', alignItems: 'right', justifyContent: 'flex-end', width: '10%' }} title='Copy name key'>
-                        {isJustCopied ? (
-                          /* Checkmark Icon (Success) */
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                          </svg>
-                        ) : (
-                          /* Clipboard Icon (Normal) */
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                          </svg>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })
-                }
-              </div>
-            )}
-          </Section>
-        )}
         </>)}
 
         {tab === 'items' && (<>
@@ -1206,11 +1249,19 @@ const MapPage = () => {
         )}
 
         <div
-          style={{ width: '100%', height: '100%', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: isDragging ? 'grabbing' : 'grab' }}
+          ref={viewportRef}
+          style={{
+            width: '100%', height: '100%', overflow: 'hidden',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            cursor: isDragging ? 'grabbing' : 'grab',
+            userSelect: 'none',   // ลากในกรอบแมพไม่ควรไปคลุมข้อความของป้าย/หมุด
+          }}
           onMouseMove={handleMouseMove}
           onMouseDown={(e) => {
             if (e.button !== 0) return;
             if (pinMode) { const { x, y } = pctFromEvent(e); addPin(x, y); return; }
+            // กันเบราว์เซอร์เริ่ม "เลือกข้อความ" ตั้งแต่จังหวะกด — ต้นเหตุที่ลากแล้วคลุมดำ
+            e.preventDefault();
             setIsDragging(true); setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
           }}
           onWheel={(e) => {
@@ -1250,7 +1301,7 @@ const MapPage = () => {
                 }}
               >
                 {tiles.map(t => (
-                  <img
+                  <img draggable={false}
                     key={t.key}
                     src={t.url}
                     alt=""
@@ -1290,7 +1341,7 @@ const MapPage = () => {
                 />
               </div>
             ) : (
-              <img
+              <img draggable={false}
                 ref={imageRef}
                 src={imageSrc}
                 onLoad={() => setIsLoading(false)}
@@ -1370,7 +1421,7 @@ const MapPage = () => {
                     whiteSpace: 'nowrap', pointerEvents: 'auto', cursor: 'pointer',
                   }}
                 >
-                  <img
+                  <img draggable={false}
                     src={factionImg(ext.faction)}
                     onLoad={() => setIsLoading(false)}
                     onError={(e) => { e.target.src = 'https://tarkov.dev/maps/interactive/extract_scav.png'; }}
@@ -1455,7 +1506,7 @@ const MapPage = () => {
                     whiteSpace: 'nowrap', pointerEvents: 'auto', cursor: 'pointer',
                   }}
                 >
-                  <img
+                  <img draggable={false}
                     src={`https://tarkov.dev/maps/interactive/extract_transit.png`}
                     onLoad={() => setIsLoading(false)}
                     title={label}
@@ -1490,7 +1541,7 @@ const MapPage = () => {
 
               return (
                 <div key={`keys-${idx}`} >
-                  <img
+                  <img draggable={false}
                     src={`https://tarkov.dev/maps/interactive/lock.png`}
                     onLoad={() => setIsLoading(false)}
                     title={keys.key.name || 'key'}
@@ -1514,7 +1565,7 @@ const MapPage = () => {
                     }}
                       onClick={() => setKeyDescription(null)}>
                       {keys.key.name}
-                      <img src={`${keys.key.imageLink}`} alt="" style={{ width: '50%', height: '50%', }} />
+                      <img draggable={false} src={`${keys.key.imageLink}`} alt="" style={{ width: '50%', height: '50%', }} />
                     </div>
                   )}
                 </div>
@@ -1586,12 +1637,23 @@ const MapPage = () => {
                                  ของเดิมสลับ expandedQuestName ด้วย ทำให้กดปิดแล้วกลับไปกางรายละเอียดขึ้นมา */
                               onClick={(e) => { e.stopPropagation(); setQuestDescription(null); }}>
                               <span>{obj.description}</span>
-                              <button
-                                style={styles.descriptionDone}
-                                onClick={(e) => { e.stopPropagation(); completeMark(quest.id, obj.id); }}
-                              >
-                                ✓ Done
-                              </button>
+                              {/* แถวล่าง: กุญแจซ้าย ปุ่ม Done ขวา
+                                  กุญแจของเควสนี้ที่ใช้บนแมพที่เปิดอยู่ — แท็บ Keys มีรวมไว้ให้แล้ว
+                                  แต่ตอนยืนดูหมุดอยู่ไม่มีใครย้อนไปเปิดแท็บอ่าน */}
+                              <div style={{
+                                display: 'flex', alignItems: 'flex-end', gap: 10, marginTop: 7,
+                              }}>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, minWidth: 0, flex: 1 }}>
+                                  {QuestComponent.questKeys(quest, currentMapName)
+                                    .map((k) => <KeyChip key={k.id} item={k} compact />)}
+                                </div>
+                                <button
+                                  style={{ ...styles.descriptionDone, marginTop: 0, alignSelf: 'flex-end', flexShrink: 0 }}
+                                  onClick={(e) => { e.stopPropagation(); completeMark(quest.id, obj.id); }}
+                                >
+                                  ✓ Done
+                                </button>
+                              </div>
                               <span style={styles.descriptionArrow} />
                             </div>
                           )}

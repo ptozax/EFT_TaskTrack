@@ -478,16 +478,38 @@ export const mapStyles = {
         marginBottom: '8px',
         display: 'block',
     },
+    /* ช่องเลือกแมพ — ลูกศรของเบราว์เซอร์เป็นสีระบบ ดูหลุดจากแผงที่เหลือ
+       เลยปิด appearance แล้ววาดลูกศรเองด้วย background-image แทน
+       (เว้น paddingRight ไว้ให้ลูกศรไม่ทับตัวหนังสือชื่อแมพยาว ๆ) */
     select: {
         width: '100%',
-        padding: '12px',
-        marginTop: '10px',
+        padding: '11px 36px 11px 13px',
         borderRadius: '10px',
-        backgroundColor: '#1e293b',
-        border: '1px solid #334155',
+        backgroundColor: '#0f1a30',
+        border: '1px solid #2a3a5c',
         color: '#f8fafc',
         outline: 'none',
-        fontSize: '16.5px',
+        fontSize: '16px',
+        fontWeight: 700,
+        cursor: 'pointer',
+        appearance: 'none',
+        WebkitAppearance: 'none',
+        MozAppearance: 'none',
+        backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%237c8db0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5 6 6.5l5-5'/%3E%3C/svg%3E\")",
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'right 13px center',
+        transition: 'border-color .15s ease',
+    },
+    /* ป้ายหัวช่องเล็ก ๆ ใช้นำหน้ากลุ่มตั้งค่าในแผงข้าง */
+    fieldLabel: {
+        fontSize: '12px',
+        fontWeight: 700,
+        letterSpacing: '.1em',
+        textTransform: 'uppercase',
+        color: '#64748b',
+        marginBottom: '6px',
+        display: 'block',
     },
     questCard: {
         padding: '12px',
@@ -514,7 +536,10 @@ export const mapStyles = {
     descriptionMarker: {
         position: 'absolute',
         width: 'max-content',
-        maxWidth: '240px',
+        /* กว้างขึ้นให้ป้ายกุญแจกับปุ่ม Done ยืนแถวเดียวกันได้ไม่เบียด
+           minWidth กันป้ายที่คำอธิบายสั้น ๆ หดจนแถวล่างตกบรรทัด */
+        minWidth: '215px',
+        maxWidth: '330px',
         padding: '7px 9px',
         borderRadius: '8px',
         border: '1px solid rgba(148,180,230,0.45)',
