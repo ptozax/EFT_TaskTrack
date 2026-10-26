@@ -43,7 +43,7 @@ export default function PriceList() {
 
     useEffect(() => {
         let alive = true;
-        getData('price', DATA_URL) // live จาก tarkov.dev ก่อน, fallback ไฟล์ public
+        getData('price', DATA_URL, { preload: true }) // หน้าราคา -> ขอข้อมูลสดก่อน, fallback ไฟล์ public
             .then((d) => { if (alive && d) setData(d); })
             .catch((e) => alive && setLoadErr(String(e)));
         return () => { alive = false; };

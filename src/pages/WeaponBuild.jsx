@@ -11,7 +11,7 @@ let datasetPromise = null;
 const loadDataset = () => {
     if (DATASET) return Promise.resolve(DATASET);
     if (!datasetPromise) {
-        datasetPromise = getData('optimizer', DATA_URL) // live จาก tarkov.dev ก่อน, fallback ไฟล์ public
+        datasetPromise = getData('optimizer', DATA_URL, { preload: true }) // ราคาอะไหล่ -> ขอข้อมูลสดก่อน, fallback ไฟล์ public
             .then((d) => {
                 DATASET = d;
                 return d;

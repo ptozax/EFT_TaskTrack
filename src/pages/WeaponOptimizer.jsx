@@ -46,7 +46,7 @@ export default function WeaponOptimizer() {
   // load precomputed dataset once
   useEffect(() => {
     let alive = true;
-    getData('optimizer', DATA_URL) // live จาก tarkov.dev ก่อน, fallback ไฟล์ public
+    getData('optimizer', DATA_URL, { preload: true }) // ราคาอะไหล่ -> ขอข้อมูลสดก่อน, fallback ไฟล์ public
       .then((d) => {
         if (alive) setData(d);
       })

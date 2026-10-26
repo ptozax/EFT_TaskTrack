@@ -97,7 +97,7 @@ export default function GearPreview() {
 
     useEffect(() => {
         let alive = true;
-        getData('gear', DATA_URL) // live จาก tarkov.dev ก่อน, fallback ไฟล์ public
+        getData('gear', DATA_URL, { preload: true }) // ราคาชุดเกราะ -> ขอข้อมูลสดก่อน, fallback ไฟล์ public
             .then((d) => { if (alive && d) setData(d); })
             .catch((e) => alive && setLoadErr(String(e)));
         return () => { alive = false; };

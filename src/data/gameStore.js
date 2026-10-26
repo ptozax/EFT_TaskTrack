@@ -1,14 +1,19 @@
 /* =========================================================================
  * gameStore.js
- * โหลดข้อมูล "สด" จาก json.tarkov.dev ตอนเข้าเว็บ แล้ว transform ในเบราว์เซอร์
- * เก็บไว้ใน store กลาง (ตัวแปรเดียว) ให้ทุกหน้าใช้ร่วมกัน — สดเสมอ ไม่ต้องรอ rebuild
+ * โหลดข้อมูล "สด" จาก json.tarkov.dev แล้ว transform ในเบราว์เซอร์
+ * เก็บไว้ใน store กลาง (ตัวแปรเดียว) ให้ทุกหน้าใช้ร่วมกัน
  *
  * fallback: ถ้าดึง/transform ไม่สำเร็จ หน้าเว็บจะใช้ไฟล์ static ที่ bundle ไว้แทน
  *   - หน้า import: ส่ง static เป็น fallback ผ่าน useLiveData(staticData, key)
  *   - หน้า fetch:  getData(key, publicJsonUrl) จะ fallback ไป fetch ไฟล์ public เดิม
  *
- * flow: main.jsx เรียก preloadAll() ครั้งเดียวตอนเข้าเว็บ -> fetch + transform +
- *       ใส่ store + แจ้ง subscribers -> useLiveData สลับจาก static เป็น live อัตโนมัติ
+ * ทำไมไม่ preload ตอนเข้าเว็บ:
+ *   doLoad ดึง 2.74 MB (gzip) ทุกครั้งที่เข้าเว็บ แต่เทียบแล้วเควส/แมพ/ไฮด์เอาต์
+ *   ที่ได้ "เท่ากันเป๊ะ" กับ snapshot ที่ npm run update-all สร้างไว้ (ต้นทางเดียวกัน
+ *   transforms.js ตัวเดียวกัน) — ต่างกันแค่ราคาตลาดที่ขยับรายชั่วโมง
+ *   เลยให้เฉพาะหน้าที่พึ่งราคาสด (ItemPrice / PriceList / GearPreview /
+ *   WeaponOptimizer / CaliberOptimizer / WeaponBuild) ขอ preload เองตอน mount
+ *   หน้าเควส/แมพ/ไฮด์เอาต์/กระสุน ใช้ของที่ bundle ไว้ ไม่ยิงเน็ตเลย
  * ========================================================================= */
 import { useEffect, useState } from 'react';
 import {
@@ -161,12 +166,15 @@ export function useSyncStatus() {
 }
 
 /* ---- สำหรับหน้าที่เดิมใช้ fetch(publicUrl) ------------------------------- *
- * คืน live ถ้าโหลดเสร็จ; ระหว่างรอ preload ก็รอ; ถ้า live ไม่มา -> fetch ไฟล์ public เดิม
+ * คืน live ถ้ามีอยู่แล้ว; ไม่งั้น fetch ไฟล์ public ที่ build ไว้
+ * preload: true = หน้านี้ "ต้องการราคาสด" ให้รอดึงจาก tarkov.dev ก่อน
  * ------------------------------------------------------------------------- */
-export async function getData(key, fallbackUrl) {
+export async function getData(key, fallbackUrl, { preload = false } = {}) {
   if (store[key] !== undefined) return store[key];
-  await preloadAll();
-  if (store[key] !== undefined) return store[key];
+  if (preload) {
+    await preloadAll();
+    if (store[key] !== undefined) return store[key];
+  }
   if (fallbackUrl) {
     const res = await fetch(fallbackUrl);
     if (res.ok) return res.json();
@@ -176,16 +184,17 @@ export async function getData(key, fallbackUrl) {
 
 /* ---- React hook สำหรับหน้าที่เดิมใช้ static import ------------------------ *
  * คืน static ทันที (เรนเดอร์เร็ว ไม่ว่าง) แล้วสลับเป็น live เมื่อโหลดเสร็จ
+ * ไม่ยิงเน็ตเอง — ได้ live ก็ต่อเมื่อหน้าที่ขอ preload โหลดไว้ให้แล้วในเซสชันนี้
  * ------------------------------------------------------------------------- */
-export function useLiveData(fallback, key) {
+export function useLiveData(fallback, key, { preload = false } = {}) {
   const [live, setLive] = useState(() => getLive(key));
   useEffect(() => {
     setLive(getLive(key)); // เผื่อโหลดเสร็จก่อน mount
     const set = (subscribers[key] = subscribers[key] || new Set());
     const cb = (v) => setLive(v);
     set.add(cb);
-    preloadAll();
+    if (preload) preloadAll();
     return () => set.delete(cb);
-  }, [key]);
+  }, [key, preload]);
   return live !== undefined ? live : fallback;
 }

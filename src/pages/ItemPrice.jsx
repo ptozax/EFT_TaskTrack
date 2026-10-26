@@ -10,7 +10,7 @@ import { FiRefreshCcw } from "react-icons/fi";
 import { Icons } from "../Component/EftComponent";
 
 const ItemPrice = () => {
-  const items = useLiveData(itemsStatic, 'items'); // สดจาก tarkov.dev ถ้าโหลดเสร็จ ไม่งั้น static
+  const items = useLiveData(itemsStatic, 'items', { preload: true }); // หน้านี้อ่านราคา -> ขอข้อมูลสด
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const intervalRef = useRef(null);

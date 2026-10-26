@@ -12,11 +12,10 @@ import Home from './home/home.jsx';
 import AppNavbar from './Component/AppNavbar.jsx';
 import SyncIndicator from './Component/SyncIndicator.jsx';
 import ErrorBoundary from './Component/ErrorBoundary.jsx';
-import { preloadAll } from './data/gameStore';
 
-// เริ่มดึงข้อมูล "สด" จาก json.tarkov.dev ทันทีที่เข้าเว็บ (ขนานกับการเรนเดอร์)
-// หน้าเว็บโชว์ static ก่อน แล้วสลับเป็น live เมื่อโหลด+transform เสร็จ (fallback = static ถ้าล้มเหลว)
-preloadAll();
+// เดิมที่นี่เรียก preloadAll() ดึงข้อมูลสด 2.74 MB ทุกครั้งที่เข้าเว็บ
+// ตอนนี้ย้ายไปให้เฉพาะหน้าที่พึ่งราคาสดขอเอง (ดูหัวไฟล์ data/gameStore.js)
+// หน้าเควส/แมพ/ไฮด์เอาต์ ใช้ snapshot ที่ npm run update-all สร้างไว้ ไม่ยิงเน็ต
 
 // Vite: ถ้า lazy chunk โหลดไม่ได้ (มัก = deploy เวอร์ชันใหม่ทำให้ chunk เก่าที่ browser cache ไว้ 404)
 // -> reload หนึ่งครั้งให้ดึง index/chunk ล่าสุด (กัน loop ด้วย flag เดียวกับ ErrorBoundary)
