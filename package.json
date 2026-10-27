@@ -26,6 +26,7 @@
     "update": "npm run update-items && npm run update-price && npm run update-pve-prices && npm run update-gear && npm run update-optimizer && npm run update-loot",
     "update-all": "npm run update && npm run update-kappa && npm run update-quest-links && npm run update-data && npm run update-story && npm run update-maps",
     "lint": "eslint .",
+    "smoke": "node scripts/smoke.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
