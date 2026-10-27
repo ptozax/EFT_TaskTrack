@@ -194,10 +194,11 @@ const Ammo = () => {
     const [selectedItem, setSelectedItem] = useState(null);
     const [showLegend, setShowLegend] = useState(true);
 
+    // ammo มาจาก useLiveData -> สลับ static เป็นสดได้ระหว่างอยู่หน้านี้ ต้องอยู่ใน deps
     const calibers = useMemo(() => {
         const unique = new Set(ammo.map(item => item.caliber));
         return ['All', ...Array.from(unique).sort()];
-    }, []);
+    }, [ammo]);
 
     const filteredData = useMemo(() => {
         let data = [...ammo];
@@ -226,7 +227,7 @@ const Ammo = () => {
         }
 
         return data;
-    }, [searchTerm, selectedCaliber, sortConfig]);
+    }, [ammo, searchTerm, selectedCaliber, sortConfig]);
 
     const handleSort = (key) => {
         setSortConfig(current => ({

@@ -6,6 +6,7 @@ import { useLiveData } from '../data/gameStore';
 
 const Hideout = () => {
     const hideout = useLiveData(hideoutStatic, 'hideout'); // สดจาก tarkov.dev ถ้าโหลดเสร็จ ไม่งั้น static
+    // hideout มาจาก useLiveData -> สลับ static เป็นสดได้ระหว่างอยู่หน้านี้ ต้องอยู่ใน deps
     const groupedModules = useMemo(() => {
         const modules = {};
         hideout.forEach(mod => {
@@ -20,7 +21,7 @@ const Hideout = () => {
             })).sort((a, b) => a.level - b.level);
         });
         return modules;
-    }, []);
+    }, [hideout]);
 
     const [currentLevels, setCurrentLevels] = useState(() => {
         const initial = {};

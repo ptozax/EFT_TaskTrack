@@ -106,11 +106,13 @@ const QuestTree = () => {
         setCurentQuest(curentQuests);
     }, [tasks]);
 
+    // handleStorageChange ผูกกับ tasks ซึ่งสลับ static เป็นสดได้ -> ต้องต่อ subscription ใหม่
+    // ไม่งั้น callback ที่ค้างอยู่จะคำนวณจาก tasks ชุดเก่าตลอด
     useEffect(() => {
         setIsLoad(true);
         handleStorageChange();
         return QuestComponent.callbackStorageChange(handleStorageChange);
-    }, []);
+    }, [handleStorageChange]);
 
     useEffect(() => {
         if (!isLoad) return;
@@ -119,7 +121,7 @@ const QuestTree = () => {
         const curentQuestIds = curentQuest.map(q => q.id);
         const passQuest = getCompletedQuests(tasks, curentQuestIds);
         setPassedQuest([...new Set([...completedQuestsIds, ...passQuest])]);
-    }, [completeQuest]);
+    }, [completeQuest, curentQuest, tasks, isLoad]);
 
     useEffect(() => {
         if (isLoad) localStorage.setItem(STORAGE_KEY, JSON.stringify(curentQuest));
