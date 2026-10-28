@@ -747,61 +747,56 @@ export const AmmoStyles = {
         fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
     },
     header: {
-        backgroundColor: '#1e293b', // zinc-900
-        borderBottom: '1px solid #334155', // zinc-800
+        backgroundColor: '#16213a',
+        borderBottom: '1px solid #2b3a52',
         position: 'sticky',
-        top: 0,
+        // เกาะใต้ navbar ที่หนึบอยู่แล้ว ไม่ใช่ top: 0 ซึ่งจะมุดเข้าไปใต้ navbar
+        // (--ammo-nav วัดจริงใน Balistic.jsx เพราะ navbar ยุบ/ขยายตามความกว้างจอ)
+        top: 'var(--ammo-nav, 0px)',
         zIndex: 30,
-        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+        // เงาอยู่ใน ammo.css (.ammo-head-bar) เพราะต้องอ้าง --ammo-gap ร่วมกับหัวตาราง
     },
     headerInner: {
-        maxWidth: '80rem', // max-w-7xl
+        maxWidth: '82rem',
         margin: '0 auto',
-        padding: '1rem',
+        padding: '12px 16px 10px',
     },
-    headerFlex: {
+    headerTop: {
         display: 'flex',
-        flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: '1rem',
+        gap: '12px',
         flexWrap: 'wrap',
+        marginBottom: '10px',
     },
     logoSection: {
         display: 'flex',
         alignItems: 'center',
-        gap: '0.75rem',
+        gap: '10px',
     },
     logoIcon: {
-        width: '2.5rem',
-        height: '2.5rem',
-        backgroundColor: '#2563eb', // blue-600
-        borderRadius: '0.5rem',
+        width: '2.25rem',
+        height: '2.25rem',
+        backgroundColor: 'rgba(234, 179, 8, 0.12)',
+        border: '1px solid rgba(234, 179, 8, 0.35)',
+        borderRadius: '8px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        boxShadow: '0 4px 6px -1px rgba(30, 58, 138, 0.2)',
+        color: theme.colors.accent,
     },
     title: {
-        fontSize: '1.25rem',
+        fontSize: '1.15rem',
         fontWeight: '700',
-        letterSpacing: '-0.025em',
-        color: '#ffffff',
-        lineHeight: 1,
+        letterSpacing: '-0.02em',
+        color: theme.colors.textMain,
+        lineHeight: 1.1,
         margin: 0,
     },
     subtitle: {
-        fontSize: '0.75rem',
-        color: '#64748b', // zinc-500
-        marginTop: '0.25rem',
-        margin: 0,
-    },
-    controlsSection: {
-        display: 'flex',
-        flexDirection: 'row',
-        gap: '0.75rem',
-        width: 'auto',
-        flexWrap: 'wrap',
+        fontSize: '0.7rem',
+        color: '#64748b',
+        margin: '2px 0 0',
     },
     searchContainer: {
         position: 'relative',
@@ -810,128 +805,156 @@ export const AmmoStyles = {
     },
     searchIcon: {
         position: 'absolute',
-        left: '0.75rem',
-        color: '#64748b', // zinc-500
+        left: '10px',
+        color: '#64748b',
+        pointerEvents: 'none',
     },
     searchInput: {
-        width: '16rem',
-        backgroundColor: '#0b1120', // zinc-950
-        border: '1px solid #475569', // zinc-700
-        fontSize: '0.875rem',
-        borderRadius: '0.375rem',
-        padding: '0.5rem 1rem 0.5rem 2.5rem',
+        width: '15rem',
+        maxWidth: '100%',
+        backgroundColor: '#0b1120',
+        border: '1px solid #2b3a52',
+        fontSize: '0.85rem',
+        borderRadius: '7px',
+        padding: '8px 12px 8px 32px',
         outline: 'none',
-        color: '#ffffff',
-        transition: 'all 0.15s ease-in-out',
+        color: theme.colors.textMain,
+        transition: 'border-color 0.15s, box-shadow 0.15s',
     },
-    caliberSelect: {
-        backgroundColor: '#0b1120', // zinc-950
-        border: '1px solid #475569', // zinc-700
-        fontSize: '0.875rem',
-        borderRadius: '0.375rem',
-        padding: '0.5rem 0.75rem',
-        outline: 'none',
-        color: '#cbd5e1', // zinc-300
+    /* ชิปเลือก caliber — แทน dropdown เดิม เห็นตัวเลือกทั้งหมดพร้อมจำนวนโดยไม่ต้องกด */
+    chip: (active) => ({
+        padding: '5px 11px',
+        borderRadius: '999px',
+        fontSize: '0.75rem',
+        fontWeight: active ? 700 : 500,
         cursor: 'pointer',
+        border: `1px solid ${active ? theme.colors.accent : '#2b3a52'}`,
+        background: active ? 'rgba(234, 179, 8, 0.15)' : '#131d33',
+        color: active ? theme.colors.accent : '#94a3b8',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+        transition: 'background-color 0.12s, border-color 0.12s',
+    }),
+    chipCount: {
+        fontSize: '0.65rem',
+        opacity: 0.65,
+        fontVariantNumeric: 'tabular-nums',
     },
     main: {
-        maxWidth: '80rem', // max-w-7xl
+        maxWidth: '82rem',
         margin: '0 auto',
-        padding: '1.5rem 1rem',
+        padding: '14px 16px 32px',
     },
-    legendToggle: {
-        display: 'flex',
-        justifyContent: 'flex-end',
-        marginBottom: '0.5rem',
-    },
-    legendButton: {
-        fontSize: '0.75rem',
-        color: '#60a5fa', // blue-400
-        background: 'none',
-        border: 'none',
-        cursor: 'pointer',
+    /* คำอธิบายคะแนน 0-6 แบบแถบเดียว — ของเดิมเป็นกล่อง 7 ช่องพร้อมปุ่มเปิด/ปิด
+       ซึ่งกินที่จนต้องซ่อน พอซ่อนแล้วก็อ่านตัวเลขในตารางไม่ออก ย่อให้เหลือ
+       บรรทัดเดียวแล้วโชว์ค้างไว้ จะได้ไม่ต้องจำและไม่ต้องมีปุ่ม */
+    legendStrip: {
         display: 'flex',
         alignItems: 'center',
-        gap: '0.25rem',
+        gap: '10px',
+        flexWrap: 'wrap',
+        padding: '8px 11px',
+        background: '#131d33',
+        border: '1px solid #2b3a52',
+        borderRadius: '8px',
+        marginBottom: '10px',
+        fontSize: '0.7rem',
     },
-    legendContainer: {
-        backgroundColor: '#1e293b', // zinc-900
-        border: '1px solid #334155', // zinc-800
-        borderRadius: '0.5rem',
-        padding: '1rem',
-        marginBottom: '1.5rem',
-    },
-    legendTitle: {
-        fontSize: '0.875rem',
-        fontWeight: '700',
-        color: '#cbd5e1', // zinc-300
-        marginBottom: '0.75rem',
+    legendItem: {
         display: 'flex',
         alignItems: 'center',
-        gap: '0.5rem',
-        margin: 0,
-    },
-    legendGrid: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-        gap: '0.5rem',
-        fontSize: '0.75rem',
-        textAlign: 'center',
-    },
-    tableContainer: {
-        backgroundColor: '#1e293b', // zinc-900
-        border: '1px solid #334155', // zinc-800
-        borderRadius: '0.75rem',
-        overflow: 'hidden',
-        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-    },
-    tableWrapper: {
-        overflowX: 'auto',
-    },
-    table: {
-        width: '100%',
-        textAlign: 'left',
-        fontSize: '0.875rem',
+        gap: '5px',
+        color: '#94a3b8',
         whiteSpace: 'nowrap',
-        borderCollapse: 'collapse',
     },
-    th: {
-        padding: '0.75rem 1rem',
-        fontWeight: '500',
-        borderBottom: '1px solid #334155', // zinc-800
-        color: '#94a3b8', // zinc-400
-        backgroundColor: 'rgba(11, 17, 32, 0.5)', // slate deep/50
+    legendSwatch: {
+        width: '15px',
+        height: '15px',
+        borderRadius: '3px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '0.6rem',
+        fontWeight: 700,
+        flexShrink: 0,
+    },
+    summaryBar: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '10px',
+        flexWrap: 'wrap',
+        marginBottom: '8px',
+        fontSize: '0.75rem',
+        color: '#64748b',
+    },
+    resetButton: {
+        background: 'none',
+        border: '1px solid #2b3a52',
+        borderRadius: '6px',
+        padding: '4px 10px',
+        color: '#94a3b8',
+        fontSize: '0.7rem',
         cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '5px',
+    },
+    /* ห้ามใส่ overflow: hidden ตรงนี้ — มันสร้าง scroll container เหมือน overflow-x: auto
+       แล้วหัวตารางที่ sticky จะยึดกับกล่องนี้แทนที่จะยึดกับจอ เลยไม่หนึบเลย
+       มุมมนทำที่เซลล์หัว/ท้ายใน ammo.css แทนการ clip ที่กล่อง */
+    // ใช้กับกรณีไม่มีผลลัพธ์เท่านั้น — ตัวตารางวาดขอบและมุมมนเองที่เซลล์ (ammo.css)
+    tableContainer: {
+        backgroundColor: '#1e293b',
+        border: '1px solid #2b3a52',
+        borderRadius: '10px',
+    },
+    /* ไม่ตั้ง padding ตรงนี้ — inline style ชนะ CSS เสมอ แล้ว media query
+       ที่ลดช่องไฟบนจอแคบใน ammo.css จะไม่มีผลเลย ปล่อยให้ CSS คุมฝั่งเดียว */
+    th: {
+        fontWeight: '600',
+        fontSize: '0.7rem',
+        letterSpacing: '0.06em',
+        textTransform: 'uppercase',
+        textAlign: 'left',
+        color: '#94a3b8',
+        userSelect: 'none',
     },
     td: {
-        padding: '0.5rem 1rem',
-        borderBottom: '1px solid #334155', // zinc-800
-        color: '#e2e8f0', // zinc-200
+        color: '#e2e8f0',
     },
-    row: {
-        cursor: 'pointer',
-        transition: 'background-color 0.15s ease',
+    nameCell: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
     },
     iconCell: {
-        width: '2.25rem',
-        height: '2.25rem',
-        backgroundColor: '#0b1120', // zinc-950
-        borderRadius: '0.25rem',
-        border: '1px solid #334155', // zinc-800
+        width: '2rem',
+        height: '2rem',
+        backgroundColor: '#0b1120',
+        borderRadius: '5px',
+        border: '1px solid #2b3a52',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         overflow: 'hidden',
-        margin: '0 auto',
+        flexShrink: 0,
+    },
+    /* หัวคร่อมบอกว่าคอลัมน์ 1-6 คือ armor class — ของเดิมมีแค่เลขลอย ๆ ไม่มีอะไรบอก */
+    groupHeader: {
+        textAlign: 'center',
+        color: '#64748b',
+        fontWeight: '700',
+        textTransform: 'uppercase',
     },
     armorHeader: {
-        padding: '0.75rem 0.5rem',
         fontWeight: '700',
         textAlign: 'center',
-        width: '2.5rem',
-        color: '#cbd5e1', // zinc-300
-        backgroundColor: 'rgba(51, 65, 85, 0.3)', // slate-700/30
-        borderBottom: '1px solid #334155',
+        width: '2.4rem',
+        fontSize: '0.75rem',
+        color: '#cbd5e1',
+        userSelect: 'none',
     },
     modalOverlay: {
         position: 'fixed',
@@ -1035,6 +1058,22 @@ export const AmmoStyles = {
         alignItems: 'center',
         padding: '0.25rem 0',
         borderBottom: '1px solid #334155', // zinc-800
+    },
+    /* แถบเกราะย่อใน modal — เปิดดูรายละเอียดแล้วยังเห็นว่ากระสุนนี้เอาอยู่ถึง class ไหน
+       โดยไม่ต้องปิด modal กลับไปดูตาราง */
+    modalArmorRow: {
+        display: 'flex',
+        gap: '6px',
+        marginTop: '10px',
+        flexWrap: 'wrap',
+    },
+    modalArmorCell: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '3px',
+        fontSize: '0.6rem',
+        color: '#64748b',
     },
 };
 
