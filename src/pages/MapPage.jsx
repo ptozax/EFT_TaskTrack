@@ -7,7 +7,7 @@ import { useLiveData, getData } from '../data/gameStore';
 import { mapStyles as styles, Icons, TRADER_THEMES } from '../Component/EftComponent';
 import * as QuestComponent from '../Component/QuestComponent';
 import { usePersisted, readStored } from '../Component/usePersisted';
-import { KeyChip } from '../Component/PanelUI.jsx';
+import { KeyChip, placeNote } from '../Component/PanelUI.jsx';
 import ItemTracker from './ItemTracker';
 import {
   findMapLayers, usableFloors, isMarkerVisible, mapCredit,
@@ -60,7 +60,7 @@ const UI = {
     boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
   },
   cardTitle: {
-    fontSize: '13px', fontWeight: 800, color: '#7c8db0',
+    fontSize: '13px', fontWeight: 800, color: '#9aabce',
     textTransform: 'uppercase', letterSpacing: '0.12em',
     marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px',
   },
@@ -70,7 +70,7 @@ const UI = {
     fontSize: '14px', fontWeight: 700, transition: 'all .15s ease',
     border: `1px solid ${active ? color : '#2a3550'}`,
     background: active ? `${color}22` : '#0e1730',
-    color: active ? color : '#64748b',
+    color: active ? color : '#8999b0',
   }),
   /* ปุ่มไอคอนในการ์ดเควส — เดิมเป็นไอคอนเปล่า ๆ กับตัว × ขนาด 21px
      ไม่มีพื้นที่กดชัดเจน เล็งยาก และดูไม่เป็นปุ่ม */
@@ -92,7 +92,7 @@ const UI = {
     fontSize: '13px', fontWeight: 700, transition: 'all .15s ease',
     border: `1px solid ${active ? color : '#2a3550'}`,
     background: active ? `${color}22` : 'transparent',
-    color: active ? color : '#64748b',
+    color: active ? color : '#8999b0',
   }),
   sectionHead: (open) => ({
     display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', userSelect: 'none',
@@ -100,7 +100,7 @@ const UI = {
     background: open ? '#16223c' : '#111c33',
     border: '1px solid #24324f',
     borderBottom: open ? '1px solid #24324f' : '1px solid #24324f',
-    fontSize: '13px', fontWeight: 800, color: '#9fb0d0',
+    fontSize: '13px', fontWeight: 800, color: '#b0c1e1',
     textTransform: 'uppercase', letterSpacing: '.1em',
   }),
   sectionBody: {
@@ -108,7 +108,7 @@ const UI = {
     background: 'linear-gradient(180deg,#101b31 0%,#0d1729 100%)', padding: '12px',
   },
   label: {
-    fontSize: '12px', color: '#64748b', textTransform: 'uppercase',
+    fontSize: '12px', color: '#8999b0', textTransform: 'uppercase',
     letterSpacing: '.1em', marginBottom: '6px',
   },
 };
@@ -120,7 +120,7 @@ const Section = ({ icon, title, badge, badgeColor, open, onToggle, children }) =
       <span style={{ fontSize: '15.5px', filter: 'saturate(0.9)' }}>{icon}</span>
       <span style={{ flex: 1 }}>{title}</span>
       {badge != null && <span style={UI.badge(badgeColor)}>{badge}</span>}
-      <span style={{ color: '#64748b', display: 'flex' }}>
+      <span style={{ color: '#8999b0', display: 'flex' }}>
         {open ? <Icons.ChevronUp size={16} /> : <Icons.ChevronDown size={16} />}
       </span>
     </div>
@@ -154,6 +154,7 @@ const MapPage = () => {
   const [expandedQuestName, setExpandedQuestName] = useState(null);
   const [questKeys, setQuestKeys] = useState([]);
   const [showQuestKey, setShowQuestKey] = useState(false);
+  const [showQuestPlant, setShowQuestPlant] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [questDescription, setQuestDescription] = useState(null);
   const [keyDescription, setKeyDescription] = useState(null);
@@ -454,6 +455,24 @@ const MapPage = () => {
       });
     });
     setQuestKeys([...byKey.values()]);
+  }, [trackedQuests, currentMapName, findQuest]);
+
+  /* ของที่ต้องพกไปวาง/มาร์ก/ใช้ บนแมพนี้ — รวมแบบเดียวกับกุญแจ
+     (MS2000 Marker ใช้กับหลายเควสพร้อมกันบ่อย เลยต้องบอกว่าของใครบ้างเหมือนกัน) */
+  const [questPlants, setQuestPlants] = useState([]);
+  useEffect(() => {
+    const byItem = new Map();
+    trackedQuests.forEach((tq) => {
+      const fullQuest = findQuest(tq);
+      if (!fullQuest) return;
+      QuestComponent.questPlantItems(fullQuest, currentMapName).forEach((it) => {
+        const row = byItem.get(it.id) || { ...it, quests: [] };
+        row.count = Math.max(row.count, it.count);
+        if (!row.quests.includes(tq.name)) row.quests.push(tq.name);
+        byItem.set(it.id, row);
+      });
+    });
+    setQuestPlants([...byItem.values()]);
   }, [trackedQuests, currentMapName, findQuest]);
 
   // HELPER FUNCTIONS
@@ -840,7 +859,7 @@ const MapPage = () => {
                   padding: '11px 2px 10px', border: 'none', background: 'transparent',
                   cursor: 'pointer', whiteSpace: 'nowrap',
                   fontSize: '13.5px', fontWeight: 800,
-                  color: on ? t.color : '#5b6b8c',
+                  color: on ? t.color : '#8898b9',
                   transition: 'color .15s ease',
                 }}
               >
@@ -884,13 +903,32 @@ const MapPage = () => {
                   <div key={k.id}>
                     <KeyChip item={k} />
                     {/* กุญแจดอกเดียวอาจใช้ได้หลายเควส — บอกว่าของใครบ้าง */}
-                    <div style={{ fontSize: '12.5px', color: '#64748b', marginTop: '3px', lineHeight: 1.35 }}>
+                    <div style={{ fontSize: '12.5px', color: '#8999b0', marginTop: '3px', lineHeight: 1.35 }}>
                       {k.quests.join(' · ')}
                     </div>
                   </div>
                 ))}
               </div>
             )}
+          </Section>
+        )}
+
+        {/* ของที่ต้องพกไปวาง — เช็คก่อนลงเรดเหมือนกุญแจ ลืมแล้วเสียเที่ยวเท่ากัน */}
+        {questPlants.length > 0 && (
+          <Section
+            icon="📦" title="Bring to place" badge={questPlants.length} badgeColor="#eab308"
+            open={showQuestPlant} onToggle={() => setShowQuestPlant(!showQuestPlant)}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
+              {questPlants.map((it) => (
+                <div key={it.id}>
+                  <KeyChip item={it} note={placeNote({ ...it, mapName: null })} />
+                  <div style={{ fontSize: '12.5px', color: '#8999b0', marginTop: '3px', lineHeight: 1.35 }}>
+                    {it.quests.join(' · ')}
+                  </div>
+                </div>
+              ))}
+            </div>
           </Section>
         )}
 
@@ -901,7 +939,7 @@ const MapPage = () => {
         >
           {(<>
           {trackedQuests.length === 0 && (
-            <div style={{ fontSize: '14px', color: '#64748b', textAlign: 'center', padding: '12px 0' }}>
+            <div style={{ fontSize: '14px', color: '#8999b0', textAlign: 'center', padding: '12px 0' }}>
               No quests tracked yet
             </div>
           )}
@@ -1075,7 +1113,7 @@ const MapPage = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
             {[
               { label: 'Exits', on: showExtracts, set: setShowExtracts, color: '#10b981' },
-              { label: 'Transits', on: showTransits, set: setShowTransits, color: '#f91616' },
+              { label: 'Transits', on: showTransits, set: setShowTransits, color: '#f87171' },
               { label: 'Keys', on: showKeys, set: setShowKeys, color: '#eab308' },
               { label: 'Labels', on: showLabels, set: setShowLabels, color: '#38bdf8' },
             ].map(f => (
@@ -1117,10 +1155,10 @@ const MapPage = () => {
             title="Toggle, then click the map to drop a pin"
           >
             {pinMode ? '📍 Click the map to place' : '📍 Add pin'}
-            {pinsHere.length > 0 && !pinMode && <span style={{ color: '#7c8db0', fontWeight: 600 }}> · {pinsHere.length} here</span>}
+            {pinsHere.length > 0 && !pinMode && <span style={{ color: '#9aabce', fontWeight: 600 }}> · {pinsHere.length} here</span>}
           </button>
           {useSatellite && tileLevel != null && (
-            <div style={{ fontSize: '12px', color: '#5b6b8c', marginTop: '8px' }}>
+            <div style={{ fontSize: '12px', color: '#8898b9', marginTop: '8px' }}>
               Satellite detail {tileLevel}/{maxLevel} · {tiles.length} tiles · zoom in for more
             </div>
           )}
@@ -1164,7 +1202,7 @@ const MapPage = () => {
         {credit && (
           <div style={{
             flexShrink: 0, padding: '8px 14px 10px', borderTop: '1px solid #1e293b',
-            background: '#0d1526', fontSize: '12px', color: '#5b6b8c', lineHeight: 1.5,
+            background: '#0d1526', fontSize: '12px', color: '#8898b9', lineHeight: 1.5,
           }}>
             Map art: {credit.link
               ? <a href={credit.link} target="_blank" rel="noopener noreferrer" style={{ color: '#60a5fa' }}>{credit.author}</a>
@@ -1178,13 +1216,13 @@ const MapPage = () => {
         width: 'auto',
         flex: 1,
       }}>
-        {isLoading && <div style={{ position: 'absolute', zIndex: 60, color: '#3b82f6' }}>SYNCING...</div>}
+        {isLoading && <div style={{ position: 'absolute', zIndex: 60, color: '#60a5fa' }}>SYNCING...</div>}
 
         <div style={styles.coordBox}>
           <p style={{ margin: 0, fontSize: '14px', fontWeight: 'bold' }}>
-            GAME POS: <span style={{ color: '#ef4444' }}>X: {mousePos.gameX}, Z: {mousePos.gameZ}</span>
+            GAME POS: <span style={{ color: '#f87171' }}>X: {mousePos.gameX}, Z: {mousePos.gameZ}</span>
           </p>
-          <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#64748b' }}>{currentMapName} TACTICAL ALIGNMENT</p>
+          <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#8999b0' }}>{currentMapName} TACTICAL ALIGNMENT</p>
         </div>
 
         <div style={styles.zoomControls}>
@@ -1646,6 +1684,10 @@ const MapPage = () => {
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, minWidth: 0, flex: 1 }}>
                                   {QuestComponent.questKeys(quest, currentMapName)
                                     .map((k) => <KeyChip key={k.id} item={k} compact />)}
+                                  {/* ของที่ต้องพกไปวาง อยู่ข้างกุญแจ — ตอนยืนดูหมุดอยู่
+                                      ไม่มีใครย้อนไปเปิดแท็บด้านข้างอ่าน */}
+                                  {QuestComponent.questPlantItems(quest, currentMapName)
+                                    .map((it) => <KeyChip key={it.id} item={it} compact note={placeNote({ ...it, mapName: null })} />)}
                                 </div>
                                 <button
                                   style={{ ...styles.descriptionDone, marginTop: 0, alignSelf: 'flex-end', flexShrink: 0 }}

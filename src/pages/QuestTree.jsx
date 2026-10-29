@@ -586,9 +586,9 @@ const QuestTree = () => {
                     <div style={{ height: 1, background: P.borderSoft, margin: '10px 0' }} />
                     <div style={{ display: 'grid', gap: 5, fontSize: 13, color: P.dim }}>
                         <div>— solid: must complete first</div>
-                        <div style={{ color: '#9b7ae0' }}>— purple: from the wiki (missing in the API)</div>
+                        <div style={{ color: '#a78bfa' }}>— purple: from the wiki (missing in the API)</div>
                         <div>– – dashed: unlocks while previous is active</div>
-                        <div style={{ color: '#b45b5b' }}>– – red: previous must be failed</div>
+                        <div style={{ color: '#f87171' }}>– – red: previous must be failed</div>
                         <div style={{ color: P.gold }}>● gold dot: required for Kappa</div>
                     </div>
                 </div>

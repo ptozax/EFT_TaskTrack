@@ -6,7 +6,8 @@
  * แยกออกมาเพื่อให้สองหน้านี้หน้าตาตรงกันจริง ไม่ต้องก๊อป style ไปมา
  * ========================================================================= */
 import React, { useEffect, useState } from 'react';
-import { Icons } from './EftComponent.jsx';
+import { Icons, TRADER_THEMES } from './EftComponent.jsx';
+import { MAX_LOYALTY, loyaltyLevelsFor } from './QuestComponent.jsx';
 
 /**
  * ความสูงของ AppNavbar ที่เป็น sticky-top ของ bootstrap (z-index 1020)
@@ -37,10 +38,16 @@ export const P = {
   borderSoft: '#1b2742',
   headBg: '#16223c',
   inputBg: '#0e1730',
+  /* สี่ระดับความสว่างของตัวหนังสือ วัดด้วยอัตราคอนทราสต์เทียบพื้นที่เข้มที่สุด
+     ที่มีตัวหนังสือวางอยู่จริง (#1e293b — เซลล์ตารางหน้า Ballistics):
+       text 11.9 > muted 8.1 > label 6.3 > dim 5.1   ผ่าน WCAG AA (4.5) ทุกระดับ
+     ของเดิม dim อยู่ที่ 3.1 และ label 4.4 ซึ่งต่ำกว่าเกณฑ์ — เป็นต้นเหตุที่อ่านแล้วรู้สึกมืด
+     เพราะสองระดับนี้แบกตัวหนังสือรองเกือบทั้งแอป (ป้ายกำกับ ชิปที่ไม่ได้เลือก หมายเหตุ)
+     ปรับให้สว่างขึ้นโดยคงโทนน้ำเงินเดิมไว้ ไม่ได้เปลี่ยนเป็นเทาล้วน */
   text: '#e2e8f0',
-  muted: '#9fb0d0',
-  dim: '#64748b',
-  label: '#7c8db0',
+  muted: '#b0c1e1',
+  dim: '#8999b0',
+  label: '#9aabce',
   gold: '#eab308',
   green: '#22c55e',
   red: '#ef4444',
@@ -77,6 +84,100 @@ export const badge = (color = P.label) => ({
   padding: '3px 8px', borderRadius: '999px',
   background: `${color}1f`, color, whiteSpace: 'nowrap',
 });
+
+/* ชิปเทรดเดอร์ในแถวตัวกรอง — จุดสี + ชื่อ + Loyalty Level ที่ผู้เล่นกรอกไว้
+ *
+ * LL เป็นตัวตัดสินว่าเควสชุดไหนของเทรดเดอร์คนนั้นเปิดแล้ว แต่เดิมต้องเปิดแผง
+ * Loyalty ถึงจะเห็นเลข -> ย้ายมาแปะที่ชื่อเทรดเดอร์ซึ่งเห็นอยู่ตลอด
+ *
+ * LL4 คือเต็มแล้ว ใช้มงกุฎแทนเลข (ไอคอนเดียวกับปุ่ม Loyalty ที่เปิดแผง)
+ * เพราะสิ่งที่อยากรู้ตอนกวาดตาคือ "เหลือใครที่ยังดันต่อได้" ไม่ใช่เลขของแต่ละคน
+ * รูปทรงต่างกันเลยแยกออกจากกันได้โดยไม่ต้องอ่านทีละตัว */
+/* ปุ่มระดับกว้าง 24 เรียงห่างกัน 3 -> 4 ปุ่ม = 105px ซึ่งกว้างกว่าชิปชื่อสั้น ๆ
+   (Ref, Fence) ถ้าไม่จองที่ไว้ก่อน พอเปิดโหมด Loyalty คอลัมน์จะถ่างออก
+   แล้วดันชิปที่อยู่ถัดไปเลื่อนไปทางขวาทั้งแถว หาคนที่เล็งไว้ไม่เจอ
+   จองไว้ตลอดทั้งตอนเปิดและปิด ชิปจึงอยู่กับที่ ขยับแค่ความสูง */
+const pickerWidth = (n) => (n ? n * 24 + (n - 1) * 3 : 0);
+
+export const TraderChip = ({ name, level = 1, active, onClick, onSetLevel }) => {
+  const color = TRADER_THEMES[name]?.bg || P.label;
+  const levels = loyaltyLevelsFor(name);
+  const cap = levels.length || MAX_LOYALTY;
+  const maxed = level >= cap;
+
+  const tag = (
+    <span
+      style={{ ...chip(active, color), cursor: onClick ? 'pointer' : 'default' }}
+      onClick={onClick}
+      title={`${name} — Loyalty Level ${level}${maxed ? ' (max)' : ''}`}
+    >
+      <span style={{ width: 7, height: 7, borderRadius: 999, background: color, flexShrink: 0 }} />
+      {name}
+      {/* ทองคงที่ ไม่เปลี่ยนตามสถานะเลือก/ไม่เลือกของชิป — ป้ายนี้บอก LL
+          ไม่ได้บอกว่าถูกกรองอยู่ไหม ถ้าเปลี่ยนสีตามด้วยจะอ่านปนกันสองเรื่อง
+          (ทอง = Loyalty ทั้งแอป: ปุ่มเปิดโหมด, ปุ่มเลือกระดับ, ป้าย LL ในการ์ด) */}
+      <span style={{
+        ...badge(P.gold),
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+        minWidth: 20, padding: '2px 6px', lineHeight: 1,
+        fontVariantNumeric: 'tabular-nums',
+      }}>
+        {maxed ? <Icons.Crown size={12} /> : level}
+      </span>
+    </span>
+  );
+
+  // เทรดเดอร์ที่มีระดับเดียว (Lightkeeper, Btr Driver) ไม่ต้องจองที่ ไม่มีปุ่มจะขึ้นอยู่แล้ว
+  if (levels.length === 0) return tag;
+
+  return (
+    /* alignItems: center ไม่ใช่ stretch — ปล่อย stretch ชิปจะยืดเต็มคอลัมน์ที่จองไว้
+       แล้วขนาดเม็ดชิปเปลี่ยนไปมาตอนสลับโหมด ซึ่งคือสิ่งที่พยายามเลี่ยงอยู่ */
+    <div style={{
+      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+      minWidth: pickerWidth(levels.length),
+    }}>
+      {tag}
+      {!onSetLevel ? null : (
+      <div style={{ display: 'flex', gap: 3, justifyContent: 'center' }}>
+        {levels.map((n) => (
+          <button
+            key={n}
+            onClick={() => onSetLevel(n)}
+            title={`Loyalty Level ${n}${n === cap ? ' (max)' : ''}`}
+            style={{
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+              width: 24, height: 22, borderRadius: 7, cursor: 'pointer',
+              fontSize: 13, fontWeight: 800, lineHeight: 1,
+              border: `1px solid ${n === level ? P.gold : '#2a3550'}`,
+              background: n === level ? `${P.gold}26` : 'transparent',
+              color: n === level ? P.gold : P.dim,
+            }}
+          >
+            {/* ปุ่มสุดท้ายเป็นมงกุฎ ไม่ใช่เลข — ที่ที่ตั้งค่าคือที่ที่ผูกความหมาย
+                "มงกุฎ = เต็มแล้ว" ให้ป้ายบนชิป และ "เต็ม" ของแต่ละคนไม่เท่ากัน
+                (Fence เต็มที่ 2) มงกุฎจึงสื่อตรงกว่าเลข */}
+            {n === cap ? <Icons.Crown size={12} /> : n}
+          </button>
+        ))}
+      </div>
+      )}
+    </div>
+  );
+};
+
+/* คำกำกับของที่ต้องพกไปวาง — "เอาไปกี่ชิ้น ทำอะไรกับมัน ที่ไหน" ในบรรทัดเดียว
+   บอกจำนวนเสมอ แม้จะเป็น 1 เพราะคำถามตอนจัดของคือ "ต้องเตรียมกี่ชิ้น"
+   การเว้นว่างไว้ให้เดาเอาว่าแปลว่าหนึ่งนั้นตอบไม่ตรงคำถาม
+   kind มาจาก PLACE_KIND, spots/anyOf มาจาก questPlantItems */
+export const placeNote = (it) => [
+  `×${it.count}`,
+  { mark: 'mark', plant: 'place', use: 'use' }[it.kind],
+  // บอกจำนวนจุดด้วยเมื่อต้องเอาไปหลายชิ้น ไม่งั้นดูเหมือนตัวเลขมั่ว
+  it.spots > 1 ? `${it.spots} spots` : null,
+  it.anyOf ? 'any of these' : null,
+  it.mapName,
+].filter(Boolean).join(' · ');
 
 export const input = {
   background: P.inputBg,
@@ -214,7 +315,9 @@ export const copyKeyName = (item, e) => {
   return navigator.clipboard.writeText(item.name).then(() => true, () => false);
 };
 
-export const KeyChip = ({ item, compact = false, showMap = false }) => {
+/* ใช้กับทั้งกุญแจและของที่ต้องพกไปวาง — `note` แทนบรรทัดล่างที่ปกติเป็นชื่อแมพ
+   (ของที่พกไปวางอยากบอกทั้งจำนวนและวิธีใช้ ไม่ใช่แค่แมพ) */
+export const KeyChip = ({ item, compact = false, showMap = false, note = null }) => {
   const px = compact ? 26 : 34;
   const [copied, setCopied] = useState(false);
 
@@ -243,15 +346,32 @@ export const KeyChip = ({ item, compact = false, showMap = false }) => {
         transition: 'background .15s ease, border-color .15s ease',
       }}
     >
-      <img
-        src={item.gridImageLink || item.baseImageLink}
-        alt=""
-        loading="lazy"
-        style={{
-          width: px, height: px, objectFit: 'contain', flexShrink: 0,
-          borderRadius: 5, background: ITEM_BG[item.backgroundColor] || ITEM_BG.default,
-        }}
-      />
+      {/* ของเควส (plantQuestItem) ข้อมูลให้มาแค่ id กับชื่อ ไม่มีลิงก์รูป
+          ปล่อยให้ <img> src ว่างจะได้ไอคอนรูปแตก -> วางกล่องเปล่าสีพื้นไอเทมแทน
+          ขนาดเท่ากันทุกชิ้น แถวจึงไม่เหลื่อม */}
+      {(item.gridImageLink || item.baseImageLink) ? (
+        <img
+          src={item.gridImageLink || item.baseImageLink}
+          alt=""
+          loading="lazy"
+          style={{
+            width: px, height: px, objectFit: 'contain', flexShrink: 0,
+            borderRadius: 5, background: ITEM_BG[item.backgroundColor] || ITEM_BG.default,
+          }}
+        />
+      ) : (
+        <span
+          aria-hidden="true"
+          style={{
+            width: px, height: px, flexShrink: 0, borderRadius: 5,
+            background: ITEM_BG[item.backgroundColor] || ITEM_BG.default,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#8999b0', fontSize: compact ? 13 : 16,
+          }}
+        >
+          ?
+        </span>
+      )}
       <span style={{ minWidth: 0 }}>
         <span style={{
           display: 'block', fontSize: compact ? '12.5px' : '14px', fontWeight: 600,
@@ -261,9 +381,9 @@ export const KeyChip = ({ item, compact = false, showMap = false }) => {
           {/* ชื่อเต็มยาวมาก ("Health Resort west wing room 306 key") -> ป้ายแคบใช้ตัวย่อ */}
           {copied ? 'Copied!' : (compact ? (item.shortName || item.name) : item.name)}
         </span>
-        {showMap && item.mapName && (
-          <span style={{ display: 'block', fontSize: '11.5px', color: '#7c8db0', marginTop: 1 }}>
-            {item.mapName}
+        {(note || (showMap && item.mapName)) && (
+          <span style={{ display: 'block', fontSize: '11.5px', color: '#9aabce', marginTop: 1 }}>
+            {note || item.mapName}
           </span>
         )}
       </span>

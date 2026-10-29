@@ -173,7 +173,11 @@ export const getStartQuests = () => {
        (Jaeger: Acquaintance ต้องทำ Introduction ของ Mechanic ก่อน)
        เควสแบบนี้ยังเป็น "เควสแรกของเทรดเดอร์คนนั้น" อยู่ แต่ใส่ตอน reset ไม่ได้
        เพราะยังทำไม่ได้จริง -> ข้ามทั้งเทรดเดอร์ ไม่ถอยไปหยิบเควสถัดไปในสาย
-       (เควสปลดล็อกเองจะโผล่มาตามปกติจากข้อเสนอของเทรดเดอร์ต้นทาง) */
+
+       เคยเขียนไว้ตรงนี้ว่า "เควสปลดล็อกเองจะโผล่มาจากข้อเสนอของเทรดเดอร์ต้นทาง"
+       ซึ่งไม่จริง — ทำ Introduction ของ Mechanic เสร็จก็ได้ข้อเสนอของ Mechanic
+       ไม่เคยมีของ Jaeger เพราะไม่มีเควสไหนผูก Introduction เป็น taskRequirements
+       ตอนนี้ home.jsx อ่าน finishRewards.traderUnlock ตอนกด Complete แทน */
     return [...first.values()].filter(q => (q.wikiPrev || []).length === 0);
 };
 
@@ -211,13 +215,46 @@ export const seedStartQuests = () => {
 export const TRADER_LEVELS_KEY = 'eft_trader_levels';
 export const MAX_LOYALTY = 4;
 
+/* จำนวนระดับ Loyalty ที่เทรดเดอร์แต่ละคนมีจริงในเกม — ไม่ได้เป็น 4 เท่ากันทุกคน
+ *
+ * ที่มา: https://json.tarkov.dev/regular/traders ฟิลด์ levels[] (เช็คซ้ำได้ทุกเมื่อ)
+ * ไม่ได้อ่านสดผ่าน gameStore เพราะตอน transform มันหยิบไปแค่ชื่อ แล้วทิ้ง levels[]
+ * และตัวเลขชุดนี้แทบไม่ขยับ ถ้าวันไหนขยับค่อยต่อสายสดก็ยังทัน
+ *
+ * Fence มี LL0 อยู่ในข้อมูลด้วย แต่นั่นคือสถานะตอน scav karma ติดลบ
+ * ไม่ใช่ระดับที่ไล่ขึ้นไป เลยไม่นับมาเป็นปุ่มให้กด
+ *
+ * Lightkeeper กับ Btr Driver มีระดับเดียว — ของเดิมให้กด 1-4 ทั้งคู่
+ * ทั้งที่ในเกมไม่มีระดับให้ขึ้น */
+const TRADER_LOYALTY_CAP = {
+    Prapor: 4, Therapist: 4, Skier: 4, Peacekeeper: 4,
+    Mechanic: 4, Ragman: 4, Jaeger: 4, Ref: 4,
+    Fence: 2,
+    Lightkeeper: 1, 'Btr Driver': 1,
+};
+
+/** เทรดเดอร์ที่ไม่รู้จัก (คนใหม่หลังอัปเดตเกม) ให้ 4 ไว้ก่อน ดีกว่าหายไปเฉย ๆ */
+export const traderLoyaltyCap = (traderName) => TRADER_LOYALTY_CAP[traderName] ?? MAX_LOYALTY;
+
+/** ระดับที่ควรมีปุ่มให้กด — คนที่มีระดับเดียวคืนอาเรย์ว่าง (ไม่ต้องมีปุ่มเลย) */
+export const loyaltyLevelsFor = (traderName) => {
+    const cap = traderLoyaltyCap(traderName);
+    return cap <= 1 ? [] : Array.from({ length: cap }, (_, i) => i + 1);
+};
+
 /** Loyalty Level ของผู้เล่นต่อเทรดเดอร์ (กรอกเอง) — ไม่ได้ตั้งไว้ถือว่า 1 */
 export const getTraderLevels = () => {
     try { return JSON.parse(localStorage.getItem(TRADER_LEVELS_KEY)) || {}; } catch { return {}; }
 };
 
+/** อ่านค่าแบบบีบให้อยู่ในช่วงที่เทรดเดอร์คนนั้นมีจริง
+    — ของที่เคยตั้งไว้ตอนปุ่มยังเป็น 1-4 ทุกคน (เช่น Fence = 4) จะได้ไม่ค้างเป็นค่าที่ไม่มีอยู่ */
+export const traderLevelOf = (levels, traderName) =>
+    Math.min(Math.max(1, levels?.[traderName] ?? 1), traderLoyaltyCap(traderName));
+
 export const setTraderLevel = (traderName, level) => {
-    const next = { ...getTraderLevels(), [traderName]: Math.min(MAX_LOYALTY, Math.max(1, level)) };
+    const cap = traderLoyaltyCap(traderName);
+    const next = { ...getTraderLevels(), [traderName]: Math.min(cap, Math.max(1, level)) };
     localStorage.setItem(TRADER_LEVELS_KEY, JSON.stringify(next));
     return next;
 };
@@ -230,6 +267,12 @@ export const setTraderLevel = (traderName, level) => {
 export const getTraderSuggestions = (traderName, { completed = [], active = [], limit = 8, aboveLevel = null } = {}) => {
     if (!traderName) return [];
     const taken = new Set([...completed.map(q => q.id), ...active.map(q => q.id)]);
+    /* "ผ่านจุดนั้นมาแล้ว" = อยู่ในประวัติ ไม่ว่าจะเสร็จหรือถูกปิดเพราะเลือกสายอื่น
+       นับ failed ด้วยเพราะเควสทางเลือกเป็นพี่น้องกัน และวิกิลงไว้ครบทุกสาย
+       เช่น Dragnet มี wikiPrev = [One Less Loose End, A Healthy Alternative]
+       ซึ่งเลือกได้ทางเดียวตลอดกาล -> ถ้านับเฉพาะ complete เงื่อนไขจะไม่มีวันเป็นจริง
+       ในแอปนี้สถานะ failed เกิดจากกลุ่มเควสทางเลือกเท่านั้น การนับรวมจึงไม่กินเกิน */
+    const reached = new Set(completed.map(q => q?.id));
     const faction = currentFaction();
     const myLevel = getTraderLevels()[traderName] ?? 1;
 
@@ -240,7 +283,24 @@ export const getTraderSuggestions = (traderName, { completed = [], active = [], 
     return TASKS()
         .filter(q => q.trader?.name === traderName
             && (q.taskRequirements || []).length === 0
-            && (q.wikiPrev || []).length === 0   // วิกิรู้ว่ามีเควสก่อนหน้า แม้ API ไม่รู้
+            /* วิกิรู้ว่ามีเควสก่อนหน้า แม้ API ไม่รู้ -> เสนอได้ก็ต่อเมื่อทำครบแล้ว
+               เดิมบรรทัดนี้คือ `.length === 0` คือตัดทิ้งทุกตัวที่วิกิบอกว่ามีแม่
+               ซึ่งตัดแล้วไม่มีอะไรพากลับมาเลย เพราะ getNextQuestLists ดูแต่
+               taskRequirements -> 38 เควส (Jaeger 24 / Ragman 13 / Skier 1)
+               หายไปจากระบบเสนอทั้งหมด ต้องค้นชื่อเพิ่มเองอย่างเดียว
+
+               ไม่ได้เอา wikiPrev ไปยัดใส่ taskRequirements จริง ๆ ตามที่
+               update-quest-links.mjs เตือนไว้ — ใช้แค่เป็นเงื่อนไขว่าจะ "เสนอ"
+               ไหมเท่านั้น การนับปลดล็อกของ Home/Kappa จึงไม่ขยับ
+
+               some ไม่ใช่ every: ช่อง previous ของวิกิไม่ได้แปลว่า "ต้องครบทุกตัว"
+               หลายหน้าลงไว้ทั้งแถวที่มาก่อน รวมถึงสายที่เลือกได้ทางเดียว
+                 Shortage   -> First in Line + Operation Aquarius + Supply Plans
+                 Stray Dogs -> Huntsman Path สามอันพร้อมกัน
+                 Dragnet    -> One Less Loose End + A Healthy Alternative (เลือกได้ทางเดียว)
+               บังคับให้ครบทุกตัวจะได้เงื่อนไขที่เป็นจริงไม่ได้ แล้วลามไปปิดสายทั้งสาย
+               (ทดลองแล้ว every ทำให้เข้าไม่ถึง 25 เควส ส่วน some เหลือ 10) */
+            && ((q.wikiPrev || []).length === 0 || q.wikiPrev.some(p => reached.has(p)))
             && !GATED_IDS.has(q.id)              // ต้องมีตัวจุดชนวนก่อน (ดูคำอธิบายที่ GATED_IDS)
             && !taken.has(q.id)
             && ["Any", faction].includes(q.factionName)
@@ -454,22 +514,37 @@ export const getAllRequirements = (questId, visitedIds = new Set()) => {
  * หน้า Home ทำแบบนี้อยู่แล้วใน nextQuest แต่สองหน้านั้นเขียนแค่ eft_completed_quests
  * ทำให้เควสเดียวกันค้างเป็น "กำลังทำ" ในหน้า Home พร้อมกับเป็น "เสร็จแล้ว"
  */
+/* อ่านแบบไม่โยน error — ข้อมูลที่ parse ไม่ได้ให้ถือว่าว่าง
+   (โหมดส่วนตัว / เขียนค้างกลางคันตอน quota เต็ม / ส่วนขยายเบราว์เซอร์)
+   ที่อื่นในแอปกันไว้หมดแล้ว (readStored, getTraderLevels, getFaction) */
+const readRaw = (key, fallback) => {
+    try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
+};
+
 export const dropFromActive = (questIds) => {
     const ids = new Set(questIds);
     if (!ids.size) return;
 
-    const active = JSON.parse(localStorage.getItem('eft_selected_quests') || '[]');
-    const next = active.filter((q) => !ids.has(q.id));
-    if (next.length !== active.length) {
-        localStorage.setItem('eft_selected_quests', JSON.stringify(next));
+    /* เดิมใช้ JSON.parse ตรง ๆ ตรงนี้ ถ้าข้อมูลเสียจะโยน error กลางคัน
+       ซึ่งแย่กว่าที่คิด เพราะผู้เรียก (AddQuest / Kappa) เขียน eft_completed_quests
+       ไปก่อนแล้ว -> เควสถูกบันทึกว่าเสร็จ แต่ไม่ถูกถอดจากรายการ "กำลังทำ"
+       = ค้างเป็นทั้งสองสถานะพร้อมกัน ซึ่งเป็นอาการที่ฟังก์ชันนี้มีไว้ป้องกัน */
+    const active = readRaw('eft_selected_quests', []);
+    if (Array.isArray(active)) {
+        const next = active.filter((q) => !ids.has(q?.id));
+        if (next.length !== active.length) {
+            localStorage.setItem('eft_selected_quests', JSON.stringify(next));
+        }
     }
 
-    const checks = JSON.parse(localStorage.getItem('eft_objective_checklist') || '{}');
-    let changed = false;
-    Object.keys(checks).forEach((k) => {
-        if (ids.has(k.split('|')[0])) { delete checks[k]; changed = true; }
-    });
-    if (changed) localStorage.setItem('eft_objective_checklist', JSON.stringify(checks));
+    const checks = readRaw('eft_objective_checklist', {});
+    if (checks && typeof checks === 'object' && !Array.isArray(checks)) {
+        let changed = false;
+        Object.keys(checks).forEach((k) => {
+            if (ids.has(k.split('|')[0])) { delete checks[k]; changed = true; }
+        });
+        if (changed) localStorage.setItem('eft_objective_checklist', JSON.stringify(checks));
+    }
 };
 
 export const callbackStorageChange = (handleStorageChange) => {
@@ -511,19 +586,93 @@ export const splitSearchHits = (term, { quests = [], active = [], completed = []
     };
 };
 
+/* ชื่อแมพในข้อมูลมีตัวแปรย่อย (Ground Zero 21+ / Tutorial, The Lab (Dark))
+   ที่เป็นแมพเดียวกับตัวหลัก — ตัวกรองแมพจึงต้องรับให้ครบ ไม่งั้นของที่ติดอยู่กับ
+   ชื่อย่อยจะหายไปจากหน้าแมพ
+   (home.jsx มี MAP_ALIAS ของตัวเองไว้ยุบ "ชิป" ในแถบตัวกรอง คนละงานกัน
+    แต่ชุดชื่อต้องตรงกัน ถ้าเพิ่มที่นั่นแล้วอย่าลืมที่นี่) */
+const MAP_VARIANTS = {
+    'Ground Zero': ['Ground Zero 21+', 'Ground Zero Tutorial'],
+    'The Lab': ['The Lab (Dark)'],
+};
+const sameMap = (name, want) => name === want || (MAP_VARIANTS[want] || []).includes(name);
+
+/**
+ * ของที่ต้องพกเข้าไปเพื่อ "วาง / มาร์ก / ใช้" ตามจุด — 93 จาก 503 เควส
+ *
+ * ไม่ได้อยู่ในช่อง Hand over (นั่นคือของที่ส่งให้เทรดเดอร์) และไม่ใช่กุญแจ
+ * ถ้าไม่บอกไว้ก็รู้ตัวอีกทีตอนยืนอยู่หน้าจุดแล้วไม่มีของ — อาการเดียวกับกุญแจ
+ * เลยโชว์ที่เดียวกัน
+ *
+ *   mark            -> markerItem  (MS2000 Marker 74 จุด มากที่สุด)
+ *   plantItem       -> item + count (WI-FI Camera 42, Signal Jammer, ฯลฯ)
+ *   plantQuestItem  -> questItem   (ของจาก objective ก่อนหน้า ต้องพกไปวางต่อ)
+ *   useItem         -> useAny      (พลุสัญญาณ — ใช้ตัวไหนในลิสต์ก็ได้)
+ *
+ * @param mapName  จำกัดเฉพาะแมพนี้ (null = เอาทุกแมพ)
+ * @returns [{ ...item, kind, count, mapName, anyOf }] ยุบของชิ้นซ้ำแล้ว
+ */
+export const PLACE_KIND = { mark: 'mark', plantItem: 'plant', plantQuestItem: 'plant', useItem: 'use' };
+
+export const questPlantItems = (quest, mapName = null) => {
+    const out = [];
+    (quest?.objectives || []).forEach(o => {
+        const kind = PLACE_KIND[o?.type];
+        if (!kind) return;
+        const onMaps = (o.maps || []).map(m => m?.name).filter(Boolean);
+        // objective ที่ไม่ระบุแมพเลยให้ผ่านไว้ — ตัดทิ้งแล้วจะหายไปจากหน้าแมพทั้งที่เกี่ยวข้อง
+        if (mapName && onMaps.length && !onMaps.some(n => sameMap(n, mapName))) return;
+
+        const picks = o.markerItem ? [o.markerItem]
+            : o.item ? [o.item]
+                : o.questItem ? [o.questItem]
+                    : (o.useAny || []);
+        picks.forEach(it => it?.id && out.push({
+            ...it, kind,
+            count: o.count || 1,
+            mapName: onMaps[0] || null,
+            anyOf: (o.useAny || []).length > 1,   // พลุหลายสี เลือกสีไหนก็ได้
+        }));
+    });
+
+    /* ของชิ้นเดียวกันโผล่หลาย objective -> รวมเป็นรายการเดียว แล้ว "บวก" จำนวน
+       เพราะแต่ละจุดกินของของตัวเอง ไม่ได้ใช้ชิ้นเดิมซ้ำ:
+         The Survivalist Path - Thrifty  บังเกอร์ 2 จุด x (Iskra 1 + น้ำ 1) -> ต้องเอาไป 2 กับ 2
+         Thirsty - Delivery              "ถังแรก" + "ถังที่สอง"            -> ต้องเอาไป 2
+         Chumming                        3 ชิ้นที่ Customs + 3 ที่ Woods    -> ต้องเอาไป 6
+         เควสที่มาร์กหลายจุด              MS2000 กินดอกละจุด                -> ต้องเอาไปเท่าจำนวนจุด
+       (เคยใช้ Math.max ซึ่งบอกน้อยกว่าจริงทุกเคสข้างบน)
+
+       spots = จำนวนจุดที่ต้องไปทำ ใช้บอกว่าทำไมถึงต้องเอาไปหลายชิ้น
+       ถ้ากรองตามแมพอยู่ ตัวเลขจะเหลือเฉพาะของแมพนั้นเอง */
+    const byId = new Map();
+    out.forEach(it => {
+        const prev = byId.get(it.id);
+        if (!prev) byId.set(it.id, { ...it, spots: 1 });
+        else {
+            prev.count += it.count;
+            prev.spots += 1;
+            if (prev.mapName !== it.mapName) prev.mapName = null;   // คนละแมพ -> ไม่ระบุ
+        }
+    });
+    return [...byId.values()];
+};
+
 /**
  * กุญแจที่เควสต้องใช้ (data: quest.neededKeys = [{ map, keys: [...] }])
  * มี 56 จาก 503 เควสที่ต้องใช้กุญแจ
  *
  * @param mapName  จำกัดเฉพาะแมพนี้ (null = เอาทุกแมพ)
- *                 รับ "Ground Zero 21+" เป็นแมพเดียวกับ "Ground Zero" ด้วย
+ *                 รับชื่อแมพตัวแปรย่อยด้วย (ดู MAP_VARIANTS)
  * @returns [{ ...key, mapName }] ยุบกุญแจดอกซ้ำแล้ว
  */
 export const questKeys = (quest, mapName = null) => {
     const out = [];
     (quest?.neededKeys || []).forEach(group => {
         const onMap = group.map?.name;
-        if (mapName && onMap !== mapName && onMap !== `${mapName} 21+`) return;
+        // เดิมเช็คเองแค่ `${mapName} 21+` ตัวเดียว -> ใช้ sameMap ร่วมกับ questPlantItems
+        // จะได้ไม่หลุดกันเวลาเกมเพิ่มแมพรุ่นย่อยใหม่
+        if (mapName && !sameMap(onMap, mapName)) return;
         (group.keys || []).forEach(k => k?.id && out.push({ ...k, mapName: onMap }));
     });
     // กุญแจดอกเดียวอาจอยู่หลายกลุ่ม (คนละ objective) -> เหลือดอกละรายการ

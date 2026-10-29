@@ -8,8 +8,8 @@ const DATA_URL = `${import.meta.env.BASE_URL}gear_data.json`;
 const CATS = {
     all: { label: 'All', color: '#c7a34f' },
     rig: { label: 'Rigs', color: '#10b981' },
-    'armored-rig': { label: 'Armored rigs', color: '#ef4444' },
-    backpack: { label: 'Backpacks', color: '#3b82f6' },
+    'armored-rig': { label: 'Armored rigs', color: '#f87171' },
+    backpack: { label: 'Backpacks', color: '#60a5fa' },
     container: { label: 'Containers', color: '#eab308' },
     armor: { label: 'Body armor', color: '#f97316' },
 };

@@ -472,7 +472,7 @@ export const mapStyles = {
     label: {
         fontSize: '12px',
         fontWeight: '800',
-        color: '#475569',
+        color: '#8b99ad',
         textTransform: 'uppercase',
         letterSpacing: '0.15em',
         marginBottom: '8px',
@@ -507,7 +507,7 @@ export const mapStyles = {
         fontWeight: 700,
         letterSpacing: '.1em',
         textTransform: 'uppercase',
-        color: '#64748b',
+        color: '#8999b0',
         marginBottom: '6px',
         display: 'block',
     },
@@ -795,7 +795,7 @@ export const AmmoStyles = {
     },
     subtitle: {
         fontSize: '0.7rem',
-        color: '#64748b',
+        color: '#8999b0',
         margin: '2px 0 0',
     },
     searchContainer: {
@@ -806,7 +806,7 @@ export const AmmoStyles = {
     searchIcon: {
         position: 'absolute',
         left: '10px',
-        color: '#64748b',
+        color: '#8999b0',
         pointerEvents: 'none',
     },
     searchInput: {
@@ -887,7 +887,7 @@ export const AmmoStyles = {
         flexWrap: 'wrap',
         marginBottom: '8px',
         fontSize: '0.75rem',
-        color: '#64748b',
+        color: '#8999b0',
     },
     resetButton: {
         background: 'none',
@@ -944,7 +944,7 @@ export const AmmoStyles = {
     /* หัวคร่อมบอกว่าคอลัมน์ 1-6 คือ armor class — ของเดิมมีแค่เลขลอย ๆ ไม่มีอะไรบอก */
     groupHeader: {
         textAlign: 'center',
-        color: '#64748b',
+        color: '#8999b0',
         fontWeight: '700',
         textTransform: 'uppercase',
     },
@@ -1045,7 +1045,7 @@ export const AmmoStyles = {
         border: '1px solid rgba(71, 85, 105, 0.5)', // slate-600/50
     },
     statLabel: {
-        color: '#64748b', // zinc-500
+        color: '#8999b0', // zinc-500
         fontSize: '0.75rem',
         textTransform: 'uppercase',
         letterSpacing: '0.05em',
@@ -1073,7 +1073,7 @@ export const AmmoStyles = {
         alignItems: 'center',
         gap: '3px',
         fontSize: '0.6rem',
-        color: '#64748b',
+        color: '#8999b0',
     },
 };
 
@@ -1162,6 +1162,8 @@ export const TRADER_THEMES = {
     "Jaeger": { bg: "#689f38", border: "#dcedc8", text: "#ffffff" }, // เขียวสว่าง
     "Fence": { bg: "#5d4037", border: "#d7ccc8", text: "#ffffff" }, // น้ำตาลเข้ม
     "Lightkeeper": { bg: "#ffea00ff", border: "#f57f17", text: "#000000" }, // เหลืองทองสว่าง (Text ดำ)
-    "BTR Driver": { bg: "#ffeb3b", border: "#212121", text: "#000000" }, // เหลือง Taxi/Hazard (เด่นที่สุด)
+    // คีย์ต้องเป็น "Btr Driver" ตามที่ titleCase('btr-driver') คายออกมา
+    // เขียน "BTR Driver" ไว้จะหาไม่เจอ แล้วตกไปใช้สีเทาเริ่มต้นแทน
+    "Btr Driver": { bg: "#ffeb3b", border: "#212121", text: "#000000" }, // เหลือง Taxi/Hazard (เด่นที่สุด)
     "Ref": { bg: "#d32f2f", border: "#ffcdd2", text: "#ffffff" }, // แดงสด Arena
 };

@@ -4,14 +4,15 @@ import questsStatic from "../data/tasks";
 import { useLiveData } from '../data/gameStore';
 import * as QuestComponent from '../Component/QuestComponent';
 import { Icons, TRADER_THEMES } from '../Component/EftComponent';
-import { P, card, chip, badge, label, Bar, SearchBox, Empty, KeyChip, useNavbarOffset } from '../Component/PanelUI.jsx';
+import { P, card, chip, badge, label, Bar, SearchBox, Empty, KeyChip, TraderChip, placeNote, useNavbarOffset } from '../Component/PanelUI.jsx';
 import { usePersisted } from '../Component/usePersisted.js';
 
 const STORAGE_KEY = "eft_selected_quests";
 const OBJECTIVE_CHECK_KEY = "eft_objective_checklist";
 const COMPLETE_KEY = "eft_completed_quests";
 const HIDDEN_KEY = "eft_hidden_objectives";   // เดิมเก็บแต่ใน state -> รีเฟรชทีเดียวหาย
-const DRAWER_KEY = "eft_home_drawer";         // แผงข้างเปิดค้างไว้ไหม
+// ชื่อคีย์ยังเป็น drawer เดิมเพื่อไม่ให้คนที่เปิดค้างไว้อยู่โดนรีเซ็ตตอนอัปเดต
+const LOYALTY_KEY = "eft_home_drawer";        // กางปุ่มตั้ง Loyalty ใต้ชิปเทรดเดอร์ไว้ไหม
 
 /* ลำดับเทรดเดอร์ตามหน้า Traders ในเกม ไม่ใช่เรียงตามตัวอักษร
    Lightkeeper กับ Btr Driver ไม่ได้อยู่ในหน้านั้น เลยต่อท้าย Ref ไป */
@@ -28,12 +29,36 @@ const byTraderOrder = (a, b) => {
 
 /* Ground Zero 21+ กับ Ground Zero Tutorial เป็นแมพเดียวกับ Ground Zero
    ต่างกันแค่เลเวลผู้เล่นที่เข้าได้ -> ยุบเป็นตัวเลือกเดียว ไม่งั้นต้องกดสามอัน
-   (Night Factory / The Lab (Dark) ไม่ยุบ — คนละรอบเวลา ของที่เจอต่างกันจริง) */
+
+   The Lab (Dark) คือ The Lab เวอร์ชันไฟดับของอีเวนต์ Blackout ยุบด้วย เพราะ
+   เควสทั้ง 13 อันที่ติดป้ายนี้ ติดป้าย The Lab ไว้ด้วยทุกอัน (ไม่มีอันไหนมีเฉพาะ
+   เวอร์ชันมืด) ชิปของมันจึงไม่เคยโชว์อะไรที่กด The Lab แล้วไม่เจอ
+
+   Night Factory ไม่ยุบ — ต่างกับข้างบนตรงที่มี 3 เควสติดป้ายเฉพาะกลางคืน
+   (Night Sweep / Hell on Earth - Part 2 / Broadcast - Part 5) ซึ่งเป็นเควสลัทธิ
+   ที่ลัทธิโผล่บน Factory เฉพาะตอนกลางคืน ยุบเข้าไปแล้วการ์ดจะบอกว่าทำที่
+   Factory ได้ ซึ่งไปกลางวันหาไม่เจอ */
 const MAP_ALIAS = {
   'Ground Zero 21+': 'Ground Zero',
   'Ground Zero Tutorial': 'Ground Zero',
+  'The Lab (Dark)': 'The Lab',
 };
 const mapName = (n) => MAP_ALIAS[n] || n;
+
+/* ลำดับแมพในแถบตัวกรอง — เรียงตามที่เล่นจริง ไม่ใช่ตามตัวอักษร
+   (Factory -> Night Factory -> Ground Zero -> ... -> Icebreaker)
+   รูปแบบเดียวกับ TRADER_ORDER ข้างบน: แมพใหม่ที่ยังไม่อยู่ในรายการนี้
+   ไปต่อท้ายแล้วเรียงตามตัวอักษรกันเอง ไม่หายไปจากแถว */
+const MAP_ORDER = [
+  'Factory', 'Night Factory', 'Ground Zero', 'Woods', 'Customs',
+  'Lighthouse', 'Interchange', 'Shoreline', 'Reserve', 'Streets of Tarkov',
+  'The Lab', 'The Labyrinth', 'Icebreaker',
+];
+const byMapOrder = (a, b) => {
+  const ia = MAP_ORDER.indexOf(a);
+  const ib = MAP_ORDER.indexOf(b);
+  return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b);
+};
 
 const getObjectiveKey = (questId, objectiveId) => `${questId}|${objectiveId}`;
 // จำนวนเควสที่เสนอครั้งแรกในการ์ด (กางดูทั้งหมดได้) — เดิม 8 ซึ่งเยอะไปต่อเทรดเดอร์
@@ -87,11 +112,16 @@ const MiniButton = ({ title, color, onClick, children }) => (
 /* แถวตัวกรองในแถบหนึบ — ป้ายชื่อซ้าย ชิปเรียงขวาแบบเลื่อนแนวนอน
    ไม่ตัดบรรทัด (nowrap) เพื่อให้แถบหนึบสูงคงที่ ไม่ว่าจะมีกี่ตัวเลือก */
 const FilterRow = ({ title, empty, children }) => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-    <span style={{ ...label, width: 58, flexShrink: 0 }}>{title}</span>
+  /* flex-start ไม่ใช่ center: พอเปิดโหมด Loyalty ชิปเทรดเดอร์จะสูงขึ้นเป็นสองชั้น
+     ถ้าจัดกึ่งกลาง ป้าย TRADERS จะลอยไปอยู่ระหว่างชิปกับปุ่ม
+     paddingTop ดันป้ายลงมาให้ตรงกับตัวหนังสือในชิปพอดี (ชิปสูง 34 ป้ายสูง ~15) */
+  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+    <span style={{ ...label, width: 58, flexShrink: 0, paddingTop: 9 }}>{title}</span>
     <div
       className="eft-filter-row"
-      style={{ display: 'flex', gap: 5, overflowX: 'auto', flex: 1, minWidth: 0, padding: '1px 0' }}
+      /* gap 10 ไม่ใช่ 5 — ปุ่มในแถวระดับห่างกัน 3 ถ้าชิปห่างกันแค่ 5 ปุ่มของคนละคน
+         จะชิดกันพอ ๆ กับปุ่มของคนเดียวกัน แยกไม่ออกว่าแถวไหนเป็นของใคร */
+      style={{ display: 'flex', gap: 10, overflowX: 'auto', flex: 1, minWidth: 0, padding: '1px 0' }}
     >
       {React.Children.count(children) === 0
         ? <span style={{ ...label, textTransform: 'none', letterSpacing: 0 }}>— {empty} —</span>
@@ -149,7 +179,7 @@ const Home = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   /* แผงข้างเปิดค้างไว้ได้ และจำไว้ข้ามการรีเฟรช — ตั้งค่าพวกนี้เป็นของที่ปรับบ่อย
      ตอนไล่ทำเควส ไม่ใช่ของที่เปิดครั้งเดียวจบ */
-  const [drawerOpen, setDrawerOpen] = usePersisted(DRAWER_KEY, false);
+  const [loyaltyOpen, setLoyaltyOpen] = usePersisted(LOYALTY_KEY, false);
   const [traderLevels, setTraderLevels] = useState(() => QuestComponent.getTraderLevels());
   const [onlyTurnIn, setOnlyTurnIn] = useState(false);
   const [suggest, setSuggest] = useState(null);       // { trader, quests } หลังทำเควสเสร็จ
@@ -184,13 +214,9 @@ const Home = () => {
      โผล่ ๆ หาย ๆ เลยกวนกว่าได้ที่คืนมา -> โชว์ค้างไว้ตลอด
      ที่กันไม่ให้แถบสูงจนบังเควสคือการให้แต่ละแถวเลื่อนแนวนอนแทนการตัดบรรทัด */
 
-  // Esc ปิดแผงข้าง — บนจอแคบแผงทับเนื้อหาอยู่ ต้องมีทางออกที่ไม่ต้องเล็งปุ่ม
-  useEffect(() => {
-    if (!drawerOpen) return undefined;
-    const onKey = (e) => { if (e.key === 'Escape') setDrawerOpen(false); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [drawerOpen, setDrawerOpen]);
+  /* เดิมมี Esc ไว้ปิดแผงข้าง เพราะบนจอแคบแผงทับเนื้อหาอยู่ ต้องมีทางออกที่ไม่ต้องเล็งปุ่ม
+     ตอนนี้ปุ่มตั้งค่ากางอยู่ในแถบหนึบ ไม่ได้ทับอะไร และปุ่มเปิด/ปิดก็เห็นอยู่ข้าง ๆ ตลอด
+     เลยไม่ต้องมีทางออกฉุกเฉินอีก */
 
   const scrollTo = (id) => {
     const el = refs.current[id];
@@ -236,20 +262,21 @@ const Home = () => {
   }, [completedQuests, currentQuestId, isLoaded]);
 
   /* ---------------- FILTER OPTIONS ---------------- */
-  // ตัวเลือกคิดจาก "เควสที่เลือกไว้" เท่านั้น — ของเดิมไล่จาก quests ทั้ง 515 ตัว
-  // ทำให้ขึ้นชื่อแมพ/เทรดเดอร์ที่ไม่มีอยู่ในรายการเลย (และ dep ของ useMemo ก็ผิดด้วย)
+  /* แมพทุกอันในเกม (13 อันหลังยุบชื่อซ้ำ) ไม่ใช่แค่ที่มีในเควสที่เลือกไว้
+     เคยคิดจาก selectedQuests เพื่อไม่ให้ขึ้นชื่อที่ไม่มีอยู่ในรายการ แต่พอรายชื่อ
+     ขยับตามเควสที่เหลือ ชิปจะหายกลางคัน แล้วตัวกรองที่ค้างกับชิปนั้นก็ปลดไม่ได้
+     (บั๊กเดียวกับแถว Traders) — และคนที่มีเควสอยู่ก็เห็นเกือบครบทุกอันอยู่แล้ว
+     กดแมพที่ไม่มีเควสไม่ใช่ทางตัน มี Empty บอก และกดซ้ำก็ย้อนได้ */
   const allLocations = useMemo(() => {
     const s = new Set();
-    selectedQuests.forEach((q) => q.objectives?.forEach((o) => o.maps?.forEach((m) => m?.name && s.add(mapName(m.name)))));
-    return [...s].sort();
-  }, [selectedQuests]);
+    quests.forEach((q) => q.objectives?.forEach((o) => o.maps?.forEach((m) => m?.name && s.add(mapName(m.name)))));
+    return [...s].sort(byMapOrder);
+  }, [quests]);
 
-  const traderOptions = useMemo(
-    () => [...new Set(selectedQuests.map((q) => q.trader?.name).filter(Boolean))].sort(byTraderOrder),
-    [selectedQuests]
-  );
-
-  // เทรดเดอร์ทุกคนในเกม (ไม่ใช่แค่ที่มีเควสอยู่ในรายการ) — ใช้กับแผง Loyalty Level
+  /* เทรดเดอร์ทุกคนในเกม ไม่ใช่แค่คนที่มีเควสอยู่ในรายการ
+     เคยมี traderOptions (กรองจาก selectedQuests) คู่กันไว้ตัดสินว่าชิปไหนกดได้
+     ตัดทิ้งแล้ว — รายชื่อที่เปลี่ยนตามเควสที่เหลือทำให้ชิปหายไปกลางคัน
+     แล้วตัวกรองที่ค้างอยู่กับชิปนั้นก็ปลดไม่ได้ */
   const traderNames = useMemo(
     () => [...new Set(quests.map((q) => q.trader?.name).filter(Boolean))].sort(byTraderOrder),
     [quests]
@@ -342,13 +369,32 @@ const Home = () => {
       return Array.from(byId.values());
     });
 
+    const stillActive = selectedQuests.filter((q) => !idsToRemove.has(q.id));
+    // ใส่ status ไปด้วย — getTraderSuggestions แยก "ทำจบ" กับ "ปิดเพราะเลือกสายอื่น" ด้วยฟิลด์นี้
+    const doneIds = [...completedQuests, ...newCompleted, { id: questId, status: 'complete' }];
+    const suggestFor = (name) => QuestComponent.getTraderSuggestions(name, {
+      // ดึงมาทั้งหมด แล้วค่อยตัดแสดงในการ์ด — ปุ่ม "Add all" จะได้รู้จำนวนจริง
+      completed: doneIds, active: stillActive, limit: Infinity,
+    });
+    const show = (next) => { setSuggestOpen(false); setSuggestMin(false); setSuggest(next); };
+
+    /* เควสที่ "ปลดล็อกเทรดเดอร์คนใหม่" มาก่อนเสมอ
+       มีอยู่สองอันในเกม: Mechanic/Introduction -> Jaeger และ Skier/Easy Money - Part 1 -> Ref
+       ข้อมูลบอกไว้ที่ finishRewards.traderUnlock แต่ไม่มีเควสไหนผูก Introduction
+       เป็น taskRequirements เลย สายเควสจึงขาดตรงนี้ ไม่มีอะไรมาต่อให้เองสักทาง
+       และเช็ค "ยังมีงานค้างไหม" ข้างล่างก็ใช้ไม่ได้ เพราะเทรดเดอร์ที่เพิ่งเปิด
+       ย่อมไม่มีเควสค้างอยู่แล้วโดยนิยาม */
+    for (const t of done?.finishRewards?.traderUnlock || []) {
+      const picks = t?.name ? suggestFor(t.name) : [];
+      if (picks.length) { show({ trader: t.name, quests: picks, unlocked: true }); return; }
+    }
+
     /* เควสสายต่อ (leads to) ถูกเพิ่มอัตโนมัติอยู่แล้วใน effect ของ completedQuests
        แต่ 301 จาก 504 เควสไม่มีเงื่อนไขเควสก่อนหน้า (ปลดล็อกด้วย Loyalty Level
        + เลเวลผู้เล่นซึ่งแอปไม่รู้) -> getNextQuestLists ตัดทิ้งหมด
        เสนอของเทรดเดอร์คนเดิมให้เลือกเอง ไม่ยัดเข้ารายการ และไม่ดูเลเวล */
     const trader = done?.trader?.name;
     if (!trader) return;
-    const stillActive = selectedQuests.filter((q) => !idsToRemove.has(q.id));
 
     /* เสนอเฉพาะตอน "เคลียร์คิวของเทรดเดอร์คนนั้นหมดแล้ว"
        ของเดิมเสนอทุกครั้งที่ทำเสร็จ ซึ่งทวีคูณ: เพิ่มทีละ 8 แล้วทำเสร็จทั้ง 8
@@ -359,14 +405,8 @@ const Home = () => {
       return;
     }
 
-    // ดึงมาทั้งหมด แล้วค่อยตัดแสดงในการ์ด — ปุ่ม "Add all" จะได้รู้จำนวนจริง
-    const picks = QuestComponent.getTraderSuggestions(trader, {
-      completed: [...completedQuests, ...newCompleted, { id: questId }],
-      active: stillActive,
-      limit: Infinity,
-    });
-    setSuggestOpen(false); setSuggestMin(false);
-    setSuggest(picks.length ? { trader, quests: picks } : null);
+    const picks = suggestFor(trader);
+    show(picks.length ? { trader, quests: picks } : null);
   };
 
   /* เพิ่มหลายเควสพร้อมกัน — ใช้กับปุ่ม Add all ในการ์ดแนะนำ
@@ -437,15 +477,31 @@ const Home = () => {
 
   const filtersOn = objectiveLocations.length + selectedTraders.length + (onlyTurnIn ? 1 : 0);
 
+  /* ตั้ง Loyalty Level ของเทรดเดอร์คนหนึ่ง
+     LL ขึ้น = เควสชุดใหม่เปิด แต่ระบบเสนอเควสผูกกับ "ทำเควสเสร็จ" เลยไม่มีอะไรมาต่อ
+     จนกว่าจะไปเพิ่มเควสเองแล้วทำให้จบ -> เด้งให้เลือกตรงนี้เลย
+     เอาเฉพาะที่เพิ่งเปิด (aboveLevel = ระดับเดิม) ไม่ปนของที่เห็นมาตั้งแต่ก่อนหน้า */
+  const changeTraderLevel = useCallback((trader, next) => {
+    const prev = QuestComponent.getTraderLevels()[trader] ?? 1;
+    setTraderLevels(QuestComponent.setTraderLevel(trader, next));
+    if (next <= prev) return;
+    const picks = QuestComponent.getTraderSuggestions(trader, {
+      completed: completedQuests,
+      active: selectedQuests,
+      aboveLevel: prev,
+      limit: Infinity,
+    });
+    setSuggestOpen(false);
+    setSuggest(picks.length ? { trader, quests: picks, newLevel: next } : null);
+  }, [completedQuests, selectedQuests]);
+
   return (
     <div
       ref={rootRef}
-      className={`eft-home${drawerOpen ? ' has-drawer' : ''}`}
+      className="eft-home"
       style={{ background: P.bg, minHeight: '100vh', color: P.text }}
     >
-      {/* เนื้อหาทั้งหน้าหลบแผงข้างด้วย margin ไม่ใช่ปล่อยให้โดนทับ
-          (--drawer = 0 บนจอแคบ ที่นั่นแผงจะทับพร้อมฉากหลังแทน — home.css) */}
-      <div style={{ marginRight: 'var(--drawer)', transition: 'margin-right .18s ease' }}>
+      <div>
         {/* ---------------- hero: เลื่อนหายไปได้ ไม่ต้องหนึบ ----------------
             วงแหวนเป็นตัวเลขสรุปที่ดูตอนเปิดหน้าครั้งเดียวก็พอ ไม่ได้ใช้ตอนไล่ทำเควส
             จึงปล่อยให้เลื่อนหายไป แล้วเก็บเฉพาะของที่ใช้จริงไว้ในแถบหนึบด้านล่าง */}
@@ -494,8 +550,8 @@ const Home = () => {
               <SearchBox value={search} onChange={setSearch} placeholder="Search a quest to add..." width={320} />
 
               {/* LL ที่กรอกเองเป็นตัวตัดกองเควสที่ยังเปิดไม่ถึงออกจากข้อเสนอ
-                  — ปรับไม่บ่อยเท่าตัวกรอง เลยยังเก็บไว้ในแผงข้าง */}
-              <span style={chip(drawerOpen, P.gold)} onClick={() => setDrawerOpen((v) => !v)}>
+                  กดแล้วปุ่มตั้งระดับกางออกใต้ชิปเทรดเดอร์แต่ละคนในแถวข้างล่าง */}
+              <span style={chip(loyaltyOpen, P.gold)} onClick={() => setLoyaltyOpen((v) => !v)}>
                 <Icons.Crown size={13} /> Loyalty
               </span>
               {filtersOn > 0 && (
@@ -529,25 +585,37 @@ const Home = () => {
 
                 ซ่อนตอนพิมพ์ค้นหา เพื่อให้ผลการค้นหาอยู่ติดช่องค้นหา
                 นอกนั้นโชว์ค้างไว้ตลอด เป็นของที่แตะบ่อย */}
-            {!search.trim() && (allLocations.length > 0 || traderOptions.length > 0) && (
+            {!search.trim() && (allLocations.length > 0 || traderNames.length > 0) && (
               <div className="eft-filters">
-                <FilterRow title="Maps" empty="no map-based objectives">
+                <FilterRow title="Maps" empty="no map data">
                   {allLocations.map((loc) => (
                     <span key={loc} style={chip(objectiveLocations.includes(loc), P.blue)} onClick={() => toggleLocation(loc)}>
                       {loc}
                     </span>
                   ))}
                 </FilterRow>
-                <FilterRow title="Traders" empty="no quests added">
-                  {traderOptions.map((t) => {
-                    const color = TRADER_THEMES[t]?.bg || P.label;
-                    return (
-                      <span key={t} style={chip(selectedTraders.includes(t), color)} onClick={() => toggleTrader(t)}>
-                        <span style={{ width: 7, height: 7, borderRadius: 999, background: color }} />
-                        {t}
-                      </span>
-                    );
-                  })}
+                {/* โชว์เทรดเดอร์ครบทุกคนตลอด ไม่ใช่เฉพาะคนที่มีเควสค้างอยู่ — สองเหตุผล:
+                    1. ตั้ง LL ให้คนที่ยังไม่มีเควสเลยคือวิธีเริ่มต้นกับเทรดเดอร์คนนั้น
+                       (ตั้งระดับ -> ระบบเสนอเควสที่เพิ่งเปิดให้) ซึ่งแผงข้างเดิมทำได้
+                    2. ถ้ารายชื่อเปลี่ยนตามโหมด ชิปจะสลับที่กันตอนกดเปิด/ปิด Loyalty
+                       รายชื่อคงที่ -> ตำแหน่งคงที่ -> เล็งคนเดิมได้โดยไม่ต้องหาใหม่
+                    เทรดเดอร์ที่เควสหมดแล้วก็ยังอยู่ ไม่หายไปกลางคัน */}
+                <FilterRow title="Traders" empty="no trader data">
+                  {/* ทุกชิปกดกรองได้หมด ไม่มีข้อยกเว้น
+                      เคยกันไม่ให้กดชิปของเทรดเดอร์ที่ไม่มีเควสในรายการ เพราะกรองไปก็ว่าง
+                      แต่มันสร้างทางตัน: กรองด้วย Prapor ไว้แล้วทำเควส Prapor หมดพอดี
+                      ชิปนั้นจะกดไม่ได้ทันทีทั้งที่ยังถูกเลือกอยู่ -> ปลดตัวกรองไม่ได้เลย
+                      กรองแล้วว่างไม่ใช่ทางตัน มี Empty บอกอยู่ และกดซ้ำก็ย้อนได้ */}
+                  {traderNames.map((t) => (
+                    <TraderChip
+                      key={t}
+                      name={t}
+                      level={QuestComponent.traderLevelOf(traderLevels, t)}
+                      active={selectedTraders.includes(t)}
+                      onClick={() => toggleTrader(t)}
+                      onSetLevel={loyaltyOpen ? (n) => changeTraderLevel(t, n) : undefined}
+                    />
+                  ))}
                 </FilterRow>
               </div>
             )}
@@ -669,7 +737,7 @@ const Home = () => {
             onClick={() => setSuggestMin(false)}
             title={`${suggest.quests.length} quests from ${suggest.trader}`}
             style={{
-              position: 'fixed', right: 'calc(20px + var(--drawer))', bottom: 20, zIndex: 50,
+              position: 'fixed', right: 20, bottom: 20, zIndex: 50,
               display: 'flex', alignItems: 'center', gap: 10,
               padding: '11px 16px', borderRadius: 999, cursor: 'pointer',
               border: `1px solid ${P.gold}66`,
@@ -689,7 +757,7 @@ const Home = () => {
         ) : (
           <div className="suggest-card" style={{
             ...card, padding: 16,
-            position: 'fixed', right: 'calc(20px + var(--drawer))', bottom: 20, zIndex: 50,
+            position: 'fixed', right: 20, bottom: 20, zIndex: 50,
             width: 'min(560px, calc(100vw - 32px))',
             maxHeight: 'min(70vh, 640px)', overflowY: 'auto',
             borderColor: `${P.gold}55`,
@@ -702,15 +770,17 @@ const Home = () => {
                 background: TRADER_THEMES[suggest.trader]?.bg || P.gold,
               }} />
               <div style={{ flex: 1, minWidth: 0 }}>
+                {/* สามที่มาของการ์ดนี้ ต้องอ่านออกว่าเป็นอันไหน ไม่งั้นไม่รู้ว่าทำไมมันเด้ง */}
                 <div style={{ fontSize: 17, fontWeight: 800 }}>
-                  {suggest.newLevel
-                    ? `${suggest.trader} reached LL${suggest.newLevel}`
-                    : `More from ${suggest.trader}`}
+                  {suggest.unlocked && `${suggest.trader} is now available`}
+                  {!suggest.unlocked && suggest.newLevel && `${suggest.trader} reached LL${suggest.newLevel}`}
+                  {!suggest.unlocked && !suggest.newLevel && `More from ${suggest.trader}`}
                 </div>
                 <div style={{ ...label, textTransform: 'none', letterSpacing: 0, marginTop: 2 }}>
-                  {suggest.newLevel
-                    ? `${suggest.quests.length} quest${suggest.quests.length > 1 ? 's' : ''} just opened up`
-                    : 'unlocked by loyalty level, not by a previous quest'}
+                  {suggest.unlocked && 'a new trader — these are the quests you can start with'}
+                  {!suggest.unlocked && suggest.newLevel
+                    && `${suggest.quests.length} quest${suggest.quests.length > 1 ? 's' : ''} just opened up`}
+                  {!suggest.unlocked && !suggest.newLevel && 'unlocked by loyalty level, not by a previous quest'}
                 </div>
               </div>
               <button
@@ -877,6 +947,9 @@ const Home = () => {
                   // กุญแจที่ต้องพกเข้าไป — ไม่ได้อยู่ใน objective ไหนเลย
                   // ถ้าไม่บอกไว้ก็รู้ตัวอีกทีตอนยืนอยู่หน้าประตูแล้ว
                   const keys = QuestComponent.questKeys(quest);
+                  // ของที่ต้องพกไปวาง/มาร์ก/ใช้ — อาการเดียวกับกุญแจ ถ้าไม่บอกก็รู้ตัว
+                  // ตอนยืนอยู่หน้าจุดแล้วไม่มีของ เลยโชว์ที่เดียวกัน
+                  const plants = QuestComponent.questPlantItems(quest);
 
                   // แถบบอกความคืบหน้าของ "ทั้งเควส" เสมอ ส่วนการ์ดอาจโชว์ไม่ครบเพราะตัวกรอง/การซ่อน
                   // ถ้าไม่บอกตรงนี้จะดูเหมือนตัวเลขผิด
@@ -927,6 +1000,15 @@ const Home = () => {
                                 <Icons.Lock size={12} /> Keys
                               </span>
                               {keys.map((k) => <KeyChip key={k.id} item={k} showMap />)}
+                            </div>
+                          )}
+
+                          {plants.length > 0 && (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6, marginTop: 9 }}>
+                              <span style={{ ...label, display: 'flex', alignItems: 'center', gap: 5 }}>
+                                <Icons.Package size={12} /> Bring
+                              </span>
+                              {plants.map((it) => <KeyChip key={it.id} item={it} note={placeNote(it)} />)}
                             </div>
                           )}
 
@@ -1175,106 +1257,6 @@ const Home = () => {
           )}
         </main>
       </div>
-
-      {/* ---------------- แผงตั้งค่าด้านข้าง ---------------- *
-          เดิมสองแผงนี้กางอยู่ในแถบหนึบ -> แถบสูงขึ้นแล้วเลื่อนตามจอไปบังการ์ดเควส
-          ย้ายมาอยู่ขอบขวาแบบ fixed แล้วดันเนื้อหาหลบด้วย --drawer (home.css)
-          เปิดค้างไว้ระหว่างไล่ทำเควสได้ ปรับแล้วเห็นผลในรายการทันที */}
-      {drawerOpen && (
-        <>
-          <div
-            className="eft-drawer-backdrop"
-            onClick={() => setDrawerOpen(false)}
-            style={{ position: 'fixed', inset: 0, zIndex: 39, background: 'rgba(3,7,18,.6)' }}
-          />
-          <aside style={{
-            position: 'fixed', top: navTop, right: 0, zIndex: 40,
-            width: 'min(380px, 100%)', height: `calc(100vh - ${navTop}px)`,
-            display: 'flex', flexDirection: 'column',
-            background: P.panelBg, borderLeft: `1px solid ${P.border}`,
-            boxShadow: '-8px 0 24px rgba(0,0,0,.35)',
-          }}>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0,
-              padding: '12px 14px', borderBottom: `1px solid ${P.borderSoft}`,
-            }}>
-              <span style={{ ...label, flex: 1 }}>Loyalty levels</span>
-              <button
-                title="Close"
-                onClick={() => setDrawerOpen(false)}
-                style={{
-                  width: 26, height: 26, flexShrink: 0, borderRadius: 7, cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  border: `1px solid ${P.border}`, background: 'transparent', color: P.dim,
-                }}
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* minHeight: 0 — ไม่มีอันนี้ flex item จะไม่ยอมหดต่ำกว่าเนื้อหา แล้ว overflowY ไม่ทำงาน */}
-            <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: 14 }}>
-              {/* ---- Loyalty Level ที่กรอกเอง ---- *
-                  แอปไม่มีทางรู้เอง แต่มันเป็นตัวตัดสินว่าเควสไหนเปิดแล้ว
-                  (Prapor 46 อัน อยู่ LL1 เหลือ 11) */}
-              <div>
-                <div style={{ ...label, textTransform: 'none', letterSpacing: 0, marginBottom: 12 }}>
-                  used to hide quests you haven&apos;t unlocked yet from the suggestions
-                </div>
-                <div style={{ display: 'grid', gap: 8 }}>
-                  {traderNames.map((t) => {
-                    const color = TRADER_THEMES[t]?.bg || P.label;
-                    const lvl = traderLevels[t] ?? 1;
-                    return (
-                      <div key={t} style={{
-                        display: 'flex', alignItems: 'center', gap: 8,
-                        padding: '7px 10px', borderRadius: 9,
-                        background: P.inputBg, border: `1px solid ${P.borderSoft}`,
-                      }}>
-                        <span style={{ width: 7, height: 7, borderRadius: 999, background: color, flexShrink: 0 }} />
-                        <span style={{ flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 600 }}>{t}</span>
-                        <div style={{ display: 'flex', gap: 3 }}>
-                          {[1, 2, 3, 4].map((n) => (
-                            <button
-                              key={n}
-                              onClick={() => {
-                                const prev = traderLevels[t] ?? 1;
-                                setTraderLevels(QuestComponent.setTraderLevel(t, n));
-                                if (n <= prev) return;
-                                /* LL ขึ้น = เควสชุดใหม่เปิด แต่ระบบเสนอเควสผูกกับ "ทำเควสเสร็จ"
-                                   เลยไม่มีอะไรมาต่อจนกว่าจะไปเพิ่มเควสเองแล้วทำให้จบ
-                                   -> เด้งให้เลือกตรงนี้เลย เอาเฉพาะที่เพิ่งเปิด ไม่ปนของเดิม */
-                                const picks = QuestComponent.getTraderSuggestions(t, {
-                                  completed: completedQuests,
-                                  active: selectedQuests,
-                                  aboveLevel: prev,
-                                  limit: Infinity,
-                                });
-                                setSuggestOpen(false);
-                                setSuggest(picks.length ? { trader: t, quests: picks, newLevel: n } : null);
-                              }}
-                              title={`Loyalty Level ${n}`}
-                              style={{
-                                width: 24, height: 24, borderRadius: 7, cursor: 'pointer',
-                                fontSize: 13.5, fontWeight: 800,
-                                border: `1px solid ${n === lvl ? P.gold : '#2a3550'}`,
-                                background: n === lvl ? `${P.gold}26` : 'transparent',
-                                color: n === lvl ? P.gold : P.dim,
-                              }}
-                            >
-                              {n}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </aside>
-        </>
-      )}
 
     </div>
   );

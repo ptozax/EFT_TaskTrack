@@ -4,7 +4,7 @@ import questsStatic from "../data/tasks";
 import { useLiveData } from '../data/gameStore';
 import * as QuestComponent from '../Component/QuestComponent';
 import { Icons, TRADER_THEMES } from '../Component/EftComponent';
-import { P, card, chip, badge, label, SearchBox, Empty } from '../Component/PanelUI.jsx';
+import { P, card, badge, label, SearchBox, Empty, TraderChip } from '../Component/PanelUI.jsx';
 
 const STORAGE_KEY = "eft_selected_quests";
 const OBJECTIVE_KEY = "eft_objective_checklist";
@@ -147,6 +147,10 @@ const AddQuest = () => {
     () => [...new Set(selectedQuests.map((q) => q.trader?.name).filter(Boolean))].sort(),
     [selectedQuests]
   );
+
+  /* อ่านทีเดียวตอน mount ก็พอ — แก้ LL ได้ที่หน้า Home เท่านั้น
+     ซึ่งต้องเปลี่ยนหน้ามา หน้านี้เลยเกิดใหม่พร้อมค่าล่าสุดอยู่แล้ว */
+  const traderLevels = useMemo(() => QuestComponent.getTraderLevels(), []);
 
   const visibleSelected = selectedTraders.length === 0
     ? selectedQuests
@@ -318,19 +322,15 @@ const AddQuest = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
             <span style={label}>Active quests ({selectedQuests.length})</span>
             <div style={{ flex: 1 }} />
-            {traderOptions.map((t) => {
-              const color = TRADER_THEMES[t]?.bg || P.label;
-              return (
-                <span
-                  key={t}
-                  style={chip(selectedTraders.includes(t), color)}
-                  onClick={() => setSelectedTraders((p) => p.includes(t) ? p.filter((x) => x !== t) : [...p, t])}
-                >
-                  <span style={{ width: 7, height: 7, borderRadius: 999, background: color }} />
-                  {t}
-                </span>
-              );
-            })}
+            {traderOptions.map((t) => (
+              <TraderChip
+                key={t}
+                name={t}
+                level={traderLevels[t] ?? 1}
+                active={selectedTraders.includes(t)}
+                onClick={() => setSelectedTraders((p) => p.includes(t) ? p.filter((x) => x !== t) : [...p, t])}
+              />
+            ))}
           </div>
 
           {selectedQuests.length === 0 ? (

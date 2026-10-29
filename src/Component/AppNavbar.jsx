@@ -292,7 +292,7 @@ function AppNavbar() {
                                             key={value}
                                             style={{
                                                 display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer',
-                                                color: '#64748b', fontSize: '14px', fontWeight: '500', padding: '4px 8px',
+                                                color: '#8999b0', fontSize: '14px', fontWeight: '500', padding: '4px 8px',
                                                 borderRadius: '4px', border: `1px solid #334155`, backgroundColor: 'rgba(15, 23, 42, 0.5)',
                                             }}>
                                             <input

@@ -40,7 +40,7 @@ export default class ErrorBoundary extends React.Component {
         >
           🔄 Reload
         </button>
-        <pre style={{ marginTop: 20, fontSize: 11, color: '#64748b', whiteSpace: 'pre-wrap', maxWidth: 600, marginInline: 'auto', overflowX: 'auto' }}>
+        <pre style={{ marginTop: 20, fontSize: 11, color: '#8999b0', whiteSpace: 'pre-wrap', maxWidth: 600, marginInline: 'auto', overflowX: 'auto' }}>
           {String(error?.message || error)}
         </pre>
       </div>

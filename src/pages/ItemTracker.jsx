@@ -60,7 +60,7 @@ export default function ItemTracker({ items, loot, mapId, mapName, tracked, colo
     display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', userSelect: 'none',
     padding: '10px 12px', borderRadius: open ? '12px 12px 0 0' : '12px',
     background: open ? '#16223c' : '#111c33', border: '1px solid #24324f',
-    fontSize: '13px', fontWeight: 800, color: '#9fb0d0',
+    fontSize: '13px', fontWeight: 800, color: '#b0c1e1',
     textTransform: 'uppercase', letterSpacing: '.1em',
   };
   const bodyStyle = {
@@ -80,7 +80,7 @@ export default function ItemTracker({ items, loot, mapId, mapName, tracked, colo
         }}>
           {tracked.length || 'none'}
         </span>
-        <span style={{ color: '#64748b', display: 'flex' }}>{open ? <Icons.ChevronUp size={16} /> : <Icons.ChevronDown size={16} />}</span>
+        <span style={{ color: '#8999b0', display: 'flex' }}>{open ? <Icons.ChevronUp size={16} /> : <Icons.ChevronDown size={16} />}</span>
       </div>
 
       {open && (<div style={bodyStyle}>
@@ -102,7 +102,7 @@ export default function ItemTracker({ items, loot, mapId, mapName, tracked, colo
                 {icon(it) && <img src={icon(it)} alt="" style={{ width: 24, height: 24, objectFit: 'contain' }} />}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 14, color: '#e2e8f0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{it.name}</div>
-                  <div style={{ fontSize: 12, color: '#64748b' }}>
+                  <div style={{ fontSize: 12, color: '#8999b0' }}>
                     {mapsWithItem[it.id]
                       ? `📍 ${mapsWithItem[it.id]} map${mapsWithItem[it.id] > 1 ? 's' : ''}`
                       : '— no spawn data'} {raidOnly(it) && '· raid-only'}
@@ -116,7 +116,7 @@ export default function ItemTracker({ items, loot, mapId, mapName, tracked, colo
 
         {/* watchlist */}
         {tracked.length === 0 ? (
-          <div style={{ fontSize: 13, color: '#64748b', marginTop: 8 }}>No items tracked — search above to add one</div>
+          <div style={{ fontSize: 13, color: '#8999b0', marginTop: 8 }}>No items tracked — search above to add one</div>
         ) : (
           <div style={{ marginTop: 4 }}>
             {tracked.map((t) => {
@@ -151,7 +151,7 @@ export default function ItemTracker({ items, loot, mapId, mapName, tracked, colo
                     {t.hidden ? '🚫' : '👁'}
                   </button>
                   <button title="Remove" onClick={(e) => { e.stopPropagation(); remove(t.id); }}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 19, color: '#ef4444', lineHeight: 1 }}>×</button>
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 19, color: '#f87171', lineHeight: 1 }}>×</button>
                 </div>
               );
             })}

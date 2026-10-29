@@ -45,7 +45,7 @@ const getEffectivenessScore = (pen, armorClass) => {
    ของเดิมใช้สีล้วน (#00FF00 / #FFFF00 / #FF0000) ซึ่งแสบตาและ 5 สว่างกว่า 6
    label ใช้ทั้งในแถบคำอธิบายและใน title ของทุกช่อง (ชี้เมาส์แล้วอ่านได้เลย) */
 const EFFECT = [
-    { bg: '#1b2740', fg: '#64748b', label: 'Pointless' },
+    { bg: '#1b2740', fg: '#8999b0', label: 'Pointless' },
     { bg: '#7f1d1d', fg: '#fecaca', label: 'Last resort' },
     { bg: '#ef4444', fg: '#ffffff', label: 'Magdump only' },
     { bg: '#fb923c', fg: '#1c1917', label: 'Slightly effective' },
@@ -198,10 +198,10 @@ const Modal = ({ item, onClose }) => {
 
                     <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #27272a' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.025em' }}>
-                            <div style={{ color: '#71717a' }}>Light Bleed: <span style={{ color: '#d4d4d8', fontWeight: '700', marginLeft: '0.25rem' }}>{(item.lightBleedModifier * 100).toFixed(0)}%</span></div>
-                            <div style={{ color: '#71717a' }}>Heavy Bleed: <span style={{ color: '#d4d4d8', fontWeight: '700', marginLeft: '0.25rem' }}>{(item.heavyBleedModifier * 100).toFixed(0)}%</span></div>
-                            <div style={{ color: '#71717a' }}>Stack Size: <span style={{ color: '#d4d4d8', fontWeight: '700', marginLeft: '0.25rem' }}>{item.stackMaxSize}</span></div>
-                            <div style={{ color: '#71717a' }}>Weight: <span style={{ color: '#d4d4d8', fontWeight: '700', marginLeft: '0.25rem' }}>{item.weight}kg</span></div>
+                            <div style={{ color: '#9797a0' }}>Light Bleed: <span style={{ color: '#d4d4d8', fontWeight: '700', marginLeft: '0.25rem' }}>{(item.lightBleedModifier * 100).toFixed(0)}%</span></div>
+                            <div style={{ color: '#9797a0' }}>Heavy Bleed: <span style={{ color: '#d4d4d8', fontWeight: '700', marginLeft: '0.25rem' }}>{(item.heavyBleedModifier * 100).toFixed(0)}%</span></div>
+                            <div style={{ color: '#9797a0' }}>Stack Size: <span style={{ color: '#d4d4d8', fontWeight: '700', marginLeft: '0.25rem' }}>{item.stackMaxSize}</span></div>
+                            <div style={{ color: '#9797a0' }}>Weight: <span style={{ color: '#d4d4d8', fontWeight: '700', marginLeft: '0.25rem' }}>{item.weight}kg</span></div>
                         </div>
                     </div>
                 </div>
@@ -380,7 +380,7 @@ const Ammo = () => {
 
                 {/* ไม่มีผลลัพธ์ -> ไม่ต้องกางกล่องตารางเปล่าสูง 320px ค้างไว้ */}
                 {filteredData.length === 0 ? (
-                    <div style={{ ...styles.tableContainer, padding: '2.5rem', textAlign: 'center', color: '#64748b' }}>
+                    <div style={{ ...styles.tableContainer, padding: '2.5rem', textAlign: 'center', color: '#8999b0' }}>
                         <div style={{ marginBottom: 10 }}>
                             No ammo matches {searchTerm.trim() && <>“{searchTerm.trim()}”</>}
                             {activeCaliber !== 'All' && ` in ${caliberLabel(activeCaliber)}`}.
@@ -434,7 +434,7 @@ const Ammo = () => {
                                                             {item.item.name}
                                                             {item.tracer && <span title={`Tracer (${item.tracerColor})`} style={{ marginLeft: 6, color: '#f87171' }}>●</span>}
                                                         </div>
-                                                        <div style={{ fontSize: '0.65rem', color: '#64748b', fontWeight: 700, letterSpacing: '0.04em' }}>
+                                                        <div style={{ fontSize: '0.65rem', color: '#8999b0', fontWeight: 700, letterSpacing: '0.04em' }}>
                                                             {caliberLabel(item.caliber)}
                                                         </div>
                                                     </div>
@@ -459,7 +459,7 @@ const Ammo = () => {
                                             {/* ของเดิมเป็นปุ่มที่ไม่มี onClick เลย — ตอนนี้กดแล้วเปิดจริง */}
                                             <td style={{ ...styles.td, textAlign: 'center' }}>
                                                 <button
-                                                    style={{ color: '#64748b', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}
+                                                    style={{ color: '#8999b0', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}
                                                     onClick={(e) => { e.stopPropagation(); setSelectedItem(item); }}
                                                     aria-label={`Details for ${item.item.name}`}
                                                 >
