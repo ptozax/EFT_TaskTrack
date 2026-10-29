@@ -27,6 +27,7 @@
     "update-all": "npm run update && npm run update-kappa && npm run update-quest-links && npm run update-data && npm run update-story && npm run update-maps",
     "lint": "eslint .",
     "smoke": "node scripts/smoke.mjs",
+    "check": "node scripts/checks.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
