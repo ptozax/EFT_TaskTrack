@@ -1,4 +1,4 @@
-import{r as cr,j as R,R as Fs}from"./index-rcvJ3Qiv.js";/*!
+import{r as cr,j as R,R as Fs}from"./index-D2XZHsmK.js";/*!
  * html2canvas 1.4.1 <https://html2canvas.hertzen.com>
  * Copyright (c) 2022 Niklas von Hertzen <https://hertzen.com>
  * Released under MIT License
@@ -50,7 +50,7 @@ PERFORMANCE OF THIS SOFTWARE.
   .stat .v{font-size:37px;font-weight:800;margin-top:6px;color:#f1f5f9}
   .stat .v small{font-size:19px;color:#94a3b8;font-weight:600}
   .delta{font-size:18px;margin-left:8px;font-weight:700}
-  .delta.g{color:#22c55e}.delta.b{color:#ef4444}
+  .delta.g{color:#22c55e}.delta.b{color:#f87171}
   .bars{padding:24px 36px;border-top:1px solid #334155;border-bottom:1px solid #334155;background:#172033}
   .bar{margin:14px 0}
   .bar .lab{display:flex;justify-content:space-between;font-size:16px;color:#94a3b8;margin-bottom:7px}
@@ -61,22 +61,22 @@ PERFORMANCE OF THIS SOFTWARE.
   .tags{display:flex;gap:10px;flex-wrap:wrap;padding:22px 36px 6px}
   .tag{font-size:16px;padding:7px 15px;border-radius:10px}
   .tag.ok{background:#14321f;border:1px solid #166534;color:#22c55e}
-  .tag.no{background:#3f1d1d;border:1px solid #7f1d1d;color:#ef4444}
+  .tag.no{background:#3f1d1d;border:1px solid #7f1d1d;color:#f87171}
   .list{padding:22px 28px 12px}
   .list h2{font-size:17px;color:#eab308;text-transform:uppercase;letter-spacing:1px;margin:8px 8px 16px}
   .mrow{display:flex;align-items:center;gap:16px;padding:12px 14px;border-radius:12px}
   .mrow img{width:62px;height:62px;object-fit:contain;flex:none;background:#0b1120;border-radius:9px;border:1px solid #334155}
-  .tree{color:#475569;font-size:22px;margin-right:-4px}
+  .tree{color:#8b99ad;font-size:22px;margin-right:-4px}
   .minfo{flex:1;min-width:0}
   .mtop{display:flex;align-items:center;gap:10px}
-  .mtop .slot{font-size:14px;color:#64748b;background:#0b1120;border:1px solid #334155;border-radius:6px;padding:2px 9px;flex:none}
+  .mtop .slot{font-size:14px;color:#8999b0;background:#0b1120;border:1px solid #334155;border-radius:6px;padding:2px 9px;flex:none}
   .mtop b{font-size:18px;color:#f1f5f9}
   .mname{font-size:15px;color:#94a3b8;margin:3px 0 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .chips{display:flex;gap:8px;flex-wrap:wrap}
   .c{font-size:14px;padding:2px 10px;border-radius:12px;background:#273449;color:#94a3b8}
-  .c.good{color:#22c55e}.c.bad{color:#ef4444}
+  .c.good{color:#22c55e}.c.bad{color:#f87171}
   .price{font-size:17px;color:#eab308;white-space:nowrap;flex:none;font-weight:600}
-  .foot{padding:22px 36px;border-top:1px solid #334155;color:#64748b;font-size:14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;background:#172033}
+  .foot{padding:22px 36px;border-top:1px solid #334155;color:#8999b0;font-size:14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;background:#172033}
   .foot b{color:#eab308}
   .hintbar{max-width:1040px;margin:0 auto 16px;text-align:center;font-size:16px;color:#94a3b8;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:12px 18px}
   .hintbar b{color:#eab308}
@@ -112,7 +112,7 @@ PERFORMANCE OF THIS SOFTWARE.
   ${a?`<div class="tags">${a}</div>`:""}
   <div class="list">
     <h2>⚙ Mod set (${t.picks.length} main slots)</h2>
-    ${B(t.picks,0)||'<div style="padding:20px;color:#64748b;text-align:center">No mods in this build</div>'}
+    ${B(t.picks,0)||'<div style="padding:20px;color:#8999b0;text-align:center">No mods in this build</div>'}
   </div>
   <div class="foot">
     <span>🔫 Built with <b>Tarkov Gun Mod Optimizer</b></span>
@@ -175,7 +175,7 @@ PERFORMANCE OF THIS SOFTWARE.
 .gmo-gunlist .gitem:hover{background:var(--panel)}
 .gmo-gunlist .gitem.on{background:var(--acc)}
 .gmo-gunlist .gitem.on b{color:#0b1120}
-.gmo-gunlist .gitem.on .gi-sub{color:#475569}
+.gmo-gunlist .gitem.on .gi-sub{color:#8b99ad}
 .gmo-gunlist .gitem img{width:72px;height:40px;object-fit:contain;flex:none;background:#0b1120;border-radius:5px;border:1px solid var(--line)}
 .gmo-gunlist .gitem.on img{border-color:#0b1120}
 .gmo-gunlist .gi-info{flex:1;min-width:0}
