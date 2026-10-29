@@ -2,17 +2,21 @@
  "source": "https://escapefromtarkov.fandom.com/wiki/Category:Quests",
  "note": "ช่อง previous / LL requirement / LL quests ใน infobox ของแต่ละหน้าเควส",
  "license": "CC BY-SA 3.0",
- "fetchedAt": "2026-10-20T07:49:15.015Z",
- "wikiTouched": "2026-10-19T16:17:09Z",
+ "fetchedAt": "2026-10-29T09:26:48.995Z",
+ "wikiTouched": "2026-10-28T22:37:27Z",
  "pagesScanned": 913,
  "quests": {
   "Aid Stations": {
    "ll": 2
   },
+  "A Big Loss": {
+   "ll": 1
+  },
+  "Antique Enthusiast": {
+   "ll": 4
+  },
   "Acquaintance": {
-   "prev": [
-    "Introduction"
-   ]
+   "ll": 1
   },
   "Anesthesia": {
    "ll": 2,
@@ -25,6 +29,9 @@
   },
   "All This Filth...": {
    "ll": 1
+  },
+  "A Fuel Matter": {
+   "ll": 3
   },
   "A Kind Snow Maiden": {
    "prev": [
@@ -57,12 +64,25 @@
     "Quality Standard"
    ]
   },
+  "A Healthy Alternative": {
+   "prev": [
+    "One Less Loose End"
+   ]
+  },
   "All Is Revealed": {
    "ll": 2
   },
   "Abandoned Cargo": {
+   "prev": [
+    "First in Line",
+    "Operation Aquarius",
+    "Supply Plans"
+   ],
    "ll": 1,
    "llQuests": 2
+  },
+  "A Helping Hand": {
+   "ll": 2
   },
   "Another Shipping Delay": {
    "prev": [
@@ -192,6 +212,9 @@
     "In the Name of Humanity..."
    ]
   },
+  "Akimbo": {
+   "ll": 3
+  },
   "A New Classic": {
    "prev": [
     "Smells Like Gunpowder"
@@ -211,6 +234,11 @@
    "llQuests": 1
   },
   "Blood in the Water": {
+   "prev": [
+    "First in Line",
+    "Operation Aquarius",
+    "Supply Plans"
+   ],
    "ll": 1,
    "llQuests": 1
   },
@@ -222,7 +250,13 @@
   "Bad Habit": {
    "ll": 1
   },
+  "Big Sale": {
+   "ll": 2
+  },
   "Back Door": {
+   "ll": 3
+  },
+  "Booze": {
    "ll": 3
   },
   "Bad Santa": {
@@ -230,10 +264,11 @@
     "Disrupting the Party"
    ]
   },
+  "Audit": {
+   "ll": 2
+  },
   "Ballet Lover": {
-   "prev": [
-    "Audit"
-   ]
+   "ll": 2
   },
   "Broadcast - Part 2": {
    "prev": [
@@ -245,10 +280,7 @@
    "llQuests": 1
   },
   "Audiophile": {
-   "prev": [
-    "Minibus",
-    "Ballet Lover"
-   ]
+   "ll": 3
   },
   "Broadcast - Part 3": {
    "prev": [
@@ -304,6 +336,9 @@
    "prev": [
     "Cream of the Crop"
    ]
+  },
+  "Break the Deal": {
+   "ll": 2
   },
   "Belka and Strelka": {
    "ll": 1,
@@ -387,6 +422,14 @@
   "Car Repair": {
    "ll": 3,
    "llQuests": 1
+  },
+  "Chemical - Part 1": {
+   "prev": [
+    "Burning Rubber",
+    "Supplier"
+   ],
+   "ll": 1,
+   "llQuests": 3
   },
   "Chemical - Part 2": {
    "prev": [
@@ -576,9 +619,7 @@
    ]
   },
   "Courtesy Visit": {
-   "prev": [
-    "The Survivalist Path - Tough Guy"
-   ]
+   "ll": 2
   },
   "Crisis": {
    "ll": 4,
@@ -596,12 +637,11 @@
    "faction": "BEAR"
   },
   "Dandies": {
-   "prev": [
-    "Ballet Lover"
-   ]
+   "ll": 2
   },
   "Corporate Perks": {
-   "ll": 2
+   "ll": 2,
+   "faction": "BEAR"
   },
   "Decryption Hurdles - Part 1": {
    "prev": [
@@ -751,6 +791,9 @@
   "Eagle Eye": {
    "ll": 2
   },
+  "Dressed to Kill": {
+   "ll": 1
+  },
   "Disease History": {
    "ll": 3,
    "llQuests": 3
@@ -812,14 +855,10 @@
    ]
   },
   "Drip-Out - Part 1": {
-   "prev": [
-    "Minibus"
-   ]
+   "ll": 3
   },
   "Drip-Out - Part 2": {
-   "prev": [
-    "Dandies"
-   ]
+   "ll": 4
   },
   "Easy Money - Part 1": {
    "ll": 2
@@ -939,7 +978,8 @@
    "ll": 2
   },
   "Friend From the West": {
-   "ll": 2
+   "ll": 2,
+   "llQuests": 3
   },
   "Fishing Gear": {
    "ll": 2
@@ -950,6 +990,9 @@
   "Farming": {
    "ll": 1
   },
+  "Fuel Crisis": {
+   "ll": 1
+  },
   "From Hand to Hand": {
    "ll": 3
   },
@@ -957,14 +1000,10 @@
    "ll": 3
   },
   "First Aid": {
-   "prev": [
-    "Acquaintance"
-   ]
+   "ll": 1
   },
   "Fishing Place": {
-   "prev": [
-    "Nostalgia"
-   ]
+   "ll": 3
   },
   "Fairy Tale Showdown": {
    "prev": [
@@ -1099,7 +1138,13 @@
    ]
   },
   "Fall Ailment": {
-   "ll": 1
+   "prev": [
+    "First in Line",
+    "Operation Aquarius",
+    "Supply Plans"
+   ],
+   "ll": 1,
+   "llQuests": 4
   },
   "Forbidden Knowledge": {
    "prev": [
@@ -1119,7 +1164,12 @@
    "llQuests": 1
   },
   "Golden Swag": {
-   "ll": 1
+   "prev": [
+    "Burning Rubber",
+    "Supplier"
+   ],
+   "ll": 1,
+   "llQuests": 3
   },
   "Gunsmith - MP-133": {
    "ll": 1
@@ -1155,6 +1205,9 @@
   "Gunsmith - Vector 9x19": {
    "ll": 3,
    "faction": "USEC"
+  },
+  "Gratitude": {
+   "ll": 1
   },
   "Gunsmith - MPX": {
    "ll": 3,
@@ -1335,6 +1388,9 @@
     "Gunsmith Master - Part 2"
    ]
   },
+  "Hot Delivery": {
+   "ll": 2
+  },
   "Hunting Trip": {
    "ll": 4
   },
@@ -1513,7 +1569,14 @@
   "Ill-Wisher": {
    "ll": 2
   },
+  "Inventory Files": {
+   "ll": 1
+  },
   "Informed Means Armed": {
+   "prev": [
+    "Burning Rubber",
+    "Supplier"
+   ],
    "ll": 1,
    "llQuests": 1
   },
@@ -1679,7 +1742,8 @@
    ]
   },
   "Invasive Therapy": {
-   "ll": 3
+   "ll": 3,
+   "llQuests": 3
   },
   "In the Name of Humanity...": {
    "prev": [
@@ -1699,6 +1763,15 @@
   "Master Key": {
    "ll": 1
   },
+  "Make ULTRA Great Again": {
+   "ll": 1
+  },
+  "Living High is Not a Crime": {
+   "ll": 3
+  },
+  "Minibus": {
+   "ll": 2
+  },
   "Metal Birds": {
    "ll": 1
   },
@@ -1706,6 +1779,9 @@
    "prev": [
     "Wet Job - Part 5"
    ]
+  },
+  "Long Line": {
+   "ll": 1
   },
   "Lost Contact": {
    "ll": 3
@@ -1761,6 +1837,9 @@
    "prev": [
     "The Good Times - Part 2"
    ]
+  },
+  "Know Your Place!": {
+   "ll": 3
   },
   "Matter of Technique": {
    "prev": [
@@ -1865,15 +1944,14 @@
    "ll": 2
   },
   "Nostalgia": {
-   "prev": [
-    "Courtesy Visit"
-   ]
+   "ll": 2
   },
   "No Place for Renegades": {
    "ll": 3
   },
   "Night Sweep": {
-   "ll": 4
+   "ll": 4,
+   "llQuests": 1
   },
   "Overpopulation": {
    "ll": 3
@@ -1908,12 +1986,15 @@
    ]
   },
   "No Swiping": {
-   "ll": 1
+   "prev": [
+    "Burning Rubber",
+    "Supplier"
+   ],
+   "ll": 1,
+   "llQuests": 3
   },
   "Nothing Fishy About This": {
-   "prev": [
-    "Big Sale"
-   ]
+   "ll": 2
   },
   "No Peeking!": {
    "prev": [
@@ -2037,19 +2118,27 @@
    ]
   },
   "Pharmacist": {
+   "prev": [
+    "First in Line",
+    "Operation Aquarius",
+    "Supply Plans"
+   ],
    "ll": 1,
    "llQuests": 2
   },
   "Polikhim Hobo": {
-   "ll": 1
+   "prev": [
+    "Burning Rubber",
+    "Supplier"
+   ],
+   "ll": 1,
+   "llQuests": 2
   },
   "Playing the Market": {
    "ll": 2
   },
   "Pathfinder": {
-   "prev": [
-    "Gratitude"
-   ]
+   "ll": 1
   },
   "Psycho Sniper": {
    "ll": 4
@@ -2124,6 +2213,10 @@
    ]
   },
   "Private Club": {
+   "prev": [
+    "Burning Rubber",
+    "Supplier"
+   ],
    "ll": 1,
    "llQuests": 1
   },
@@ -2235,20 +2328,17 @@
    "ll": 2
   },
   "Scavenger": {
-   "prev": [
-    "Hot Delivery"
-   ]
+   "ll": 3
   },
   "Regulated Materials": {
    "ll": 4
   },
   "Reserve": {
-   "prev": [
-    "The Delicious Sausage"
-   ]
+   "ll": 3
   },
   "Rigged Game": {
-   "ll": 3
+   "ll": 3,
+   "llQuests": 1
   },
   "Samples": {
    "ll": 4
@@ -2260,13 +2350,17 @@
    "ll": 3
   },
   "Safe Corridor": {
-   "ll": 3
+   "ll": 3,
+   "llQuests": 1
   },
   "Seaside Vacation": {
    "ll": 3,
    "llQuests": 1
   },
   "Revision - Lighthouse": {
+   "ll": 3
+  },
+  "Reserve Expert": {
    "ll": 3
   },
   "Reconnaissance": {
@@ -2416,6 +2510,11 @@
    "llQuests": 1
   },
   "Shortage": {
+   "prev": [
+    "First in Line",
+    "Operation Aquarius",
+    "Supply Plans"
+   ],
    "ll": 1,
    "llQuests": 1
   },
@@ -2432,6 +2531,11 @@
     "Sew it Good - Part 2"
    ]
   },
+  "Sew it Good - Part 4": {
+   "prev": [
+    "Sew it Good - Part 3"
+   ]
+  },
   "Sew it Good - Part 2": {
    "prev": [
     "Sew it Good - Part 1"
@@ -2444,8 +2548,12 @@
    "ll": 4,
    "llQuests": 1
   },
+  "Small Things, Big Help": {
+   "ll": 1
+  },
   "Setup": {
-   "ll": 2
+   "ll": 2,
+   "llQuests": 4
   },
   "Special Equipment": {
    "ll": 4,
@@ -2510,7 +2618,13 @@
    ]
   },
   "Shipment Tracking": {
-   "ll": 1
+   "prev": [
+    "First in Line",
+    "Operation Aquarius",
+    "Supply Plans"
+   ],
+   "ll": 1,
+   "llQuests": 4
   },
   "Shipping Delay - Part 1": {
    "prev": [
@@ -2526,6 +2640,10 @@
    "prev": [
     "Swift Retribution"
    ]
+  },
+  "Shady Contractor": {
+   "ll": 2,
+   "llQuests": 1
   },
   "Sensory Analysis - Part 1": {
    "prev": [
@@ -2559,6 +2677,9 @@
     "Forbidden Knowledge"
    ]
   },
+  "Sisyphus": {
+   "ll": 3
+  },
   "Side Hustle": {
    "prev": [
     "Information Trail"
@@ -2568,10 +2689,16 @@
    "ll": 1
   },
   "The Extortionist": {
-   "ll": 1
+   "prev": [
+    "Burning Rubber",
+    "Supplier"
+   ],
+   "ll": 1,
+   "llQuests": 2
   },
   "Stirrup": {
-   "ll": 2
+   "ll": 2,
+   "llQuests": 1
   },
   "Supply Plans": {
    "ll": 1
@@ -2579,14 +2706,16 @@
   "The Cult": {
    "ll": 2
   },
+  "Supervisor": {
+   "ll": 2
+  },
   "Supplements": {
    "ll": 2,
+   "llQuests": 3,
    "faction": "USEC"
   },
   "Textile - Part 1": {
-   "prev": [
-    "Sew it Good - Part 4"
-   ]
+   "ll": 4
   },
   "Textile - Part 2": {
    "prev": [
@@ -2760,17 +2889,18 @@
    ]
   },
   "The Key to Success": {
-   "prev": [
-    "Sew it Good - Part 2"
-   ]
+   "ll": 2
   },
   "The Guide": {
    "ll": 4
   },
-  "The Survivalist Path - Thrifty": {
+  "The Survivalist Path - Unprotected but Dangerous": {
    "prev": [
-    "The Survivalist Path - Unprotected but Dangerous"
+    "The Survivalist Path - Zhivchik"
    ]
+  },
+  "The Survivalist Path - Thrifty": {
+   "ll": 2
   },
   "The Survivalist Path - Zhivchik": {
    "prev": [
@@ -2779,7 +2909,7 @@
   },
   "The Survivalist Path - Wounded Beast": {
    "prev": [
-    "The Survivalist Path - Zhivchik"
+    "The Survivalist Path - Unprotected but Dangerous"
    ]
   },
   "The Survivalist Path - Tough Guy": {
@@ -2789,33 +2919,49 @@
   },
   "The Survivalist Path - Cold Blooded": {
    "prev": [
-    "The Survivalist Path - Wounded Beast"
+    "The Huntsman Path - Controller"
    ]
   },
   "The Survivalist Path - Eagle-Owl": {
    "prev": [
-    "The Survivalist Path - Tough Guy"
+    "The Survivalist Path - Cold Blooded"
    ]
   },
+  "The Huntsman Path - Secured Perimeter": {
+   "ll": 3
+  },
   "The Huntsman Path - Trophy": {
-   "prev": [
-    "The Huntsman Path - Secured Perimeter"
-   ]
+   "ll": 1
+  },
+  "The Huntsman Path - Forest Cleaning": {
+   "ll": 3
   },
   "The Huntsman Path - Controller": {
    "prev": [
-    "The Huntsman Path - Forest Cleaning"
-   ]
+    "The Survivalist Path - Tough Guy"
+   ],
+   "ll": 3
+  },
+  "The Huntsman Path - Sellout": {
+   "ll": 2
+  },
+  "The Huntsman Path - Woods Keeper": {
+   "ll": 1
   },
   "The Huntsman Path - Justice": {
-   "prev": [
-    "The Huntsman Path - Secured Perimeter"
-   ]
+   "ll": 1
   },
   "The Huntsman Path - Angry Watchman": {
-   "prev": [
-    "The Huntsman Path - Forest Cleaning"
-   ]
+   "ll": 1
+  },
+  "The Huntsman Path - Eraser": {
+   "ll": 3
+  },
+  "The Huntsman Path - Liberation": {
+   "ll": 3
+  },
+  "The Huntsman Path - Sadist": {
+   "ll": 4
   },
   "The Huntsman Path - Factory Chief": {
    "prev": [
@@ -2833,6 +2979,12 @@
     "The Huntsman Path - Forest Cleaning"
    ]
   },
+  "The Survivalist Path - Junkie": {
+   "prev": [
+    "The Survivalist Path - Eagle-Owl"
+   ],
+   "ll": 4
+  },
   "The Secret Recipe": {
    "ll": 2
   },
@@ -2843,10 +2995,17 @@
    ]
   },
   "The Secret to Productivity": {
+   "ll": 2,
+   "faction": "USEC"
+  },
+  "The Huntsman Path - Crooked Cop": {
    "ll": 2
   },
   "The Good Times - Part 1": {
    "ll": 2
+  },
+  "The Invisible Hand": {
+   "ll": 4
   },
   "The Good Times - Part 2": {
    "prev": [
@@ -2883,6 +3042,9 @@
    "prev": [
     "No Man Is an Island"
    ]
+  },
+  "The Huntsman Path - Control": {
+   "ll": 4
   },
   "Tigr Safari": {
    "ll": 1,
@@ -3124,7 +3286,12 @@
    ]
   },
   "What’s on the Flash Drive?": {
-   "ll": 1
+   "prev": [
+    "Burning Rubber",
+    "Supplier"
+   ],
+   "ll": 1,
+   "llQuests": 3
   },
   "Wet Job - Part 6": {
    "prev": [
@@ -3164,6 +3331,7 @@
   },
   "Vitamins": {
    "ll": 2,
+   "llQuests": 3,
    "faction": "BEAR"
   },
   "To the Tree!": {
@@ -3731,8 +3899,8 @@
    "Inventory Files",
    "A Big Loss",
    "Minibus",
-   "Sew it Good - Part 1",
    "Small Things, Big Help",
+   "Sew it Good - Part 1",
    "Sew it Good - Part 2",
    "Sew it Good - Part 3",
    "The Key to Success",
