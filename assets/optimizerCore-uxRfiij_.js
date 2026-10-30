@@ -1,4 +1,4 @@
-import{r as cr,j as R,R as Fs}from"./index-Cub9H3aZ.js";/*!
+import{r as cr,j as R,R as Fs}from"./index-CY-p1RQF.js";/*!
  * html2canvas 1.4.1 <https://html2canvas.hertzen.com>
  * Copyright (c) 2022 Niklas von Hertzen <https://hertzen.com>
  * Released under MIT License
@@ -33,7 +33,7 @@ PERFORMANCE OF THIS SOFTWARE.
 <title>${r(A.shortName||A.name)} Build — Tarkov Optimizer</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:"Segoe UI",Tahoma,sans-serif;background:#0b1120;color:#e2e8f0;
+  body{font-family:"Segoe UI",Tahoma,sans-serif;background:#0b1120;color:#f1f7ff;
     background-image:radial-gradient(1200px 600px at 50% -10%,#334155 0%,#0b1120 60%);padding:28px 14px;min-height:100vh}
   .card{max-width:1040px;margin:0 auto;background:#1e293b;border:1px solid #334155;border-radius:20px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.6)}
   .hero{display:flex;gap:24px;align-items:center;padding:32px 36px;background:linear-gradient(120deg,#273449 0%,#0f172a 70%);border-bottom:1px solid #334155;position:relative}
@@ -43,42 +43,42 @@ PERFORMANCE OF THIS SOFTWARE.
   .htext h1{font-size:32px;color:#f1f5f9;letter-spacing:.3px;line-height:1.2}
   .htext .sub{margin-top:10px;display:flex;gap:10px;flex-wrap:wrap}
   .pill{font-size:16px;padding:5px 14px;border-radius:20px;background:#0b1120;border:1px solid #334155;color:#eab308}
-  .pill.olive{color:#f59e0b}
+  .pill.olive{color:#f8a10e}
   .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:1px;background:#334155}
   .stat{background:#1e293b;padding:22px 24px}
-  .stat .k{font-size:14px;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px}
+  .stat .k{font-size:14px;color:#a6b5ca;text-transform:uppercase;letter-spacing:.6px}
   .stat .v{font-size:37px;font-weight:800;margin-top:6px;color:#f1f5f9}
-  .stat .v small{font-size:19px;color:#94a3b8;font-weight:600}
+  .stat .v small{font-size:19px;color:#a6b5ca;font-weight:600}
   .delta{font-size:18px;margin-left:8px;font-weight:700}
-  .delta.g{color:#22c55e}.delta.b{color:#f87171}
+  .delta.g{color:#2bce67}.delta.b{color:#ff9696}
   .bars{padding:24px 36px;border-top:1px solid #334155;border-bottom:1px solid #334155;background:#172033}
   .bar{margin:14px 0}
-  .bar .lab{display:flex;justify-content:space-between;font-size:16px;color:#94a3b8;margin-bottom:7px}
-  .bar .lab b{color:#e2e8f0}
+  .bar .lab{display:flex;justify-content:space-between;font-size:16px;color:#a6b5ca;margin-bottom:7px}
+  .bar .lab b{color:#f1f7ff}
   .track{height:12px;border-radius:8px;background:#273449;overflow:hidden}
   .fill{height:100%;border-radius:8px;background:linear-gradient(90deg,#f59e0b,#22c55e)}
   .fill.rec{background:linear-gradient(90deg,#eab308,#ef4444)}
   .tags{display:flex;gap:10px;flex-wrap:wrap;padding:22px 36px 6px}
   .tag{font-size:16px;padding:7px 15px;border-radius:10px}
-  .tag.ok{background:#14321f;border:1px solid #166534;color:#22c55e}
-  .tag.no{background:#3f1d1d;border:1px solid #7f1d1d;color:#f87171}
+  .tag.ok{background:#14321f;border:1px solid #166534;color:#2bce67}
+  .tag.no{background:#3f1d1d;border:1px solid #7f1d1d;color:#ff9696}
   .list{padding:22px 28px 12px}
   .list h2{font-size:17px;color:#eab308;text-transform:uppercase;letter-spacing:1px;margin:8px 8px 16px}
   .mrow{display:flex;align-items:center;gap:16px;padding:12px 14px;border-radius:12px}
   .mrow img{width:62px;height:62px;object-fit:contain;flex:none;background:#0b1120;border-radius:9px;border:1px solid #334155}
-  .tree{color:#8b99ad;font-size:22px;margin-right:-4px}
+  .tree{color:#a7b5c9;font-size:22px;margin-right:-4px}
   .minfo{flex:1;min-width:0}
   .mtop{display:flex;align-items:center;gap:10px}
-  .mtop .slot{font-size:14px;color:#8999b0;background:#0b1120;border:1px solid #334155;border-radius:6px;padding:2px 9px;flex:none}
+  .mtop .slot{font-size:14px;color:#a5b5cc;background:#0b1120;border:1px solid #334155;border-radius:6px;padding:2px 9px;flex:none}
   .mtop b{font-size:18px;color:#f1f5f9}
-  .mname{font-size:15px;color:#94a3b8;margin:3px 0 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mname{font-size:15px;color:#a6b5ca;margin:3px 0 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .chips{display:flex;gap:8px;flex-wrap:wrap}
-  .c{font-size:14px;padding:2px 10px;border-radius:12px;background:#273449;color:#94a3b8}
-  .c.good{color:#22c55e}.c.bad{color:#f87171}
+  .c{font-size:14px;padding:2px 10px;border-radius:12px;background:#273449;color:#a6b5ca}
+  .c.good{color:#2bce67}.c.bad{color:#ff9696}
   .price{font-size:17px;color:#eab308;white-space:nowrap;flex:none;font-weight:600}
-  .foot{padding:22px 36px;border-top:1px solid #334155;color:#8999b0;font-size:14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;background:#172033}
+  .foot{padding:22px 36px;border-top:1px solid #334155;color:#a5b5cc;font-size:14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;background:#172033}
   .foot b{color:#eab308}
-  .hintbar{max-width:1040px;margin:0 auto 16px;text-align:center;font-size:16px;color:#94a3b8;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:12px 18px}
+  .hintbar{max-width:1040px;margin:0 auto 16px;text-align:center;font-size:16px;color:#a6b5ca;background:#1e293b;border:1px solid #334155;border-radius:12px;padding:12px 18px}
   .hintbar b{color:#eab308}
   @media print{.hintbar{display:none}}
 </style></head>
@@ -112,7 +112,7 @@ PERFORMANCE OF THIS SOFTWARE.
   ${a?`<div class="tags">${a}</div>`:""}
   <div class="list">
     <h2>⚙ Mod set (${t.picks.length} main slots)</h2>
-    ${B(t.picks,0)||'<div style="padding:20px;color:#8999b0;text-align:center">No mods in this build</div>'}
+    ${B(t.picks,0)||'<div style="padding:20px;color:#a5b5cc;text-align:center">No mods in this build</div>'}
   </div>
   <div class="foot">
     <span>🔫 Built with <b>Tarkov Gun Mod Optimizer</b></span>
@@ -146,20 +146,20 @@ PERFORMANCE OF THIS SOFTWARE.
 .gmo-go2:disabled{opacity:.4;cursor:not-allowed}
 /* ---- top action toolbar ---- */
 .gmo-toolbar{display:flex;gap:6px;flex-wrap:nowrap;align-items:stretch;padding:1px 5px 1px}
-.gmo-tool{height:48px;min-width:48px;padding:0 14px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:20px;font-weight:700;border-radius:12px;cursor:pointer;background:linear-gradient(180deg,#243247,#1a2536);color:#e2e8f0;border:1px solid #334155;box-shadow:0 2px 6px rgba(0,0,0,.35);transition:transform .12s,border-color .12s,box-shadow .12s,filter .12s}
+.gmo-tool{height:48px;min-width:48px;padding:0 14px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:20px;font-weight:700;border-radius:12px;cursor:pointer;background:linear-gradient(180deg,#243247,#1a2536);color:#f1f7ff;border:1px solid #334155;box-shadow:0 2px 6px rgba(0,0,0,.35);transition:transform .12s,border-color .12s,box-shadow .12s,filter .12s}
 .gmo-tool:hover:not(:disabled){border-color:var(--acc);transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.45)}
 .gmo-tool:active:not(:disabled){transform:translateY(0);box-shadow:0 2px 6px rgba(0,0,0,.35)}
 .gmo-tool:disabled{opacity:.4;cursor:not-allowed}
-.lbl{font-size:0.6rem;font-weight:700}
+.lbl{font-size:0.75rem;font-weight:700}
 /* uniform tile: icon on top + label inside, equal size */
 .gmo-tool.tile{flex:1 1 0;width:auto;min-width:0;height:60px;flex-direction:column;padding:8px 3px;gap:5px;font-size:23px;line-height:1}
-.gmo-tool.tile .lbl{font-size:10.5px;font-weight:600;line-height:1.12;text-align:center;white-space:normal}
+.gmo-tool.tile .lbl{font-size:12px;font-weight:600;line-height:1.12;text-align:center;white-space:normal}
 .gmo-tool.primary{background:linear-gradient(180deg,#3b300f,#241c08);color:#f6ce4b;border-color:#eab308;box-shadow:0 0 0 1px rgba(234,179,8,.25) inset,0 0 12px rgba(234,179,8,.22),0 2px 6px rgba(0,0,0,.35)}
 .gmo-tool.primary:hover:not(:disabled){filter:brightness(1.12);border-color:#f6ce4b;box-shadow:0 0 0 1px rgba(246,206,75,.4) inset,0 0 18px rgba(234,179,8,.4)}
 .gmo-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:18px}
 .gmo-stats .stat{background:linear-gradient(180deg,#1e293b,#172033);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:0 2px 8px rgba(0,0,0,.28);transition:.15s}
 .gmo-stats .stat:hover{border-color:var(--acc);transform:translateY(-2px)}
-.gmo-stats .k{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px}
+.gmo-stats .k{font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px}
 .gmo-stats .v{font-size:24px;font-weight:800;margin-top:4px}
 .gmo .stat-d{font-size:12px;margin-top:2px}
 .gmo .up{color:var(--good)}.gmo .down{color:var(--bad)}
@@ -175,12 +175,12 @@ PERFORMANCE OF THIS SOFTWARE.
 .gmo-gunlist .gitem:hover{background:var(--panel)}
 .gmo-gunlist .gitem.on{background:var(--acc)}
 .gmo-gunlist .gitem.on b{color:#0b1120}
-.gmo-gunlist .gitem.on .gi-sub{color:#8b99ad}
+.gmo-gunlist .gitem.on .gi-sub{color:#a7b5c9}
 .gmo-gunlist .gitem img{width:72px;height:40px;object-fit:contain;flex:none;background:#0b1120;border-radius:5px;border:1px solid var(--line)}
 .gmo-gunlist .gitem.on img{border-color:#0b1120}
 .gmo-gunlist .gi-info{flex:1;min-width:0}
 .gmo-gunlist .gi-info b{font-size:13px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.gmo-gunlist .gi-sub{font-size:11px;color:var(--dim);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gmo-gunlist .gi-sub{font-size:12px;color:var(--dim);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gmo-gunlist .none{padding:14px;color:var(--dim);font-size:12px;text-align:center}
 .gmo-row img{width:42px;height:42px;object-fit:contain;background:#0b1120;border-radius:5px;flex:none}
 .gmo-row .slot{width:130px;color:var(--dim);font-size:12px;flex:none}
@@ -190,7 +190,7 @@ PERFORMANCE OF THIS SOFTWARE.
 .gmo-row .mods{font-size:12px;color:var(--dim);margin-top:2px}
 .gmo-row .pr{text-align:right;font-size:13px;white-space:nowrap;color:var(--acc)}
 .gmo-row.indent{padding-left:26px}
-.gmo .badge2{display:inline-block;font-size:11px;padding:1px 7px;border-radius:10px;background:var(--panel2);color:var(--dim);margin-left:6px}
+.gmo .badge2{display:inline-block;font-size:12px;padding:1px 7px;border-radius:10px;background:var(--panel2);color:var(--dim);margin-left:6px}
 .gmo-empty{color:var(--dim);padding:40px;text-align:center}
 .gmo-cons{background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:8px 10px}
 .gmo-cons .con{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--txt);padding:5px 0}
@@ -209,14 +209,14 @@ PERFORMANCE OF THIS SOFTWARE.
 .gmo-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
 .gmo-chips .chip2{display:inline-flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:3px 6px 3px 10px;font-size:12px;max-width:100%}
 .gmo-chips .chip2 .t{max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.gmo-chips .chip2 .x{cursor:pointer;background:var(--line);color:var(--txt);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1;flex:none}
+.gmo-chips .chip2 .x{cursor:pointer;background:var(--line);color:var(--txt);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:12px;line-height:1;flex:none}
 .gmo-chips .chip2 .x:hover{background:var(--bad);color:#fff}
 .gmo-picker[data-kind=include] .chip2{border-color:#166534}
 .gmo-picker[data-kind=exclude] .chip2{border-color:#7f1d1d}
 .gmo-note{border-radius:7px;padding:9px 12px;margin-bottom:14px;font-size:13px}
 .gmo-note.ok{background:#14321f;border:1px solid #166534;color:var(--good)}
 .gmo-note.warn{background:#3f1d1d;border:1px solid #7f1d1d;color:var(--bad)}
-.gmo-footer{color:var(--dim);font-size:11px;padding:14px 22px;border-top:1px solid var(--line);margin-top:14px}
+.gmo-footer{color:var(--dim);font-size:12px;padding:14px 22px;border-top:1px solid var(--line);margin-top:14px}
 
 /* ---- Caliber Optimizer: ranking table + progress ---- */
 .gmo-progress{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,.28)}
@@ -224,7 +224,7 @@ PERFORMANCE OF THIS SOFTWARE.
 .gmo-progress .ptrack{height:10px;border-radius:6px;background:var(--panel2);overflow:hidden;border:1px solid var(--line)}
 .gmo-progress .pfill{height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:6px;transition:width .15s}
 .gmo-rank{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.28)}
-.gmo-rank-head{display:flex;align-items:center;gap:12px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--panel2);font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
+.gmo-rank-head{display:flex;align-items:center;gap:12px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--panel2);font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
 .gmo-grouphdr{padding:10px 14px;font-size:12px;color:var(--acc);text-transform:uppercase;letter-spacing:.5px;background:var(--panel2);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .gmo-grouphdr.dim{color:var(--dim)}
 .gmo-grouphdr .sortby{color:var(--dim);text-transform:none;letter-spacing:0;display:inline-flex;align-items:center;gap:6px}
@@ -236,9 +236,9 @@ PERFORMANCE OF THIS SOFTWARE.
 .gmo-rrow img{width:72px;height:40px;object-fit:contain;flex:none;background:#0b1120;border-radius:5px;border:1px solid var(--line)}
 .gmo-rrow .gn{flex:1;min-width:0}
 .gmo-rrow .gn b{font-size:14px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.gmo-rrow .gn .sub{font-size:11px;color:var(--dim);margin-top:2px}
+.gmo-rrow .gn .sub{font-size:12px;color:var(--dim);margin-top:2px}
 .gmo-rrow .col{flex:none;text-align:right;font-size:13px}
-.gmo-rrow .col .k{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.4px}
+.gmo-rrow .col .k{font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:.4px}
 .gmo-rrow .col.recv{width:96px}
 .gmo-rrow .col.ergo{width:66px}
 .gmo-rrow .col.gp{width:96px;color:var(--dim)}
@@ -246,7 +246,7 @@ PERFORMANCE OF THIS SOFTWARE.
 .gmo-rrow .col.tc{width:110px;color:var(--acc);font-weight:700}
 .gmo-rrow .recv .v.ok{color:var(--good)}
 .gmo-rrow .recv .v.no{color:var(--bad)}
-.gmo-badge{display:inline-block;font-size:11px;padding:1px 8px;border-radius:10px;background:#3f1d1d;border:1px solid #7f1d1d;color:var(--bad);margin-top:3px}
+.gmo-badge{display:inline-block;font-size:12px;padding:1px 8px;border-radius:10px;background:#3f1d1d;border:1px solid #7f1d1d;color:var(--bad);margin-top:3px}
 .gmo-expand{background:var(--bg);border-top:1px solid var(--line);padding:14px}
 .gmo-expand .exp-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
 .gmo-expand .exp-actions button{padding:9px 14px;background:transparent;color:var(--acc);border:1px solid var(--acc);border-radius:7px;font-size:13px;font-weight:600;cursor:pointer}
