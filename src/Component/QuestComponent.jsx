@@ -678,3 +678,14 @@ export const questKeys = (quest, mapName = null) => {
     // กุญแจดอกเดียวอาจอยู่หลายกลุ่ม (คนละ objective) -> เหลือดอกละรายการ
     return [...new Map(out.map(k => [k.id, k])).values()];
 };
+
+/* ค้นเควสจากชื่อ / ชื่อเทรดเดอร์ / ข้อความเป้าหมาย
+   ไม่ค้นแค่ชื่อเควส เพราะหลายอันจำได้แค่ว่าต้องไปทำอะไร ("วางอะไรสักอย่างที่ปั๊ม")
+   ไม่ได้จำว่าชื่อเควสคืออะไร · คำค้นว่าง = ผ่านทุกเควส (ไม่ใช่ไม่ผ่านสักอัน) */
+export const questMatchesSearch = (quest, term) => {
+    const t = (term || '').trim().toLowerCase();
+    if (!t) return true;
+    if (!quest) return false;
+    return [quest.name, quest.trader?.name, ...(quest.objectives || []).map(o => o?.description)]
+        .some(s => typeof s === 'string' && s.toLowerCase().includes(t));
+};

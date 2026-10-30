@@ -152,11 +152,16 @@ const MapPage = () => {
     (tq) => quests.find(q => q.id === tq.id) || quests.find(q => q.name === tq.name),
     [quests]);
   const [expandedQuestName, setExpandedQuestName] = useState(null);
+  const [questSearch, setQuestSearch] = useState('');
   const [questKeys, setQuestKeys] = useState([]);
   const [showQuestKey, setShowQuestKey] = useState(false);
   const [showQuestPlant, setShowQuestPlant] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [questDescription, setQuestDescription] = useState(null);
+  /* จุดที่กำลังเปิดรายละเอียดอยู่ — ต้องเก็บครบ (เควส, objective, ลำดับจุด)
+     ของเดิมเก็บแค่ objective id แล้ววาดป้ายที่จุดท้ายสุดเสมอ (idx === lastIndex)
+     objective ที่มีหลายจุดอย่าง Oil Run (รถน้ำมัน 4 คัน) จึงกดคันแรกแล้ว
+     รายละเอียดไปโผล่คันท้าย — 158 จาก 539 objective ที่มีพิกัดเป็นแบบนี้ */
+  const [selectedPoint, setSelectedPoint] = useState(null);
   const [keyDescription, setKeyDescription] = useState(null);
   const [rotation, setRotation] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -379,6 +384,9 @@ const MapPage = () => {
     setZoom(1);
     setRotation(0);
     setOffset({ x: 0, y: 0 });
+    /* ล้างคำค้นด้วย — รายการ track ถูกล้างไปพร้อมกัน ถ้าปล่อยคำค้นค้างไว้
+       แมพใหม่จะขึ้นเป็นรายการว่างโดยไม่มีอะไรบอกว่าเพราะยังกรองอยู่ */
+    setQuestSearch('');
   }, [selectedMapId]);
 
   useEffect(() => {
@@ -677,6 +685,43 @@ const MapPage = () => {
 
   const markerScale = 1 / zoom;
 
+  /* พิกัดทุกจุดของ objective หนึ่งบนแมพที่เปิดอยู่ — ใช้ร่วมกันระหว่างตอนวาดหมุด
+     กับตอนนับ "จุดที่ 2 จาก 4" ในแถบรายละเอียด จะได้ไม่มีทางนับคนละชุดกัน */
+  const objectivePoints = useCallback((obj) => {
+    const onMap = obj.maps?.some(m => m.name === currentMapName || m.name === `${currentMapName} 21+`);
+    if (!onMap) return [];
+    const out = [];
+    obj.zones?.forEach(z => out.push(z.position));
+    obj.possibleLocations?.forEach(loc => loc.positions.forEach(p => out.push(p)));
+    return out;
+  }, [currentMapName]);
+
+  /* แปลง selectedPoint กลับเป็นของจริงตอน render — ถ้าเควสถูกเอาออก/ซ่อน
+     สลับแมพ หรือกด Done ไปแล้ว ตัวนี้จะคืน null เอง แถบล่างเลยหายตามไปด้วย
+     โดยไม่ต้องมี effect คอยล้าง state */
+  const pointDetail = useMemo(() => {
+    if (!selectedPoint) return null;
+    const tq = trackedQuests.find(q => q.id === selectedPoint.questId);
+    if (!tq?.visible) return null;
+    const quest = findQuest(tq);
+    const obj = quest?.objectives?.find(o => o.id === selectedPoint.objId);
+    if (!obj) return null;
+    if (checkedObjectives[getObjectiveKey(quest.id, obj.id)]) return null;
+    const total = objectivePoints(obj).length;
+    if (selectedPoint.idx >= total) return null;
+    return { tq, quest, obj, total, idx: selectedPoint.idx };
+  }, [selectedPoint, trackedQuests, findQuest, checkedObjectives, objectivePoints]);
+
+  /* ค้นหาในรายการที่ track อยู่ — กรองเฉพาะสิ่งที่เห็นในแผง ไม่แตะหมุดบนแมพ
+     บน Customs/Shoreline มีเควสลงแมพได้ถึง 80 เควส = เลื่อนราว 10 หน้าจอ
+     ค้นจากชื่อเควส ชื่อเทรดเดอร์ และข้อความเป้าหมาย — ชื่อเควสอย่างเดียวไม่พอ
+     เพราะหลายอันจำได้แต่ว่า "ต้องไปวางอะไรสักอย่างที่ปั๊ม" ไม่ได้จำชื่อ */
+  const shownQuests = useMemo(() => {
+    if (!questSearch.trim()) return trackedQuests;
+    return trackedQuests.filter((tq) =>
+      QuestComponent.questMatchesSearch(findQuest(tq) || { name: tq.name }, questSearch));
+  }, [trackedQuests, questSearch, findQuest]);
+
   // ----------- QUEST ACTIONS -----------
   const removeQuest = (e, questId) => {
     e.stopPropagation();
@@ -943,8 +988,63 @@ const MapPage = () => {
               No quests tracked yet
             </div>
           )}
+
+          {/* ช่องค้นหา — sticky ไว้บนสุดของกล่องที่เลื่อน จะได้พิมพ์แก้คำค้นได้
+              โดยไม่ต้องเลื่อนกลับขึ้นมา · margin ติดลบเพื่อกินขอบ padding ของ section
+              ให้พื้นหลังคลุมเต็มความกว้าง ไม่งั้นการ์ดจะไหลลอดข้าง ๆ ตอนเลื่อน */}
+          {trackedQuests.length > 0 && (
+            <div style={{
+              position: 'sticky', top: 0, zIndex: 5,
+              margin: '-12px -12px 0', padding: '12px 12px 10px',
+              background: '#101b31', borderBottom: '1px solid #24324f',
+            }}>
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <span style={{ position: 'absolute', left: 10, fontSize: '13px', pointerEvents: 'none' }}>🔍</span>
+                <input
+                  value={questSearch}
+                  onChange={(e) => setQuestSearch(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Escape') setQuestSearch(''); }}
+                  placeholder="Search name, trader, objective"
+                  style={{
+                    width: '100%', boxSizing: 'border-box',
+                    padding: '8px 30px 8px 31px',
+                    borderRadius: '9px', border: '1px solid #2a3550',
+                    background: '#0b1324', color: '#f1f7ff',
+                    fontSize: '14px', outline: 'none',
+                  }}
+                />
+                {questSearch && (
+                  <button
+                    onClick={() => setQuestSearch('')}
+                    title="Clear"
+                    style={{
+                      position: 'absolute', right: 6,
+                      width: '22px', height: '22px', borderRadius: '6px',
+                      border: 'none', background: 'transparent', color: '#cbdcfc',
+                      fontSize: '13px', fontWeight: 800, lineHeight: 1, cursor: 'pointer',
+                    }}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              {questSearch.trim() && (
+                <div style={{ marginTop: '7px', fontSize: '12.5px', color: '#a5b5cc' }}>
+                  showing {shownQuests.length} of {trackedQuests.length}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* กรองแล้วไม่เหลืออะไร ต้องบอกว่าเพราะคำค้น ไม่ใช่เพราะไม่มีเควสบนแมพนี้ */}
+          {trackedQuests.length > 0 && shownQuests.length === 0 && (
+            <div style={{ fontSize: '14px', color: '#a5b5cc', textAlign: 'center', padding: '18px 0 6px' }}>
+              No quest matches “{questSearch.trim()}”
+            </div>
+          )}
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '12px 0' }}>
-            {trackedQuests.map((tq) => {
+            {shownQuests.map((tq) => {
               const fullQuest = findQuest(tq);
               const isExpanded = expandedQuestName === tq.id;
 
@@ -1618,89 +1718,61 @@ const MapPage = () => {
               const isExpanded = expandedQuestName === tq.id;
 
               return quest.objectives.map((obj, objIdx) => {
-                const points = [];
-                const isObjOnMap = obj.maps?.some(m => m.name === currentMapName || m.name === `${currentMapName} 21+`);
-                if (isObjOnMap) {
-                  obj.zones?.forEach(z => points.push(z.position));
-                  obj.possibleLocations?.forEach(loc => loc.positions.forEach(p => points.push(p)));
-                }
+                if (checkedObjectives[getObjectiveKey(quest.id, obj.id)]) return null;
+                const points = objectivePoints(obj);
 
                 return points.map((p, idx) => {
                   // ข้อมูลเควสบางจุดเก็บแกนตั้งไว้ที่ y (ไม่มี z) -> ปรับให้เป็นรูปเดียวกันก่อนแปลง
                   const pos = p.z !== undefined ? p : { x: p.x, y: 0, z: p.y };
                   const mk = posToPerc(pos);
-                  let lastIndex = points.length - 1;
+                  const isHere = selectedPoint?.questId === tq.id
+                    && selectedPoint?.objId === obj.id
+                    && selectedPoint?.idx === idx;
 
                   // --- FIX APPLIED BELOW ---
                   // Used React.Fragment with a key instead of shorthand <>
                   return (
                     <Fragment key={`${quest.name}-${objIdx}-${idx}`}>
-                      {!(checkedObjectives[getObjectiveKey(quest.id, obj.id)]) && (
-                        <>
-                          <div
-                            style={{
-                              ...styles.marker,
-                              left: `${mk.x}%`,
-                              top: `${mk.y}%`,
-                              backgroundColor: tq.color,
-                              transform: `translate(-50%, -50%) scale(${isExpanded ? markerScale * 1.8 : markerScale}) rotate(${rotation}deg)`,
-                              zIndex: isExpanded ? 100 : 30,
-                            }}
-                            /* กดหมุดบนแมพไม่ควรลากแมพตามไปด้วย */
-                            onMouseDown={(e) => e.stopPropagation()}
-                            /* คิดจาก "กำลังจะเปิดหรือปิด" ครั้งเดียว แล้วตั้งทั้งสอง state ให้ตรงกัน
-                               ของเดิมสลับ questDescription กับ expandedQuestName แยกกัน
-                               (อันหลังอิง isExpanded) สองค่าเลยหลุดจากกันได้ */
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const opening = questDescription !== obj.id;
-                              setQuestDescription(opening ? obj.id : null);
-                              setExpandedQuestName(opening ? tq.id : null);
-                            }}
-                          />
-                          {questDescription === obj.id && idx === lastIndex && (
-                            <div style={{
-                              ...styles.descriptionMarker,
-                              left: `${mk.x}%`,
-                              top: `${mk.y}%`,
-                              display: 'flex',
-                              flexDirection: 'column',
-                              /* translate ตัวท้ายอยู่หลัง rotate จึงขยับใน "แกนจอ" ไม่ใช่แกนแมพ
-                                 -> ป้ายลอยขึ้นเหนือหมุดเสมอ ถึงจะหมุนแมพอยู่ก็ตาม */
-                              transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg) translate(0, calc(-50% - 16px))`,
-                              zIndex: isExpanded ? 101 : 60,
-                            }}
-                              onMouseDown={(e) => e.stopPropagation()}
-                              /* กดป้ายคือ "ปิดป้าย" อย่างเดียว ไม่ไปยุ่งกับการกางรายละเอียดในแผงซ้าย
-                                 ของเดิมสลับ expandedQuestName ด้วย ทำให้กดปิดแล้วกลับไปกางรายละเอียดขึ้นมา */
-                              onClick={(e) => { e.stopPropagation(); setQuestDescription(null); }}>
-                              <span>{obj.description}</span>
-                              {/* แถวล่าง: กุญแจซ้าย ปุ่ม Done ขวา
-                                  กุญแจของเควสนี้ที่ใช้บนแมพที่เปิดอยู่ — แท็บ Keys มีรวมไว้ให้แล้ว
-                                  แต่ตอนยืนดูหมุดอยู่ไม่มีใครย้อนไปเปิดแท็บอ่าน */}
-                              <div style={{
-                                display: 'flex', alignItems: 'flex-end', gap: 10, marginTop: 7,
-                              }}>
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, minWidth: 0, flex: 1 }}>
-                                  {QuestComponent.questKeys(quest, currentMapName)
-                                    .map((k) => <KeyChip key={k.id} item={k} compact />)}
-                                  {/* ของที่ต้องพกไปวาง อยู่ข้างกุญแจ — ตอนยืนดูหมุดอยู่
-                                      ไม่มีใครย้อนไปเปิดแท็บด้านข้างอ่าน */}
-                                  {QuestComponent.questPlantItems(quest, currentMapName)
-                                    .map((it) => <KeyChip key={it.id} item={it} compact note={placeNote({ ...it, mapName: null })} />)}
-                                </div>
-                                <button
-                                  style={{ ...styles.descriptionDone, marginTop: 0, alignSelf: 'flex-end', flexShrink: 0 }}
-                                  onClick={(e) => { e.stopPropagation(); completeMark(quest.id, obj.id); }}
-                                >
-                                  ✓ Done
-                                </button>
-                              </div>
-                              <span style={styles.descriptionArrow} />
-                            </div>
-                          )}
-                        </>
+                      {/* วงแหวนกระพริบรอบจุดที่เลือก — รายละเอียดอยู่ในแถบล่างซึ่งไม่ได้ชี้มาที่หมุด
+                          จึงต้องมีอะไรบอกว่าแถบนั้นกำลังพูดถึงหมุดไหน ตอนที่หลายจุดหน้าตาเหมือนกัน
+                          กรอบนอกคุมตำแหน่ง+สเกล กรอบในรับ animation จะได้ไม่ทับ transform กัน */}
+                      {isHere && (
+                        <div style={{
+                          position: 'absolute',
+                          left: `${mk.x}%`, top: `${mk.y}%`,
+                          width: '12px', height: '12px',
+                          transform: `translate(-50%, -50%) scale(${markerScale})`,
+                          zIndex: 29, pointerEvents: 'none',
+                        }}>
+                          <div style={{
+                            width: '100%', height: '100%', borderRadius: '50%',
+                            border: `2px solid ${tq.color}`,
+                            animation: 'pulseSel 1.1s ease-out infinite',
+                          }} />
+                        </div>
                       )}
+                      <div
+                        style={{
+                          ...styles.marker,
+                          left: `${mk.x}%`,
+                          top: `${mk.y}%`,
+                          backgroundColor: tq.color,
+                          cursor: 'pointer',
+                          boxShadow: isHere ? '0 0 0 2px #fff, 0 0 10px rgba(0,0,0,0.9)' : styles.marker.boxShadow,
+                          transform: `translate(-50%, -50%) scale(${isExpanded ? markerScale * 1.8 : markerScale}) rotate(${rotation}deg)`,
+                          zIndex: isHere ? 101 : isExpanded ? 100 : 30,
+                        }}
+                        /* กดหมุดบนแมพไม่ควรลากแมพตามไปด้วย */
+                        onMouseDown={(e) => e.stopPropagation()}
+                        /* กดหมุดเดิมซ้ำ = ปิด · กดหมุดอื่น = ย้ายไปจุดนั้น (ไม่ต้องปิดก่อน)
+                           ตัดสินจาก isHere ตัวเดียว ทั้ง selectedPoint และ expandedQuestName
+                           จึงเปลี่ยนพร้อมกันเสมอ ไม่หลุดจากกันแบบที่เคยเป็น */
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedPoint(isHere ? null : { questId: tq.id, objId: obj.id, idx });
+                          setExpandedQuestName(isHere ? null : tq.id);
+                        }}
+                      />
                     </Fragment>
                   );
                 });
@@ -1737,12 +1809,63 @@ const MapPage = () => {
 
           </div>
         </div>
+
+        {/* ---- แถบรายละเอียดจุดที่เลือก ----
+            อยู่นอกกรอบที่ซูม/หมุน จึงคงขนาดเสมอ และยึดขอบล่างของกรอบแมพ
+            ไม่ลอยทับผืนแมพแบบป้ายเดิม · เลี่ยงปุ่มซูม (ซ้าย) กับแผง Calib (ขวา) */}
+        {pointDetail && (
+          <div
+            style={{ ...styles.pointBar, right: showCalibration ? 320 : 24 }}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={styles.pointBarHead}>
+              <span style={{
+                width: '11px', height: '11px', borderRadius: '50%', flexShrink: 0,
+                background: pointDetail.tq.color, border: '1px solid #fff',
+              }} />
+              <span style={{ fontWeight: 800, fontSize: '15px', color: '#f1f7ff' }}>{pointDetail.quest.name}</span>
+              {/* บอกลำดับจุดเฉพาะตอนมีหลายจุด — ของอย่าง Oil Run ที่รถน้ำมัน 4 คัน
+                  คำอธิบายเหมือนกันหมด ตัวเลขนี้คือสิ่งเดียวที่แยกออกว่ากดคันไหนอยู่ */}
+              {pointDetail.total > 1 && (
+                <span style={styles.pointBarCount}>Spot {pointDetail.idx + 1} / {pointDetail.total}</span>
+              )}
+              <span style={{ flex: 1 }} />
+              <button
+                style={{ ...styles.descriptionDone, marginTop: 0, alignSelf: 'auto', flexShrink: 0 }}
+                onClick={() => { completeMark(pointDetail.quest.id, pointDetail.obj.id); setSelectedPoint(null); }}
+              >
+                ✓ Done
+              </button>
+              <button style={styles.pointBarClose} onClick={() => setSelectedPoint(null)} title="Close">✕</button>
+            </div>
+
+            <div style={{ fontSize: '15px', lineHeight: 1.45, color: '#e6efff' }}>{pointDetail.obj.description}</div>
+
+            {/* กุญแจกับของที่ต้องพกไปวางของเควสนี้บนแมพนี้ — แท็บด้านข้างมีรวมไว้แล้ว
+                แต่ตอนยืนดูหมุดอยู่ไม่มีใครย้อนไปเปิดแท็บอ่าน */}
+            {(() => {
+              const keys = QuestComponent.questKeys(pointDetail.quest, currentMapName);
+              const plants = QuestComponent.questPlantItems(pointDetail.quest, currentMapName);
+              if (!keys.length && !plants.length) return null;
+              return (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+                  {keys.map((k) => <KeyChip key={k.id} item={k} compact />)}
+                  {plants.map((it) => (
+                    <KeyChip key={it.id} item={it} compact note={placeNote({ ...it, mapName: null })} />
+                  ))}
+                </div>
+              );
+            })()}
+          </div>
+        )}
       </main>
       {/* SVG ยืดเต็มกล่องที่คำนวณจาก bounds (ไม่ยึดความสูงจอ) เพื่อให้ทับพื้นที่จริงพอดี */}
       <style>{`.eft-map-svg { line-height: 0; }
         .eft-map-svg > svg { display:block; width:100%; height:100%; }
         ${hiddenFloorCss}
-        @keyframes pulseRing { 0%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:.3;transform:translate(-50%,-50%) scale(1.6)} }`}</style>
+        @keyframes pulseRing { 0%{opacity:1;transform:translate(-50%,-50%) scale(1)} 100%{opacity:.3;transform:translate(-50%,-50%) scale(1.6)} }
+        @keyframes pulseSel { 0%{opacity:1;transform:scale(1)} 100%{opacity:0;transform:scale(2.6)} }`}</style>
     </div>
   );
 };

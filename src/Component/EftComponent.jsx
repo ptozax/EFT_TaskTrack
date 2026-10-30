@@ -531,8 +531,7 @@ export const mapStyles = {
         zIndex: 30,
         cursor: 'default'
     },
-    /* ป้ายรายละเอียดจุดเควส — วางลอยเหนือหมุด ไม่ทับตัวจุดและจุดข้างเคียง
-       ของเดิมกว้างตายตัว 300px พื้นดำทึบ + เรืองแสงขาวรอบกล่อง เลยบังแมพเป็นวงกว้าง */
+    /* ป้ายเล็กของหมุดกุญแจ (เลเยอร์ Keys) — ป้ายของจุดเควสย้ายไปอยู่ pointBar แล้ว */
     descriptionMarker: {
         position: 'absolute',
         width: 'max-content',
@@ -553,17 +552,53 @@ export const mapStyles = {
         color: '#e6efff',
         cursor: 'pointer',
     },
-    /* ลูกศรเล็กชี้ลงไปที่หมุด ให้รู้ว่าป้ายเป็นของจุดไหนตอนมีหลายจุดใกล้กัน */
-    descriptionArrow: {
+    /* แถบรายละเอียดจุดที่เลือก — ยึดขอบล่างของกรอบแมพ ไม่ได้อยู่ในกรอบที่ซูม/หมุน
+       left 80px เว้นแถวปุ่มซูม (กว้าง 40 + ขอบ 24) ส่วน right ปรับเองเมื่อเปิดแผง Calib */
+    pointBar: {
         position: 'absolute',
-        left: '50%',
-        bottom: '-5px',
-        width: '9px',
-        height: '9px',
-        transform: 'translateX(-50%) rotate(45deg)',
-        background: 'rgba(12,19,36,0.93)',
-        borderRight: '1px solid rgba(148,180,230,0.45)',
-        borderBottom: '1px solid rgba(148,180,230,0.45)',
+        bottom: '24px',
+        left: '80px',
+        right: '24px',
+        maxHeight: '38%',
+        overflowY: 'auto',
+        padding: '10px 14px 12px',
+        borderRadius: '12px',
+        border: '1px solid #334155',
+        background: 'rgba(15,23,42,0.94)',
+        backdropFilter: 'blur(8px)',
+        boxShadow: '0 6px 20px rgba(0,0,0,0.5)',
+        zIndex: 50,
+        textAlign: 'left',
+    },
+    pointBarHead: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '9px',
+        flexWrap: 'wrap',
+        marginBottom: '6px',
+    },
+    pointBarCount: {
+        padding: '2px 8px',
+        borderRadius: '999px',
+        border: '1px solid #3c4d6e',
+        background: '#16233d',
+        color: '#cbdcfc',
+        fontSize: '12.5px',
+        fontWeight: 700,
+        whiteSpace: 'nowrap',
+    },
+    pointBarClose: {
+        width: '28px',
+        height: '28px',
+        flexShrink: 0,
+        borderRadius: '8px',
+        border: '1px solid #334155',
+        background: 'transparent',
+        color: '#cbdcfc',
+        fontSize: '14px',
+        fontWeight: 800,
+        lineHeight: 1,
+        cursor: 'pointer',
     },
     descriptionDone: {
         marginTop: '7px',

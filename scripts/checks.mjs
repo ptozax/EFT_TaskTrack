@@ -418,6 +418,92 @@ const lost = variantCheck.filter((q) => {
 ok(lost.length === 0,
   `ชื่อแมพรุ่นย่อยถูกนับเป็นแมพหลัก ${variantCheck.length} เควส${lost.length ? ' — หาย: ' + lost.map((q) => q.name).join(', ') : ''}`);
 
+group('แถบรายละเอียดจุดบนหน้าแมพ');
+/* MapPage เรนเดอร์ไม่ได้ในชุดนี้ (ต้องมี DOM จริงสำหรับ pan/zoom) จึงตรวจจากซอร์ส
+   คู่กับตรวจข้อมูลว่าเคสที่เคยพังมีอยู่จริงกี่เควส */
+const mapSrc = readFileSync(path.join(ROOT, 'src/pages/MapPage.jsx'), 'utf8');
+const eftSrc = readFileSync(path.join(ROOT, 'src/Component/EftComponent.jsx'), 'utf8');
+
+/* ต้นเหตุเดิม: จำแค่ objective id แล้ววาดป้ายที่จุดท้ายเสมอ — กดจุดแรกป้ายไปโผล่จุดท้าย
+   ตัดคอมเมนต์ออกก่อน ไม่งั้นคอมเมนต์ที่เล่าบั๊กเดิมจะทำให้ข้อนี้แดงเอง */
+const mapCode = mapSrc.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+ok(!/lastIndex/.test(mapCode), 'ไม่เหลือ lastIndex — ป้ายไม่ถูกตรึงไว้ที่จุดสุดท้าย');
+const clickSet = mapSrc.match(/setSelectedPoint\(isHere \? null : \{([^}]*)\}/)?.[1] || '';
+ok(/questId/.test(clickSet) && /objId/.test(clickSet) && /\bidx\b/.test(clickSet),
+  `กดหมุดแล้วเก็บครบทั้งเควส/objective/ลำดับจุด (ได้ "${clickSet.trim()}")`);
+ok(/selectedPoint\?\.idx === idx/.test(mapSrc), 'หมุดที่ไฮไลต์ตัดสินจากลำดับจุด ไม่ใช่แค่ objective');
+
+/* แถบต้องอยู่นอกกรอบที่ซูม/หมุน ไม่งั้นก็กลับไปลอยทับแมพเหมือนเดิม */
+const barBlock = eftSrc.match(/pointBar: \{([\s\S]*?)\},/)?.[1] || '';
+ok(/position: 'absolute'/.test(barBlock) && /bottom:/.test(barBlock) && /left:/.test(barBlock) && /right:/.test(barBlock),
+  'pointBar ยึดขอบล่างของกรอบแมพทั้งแถบ');
+ok(!/scale\(|rotate\(/.test(barBlock), 'pointBar ไม่มี transform ของแมพ — ขนาดคงที่ทุกระดับซูม');
+const barJsx = mapSrc.match(/\{pointDetail && \(([\s\S]*?)\n        \)\}/)?.[1] || '';
+ok(barJsx.length > 0 && mapSrc.indexOf(barJsx) > mapSrc.indexOf('ref={viewportRef}'),
+  'แถบถูกเรนเดอร์นอก viewport ที่ลาก/ซูม');
+ok(/Spot \{pointDetail\.idx \+ 1\} \/ \{pointDetail\.total\}/.test(barJsx), 'แถบบอกว่ากำลังดูจุดที่เท่าไหร่จากทั้งหมด');
+ok(/completeMark\(pointDetail\.quest\.id, pointDetail\.obj\.id\)/.test(barJsx), 'ปุ่ม Done ยังติ๊ก objective ที่ถูกตัว');
+
+/* pointDetail ต้องคืน null เองเมื่อสถานะเปลี่ยน ไม่งั้นแถบค้างอยู่หลังกด Done / ซ่อนเควส */
+const detailBlock = mapSrc.match(/const pointDetail = useMemo\(\(\) => \{([\s\S]*?)\n  \}, \[/)?.[1] || '';
+for (const [re, name] of [
+  [/if \(!tq\?\.visible\) return null/, 'เควสถูกเอาออกหรือซ่อน'],
+  [/if \(!obj\) return null/, 'สลับแมพแล้ว objective หาไม่เจอ'],
+  [/checkedObjectives\[getObjectiveKey\(quest\.id, obj\.id\)\]\) return null/, 'ติ๊ก Done ไปแล้ว'],
+  [/selectedPoint\.idx >= total\) return null/, 'จุดหายไปจากข้อมูล'],
+]) ok(re.test(detailBlock), `แถบปิดเองเมื่อ: ${name}`);
+
+/* เคสจริงที่บั๊กนี้โดน — ไม่ใช่ของหายาก */
+let withPoints = 0, multiPoint = 0, mostPoints = 0;
+for (const q of TASKS) for (const o of q.objectives || []) {
+  const n = (o.zones || []).length + (o.possibleLocations || []).reduce((s, l) => s + (l.positions || []).length, 0);
+  if (!n) continue;
+  withPoints++;
+  if (n > 1) multiPoint++;
+  if (n > mostPoints) mostPoints = n;
+}
+ok(multiPoint > 100, `objective ที่มีหลายจุด ${multiPoint}/${withPoints} อัน — เยอะพอที่จะต้องแยกทีละจุด`);
+ok(mostPoints >= 19, `objective ที่จุดเยอะสุดมี ${mostPoints} จุด`);
+const oilRun = TASKS.find((q) => q.name === 'Oil Run');
+ok((oilRun?.objectives?.[0]?.zones || []).length === 4,
+  `Oil Run มีรถน้ำมัน 4 คัน (ได้ ${(oilRun?.objectives?.[0]?.zones || []).length})`);
+
+group('ค้นหาในรายการ Tracked quests');
+/* ตัวกรองอยู่ใน QuestComponent จึงทดสอบกับข้อมูลจริงได้ตรง ๆ ไม่ต้องเดาจากซอร์ส */
+const questByName = (n) => TASKS.find((q) => q.name === n);
+const S = QC.questMatchesSearch;
+ok(TASKS.every((q) => S(q, '')) && TASKS.every((q) => S(q, '   ')),
+  'คำค้นว่างผ่านทุกเควส — ไม่ใช่กรองจนเกลี้ยง');
+ok(S(questByName('Oil Run'), 'oil') && S(questByName('Oil Run'), 'OIL') && S(questByName('Oil Run'), 'Oil Run'),
+  'ค้นชื่อเควสได้ ไม่สนตัวพิมพ์เล็กใหญ่');
+ok(S(questByName('Oil Run'), 'prapor'), 'ค้นด้วยชื่อเทรดเดอร์ได้ (Oil Run เป็นของ Prapor)');
+ok(S(questByName('Oil Run'), 'fuel tank'), 'ค้นด้วยข้อความเป้าหมายได้ แม้ชื่อเควสไม่มีคำนั้น');
+ok(!S(questByName('Oil Run'), 'zzqq'), 'คำที่ไม่มีจริงต้องไม่ผ่าน');
+ok(S(null, 'oil') === false && S(undefined, 'oil') === false, 'เควสที่หาไม่เจอไม่ทำให้พัง');
+ok(S({ name: 'Oil Run' }, 'oil') && !S({ name: 'Oil Run' }, 'prapor'),
+  'เควสที่มีแต่ชื่อ (หาตัวเต็มไม่เจอ) ยังค้นด้วยชื่อได้');
+/* คำที่พิมพ์กันจริงต้องแคบลงจริง ไม่ใช่ได้ครึ่งเกมกลับมา */
+const customs = TASKS.filter((q) => (q.objectives || []).some((o) =>
+  (o.maps || []).some((m) => m?.name === 'Customs')));
+ok(customs.length >= 70, `ฐานทดสอบ: Customs มี ${customs.length} เควส`);
+/* ชื่อเควส / ชื่อเทรดเดอร์ / คำในเป้าหมาย อย่างละอัน — ต้องแคบลงจริง ไม่ใช่ได้คืนมาครึ่งแมพ */
+for (const [term, max] of [['punisher', 10], ['skier', 25], ['stash', 25]]) {
+  const hit = customs.filter((q) => S(q, term)).length;
+  ok(hit > 0 && hit < max, `ค้น "${term}" บน Customs เหลือ ${hit} จาก ${customs.length}`);
+}
+
+/* ส่วน UI ที่เทสต์พฤติกรรมไม่ถึง — MapPage เรนเดอร์ไม่ได้ในชุดนี้ */
+ok(/position: 'sticky', top: 0/.test(mapSrc), 'ช่องค้นหา sticky ไว้บนสุดของกล่องที่เลื่อน');
+ok(/showing \{shownQuests\.length\} of \{trackedQuests\.length\}/.test(mapSrc),
+  'บอกจำนวนที่เหลือเทียบกับทั้งหมดตอนกำลังกรอง');
+ok(/e\.key === 'Escape'\) setQuestSearch\(''\)/.test(mapSrc), 'กด Escape ล้างคำค้นได้');
+ok(/setQuestSearch\(''\);\n  \}, \[selectedMapId\]\)/.test(mapSrc), 'สลับแมพแล้วล้างคำค้นทิ้ง');
+ok(/trackedQuests\.length > 0 && shownQuests\.length === 0/.test(mapSrc),
+  'กรองแล้วว่างมีข้อความของตัวเอง ไม่ปนกับ "ยังไม่ได้ track เควส"');
+/* หมุดบนแมพต้องมาจากรายการเต็มเสมอ — ค้นหาคือกรองสายตา ไม่ใช่ซ่อนหมุด */
+ok(/!isLoading && trackedQuests\.map\(tq =>/.test(mapSrc), 'หมุดบนแมพยังวาดจาก trackedQuests ไม่ใช่ผลค้นหา');
+ok(/\{shownQuests\.map\(\(tq\) => \{/.test(mapSrc), 'รายการในแผงวาดจากผลค้นหา');
+
 group('ข้อมูลใน localStorage เสียหาย');
 /* dropFromActive เคยใช้ JSON.parse ตรง ๆ แล้วโยน error กลางคัน ซึ่งแย่เป็นพิเศษ
    เพราะผู้เรียก (AddQuest / Kappa) เขียน eft_completed_quests ไปก่อนแล้ว
