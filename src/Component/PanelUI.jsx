@@ -40,23 +40,28 @@ export const P = {
   inputBg: '#0e1730',
   /* สี่ระดับความสว่างของตัวหนังสือ วัดด้วยอัตราคอนทราสต์เทียบพื้นที่เข้มที่สุด
      ที่มีตัวหนังสือวางอยู่จริง (#1e293b — เซลล์ตารางหน้า Ballistics):
-       text 11.9 > muted 8.1 > label 6.3 > dim 5.1   ผ่าน WCAG AA (4.5) ทุกระดับ
-     ของเดิม dim อยู่ที่ 3.1 และ label 4.4 ซึ่งต่ำกว่าเกณฑ์ — เป็นต้นเหตุที่อ่านแล้วรู้สึกมืด
-     เพราะสองระดับนี้แบกตัวหนังสือรองเกือบทั้งแอป (ป้ายกำกับ ชิปที่ไม่ได้เลือก หมายเหตุ)
-     ปรับให้สว่างขึ้นโดยคงโทนน้ำเงินเดิมไว้ ไม่ได้เปลี่ยนเป็นเทาล้วน */
-  text: '#e2e8f0',
-  muted: '#b0c1e1',
-  dim: '#8999b0',
-  label: '#9aabce',
+       text 13.6 > muted 10.6 > label 8.6 > dim 7.0
+     เล็งที่ WCAG AAA (7.0) ทุกระดับ ไม่ใช่แค่ AA (4.5) — หน้าเว็บพื้นเข้มล้วน
+     ตัวหนังสือเทาอมน้ำเงินจึงจมง่าย และคนใช้งานจริงอยากให้เน้นเห็นชัด
+     (ไล่มาสามรอบ: เดิม dim 3.1 / label 4.4 -> AA 5.1 กับ 6.3 -> AAA ตามนี้)
+     คงโทนน้ำเงินเดิมไว้ ไม่ได้เปลี่ยนเป็นเทาล้วน และเว้นระยะระหว่างระดับไว้พอ
+     ให้ยังแยกออกว่าอันไหนสำคัญกว่าอันไหน */
+  text: '#f1f7ff',
+  muted: '#cbdcfc',
+  dim: '#a5b5cc',
+  label: '#b6c7ea',
+  /* สีเน้นก็ยกเป็น AAA เหมือนกัน เพราะถูกใช้เป็นตัวหนังสือด้วย ไม่ใช่แค่จุดสี */
   gold: '#eab308',
-  green: '#22c55e',
-  red: '#ef4444',
-  blue: '#3b82f6',
+  green: '#2bce67',
+  red: '#ff9696',
+  blue: '#74b9ff',
 };
 
 /** หัวข้อเล็กตัวใหญ่ ใช้นำหน้าทุกกลุ่ม */
+/* 13px ไม่ใช่ 12 — ตัวพิมพ์ใหญ่ล้วนบวกระยะห่างตัวอักษร .1em อ่านแล้วดูเล็กกว่า
+   ขนาดจริง และป้ายนี้ใช้นำทุกกลุ่มทั้งแอป จึงเป็นจุดที่คุ้มสุดที่จะขยาย */
 export const label = {
-  fontSize: '12px', color: P.dim, textTransform: 'uppercase',
+  fontSize: '13px', color: P.dim, textTransform: 'uppercase',
   letterSpacing: '.1em', fontWeight: 700,
 };
 
@@ -80,7 +85,7 @@ export const chip = (active, color = P.gold) => ({
 
 /** ป้ายสถานะเล็ก ๆ */
 export const badge = (color = P.label) => ({
-  fontSize: '11.5px', fontWeight: 800, letterSpacing: '.04em',
+  fontSize: '12px', fontWeight: 800, letterSpacing: '.04em',
   padding: '3px 8px', borderRadius: '999px',
   background: `${color}1f`, color, whiteSpace: 'nowrap',
 });
@@ -366,7 +371,7 @@ export const KeyChip = ({ item, compact = false, showMap = false, note = null })
             width: px, height: px, flexShrink: 0, borderRadius: 5,
             background: ITEM_BG[item.backgroundColor] || ITEM_BG.default,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#8999b0', fontSize: compact ? 13 : 16,
+            color: '#a5b5cc', fontSize: compact ? 13 : 16,
           }}
         >
           ?
@@ -382,7 +387,7 @@ export const KeyChip = ({ item, compact = false, showMap = false, note = null })
           {copied ? 'Copied!' : (compact ? (item.shortName || item.name) : item.name)}
         </span>
         {(note || (showMap && item.mapName)) && (
-          <span style={{ display: 'block', fontSize: '11.5px', color: '#9aabce', marginTop: 1 }}>
+          <span style={{ display: 'block', fontSize: '12px', color: '#a3b4d7', marginTop: 1 }}>
             {note || item.mapName}
           </span>
         )}

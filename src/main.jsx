@@ -59,7 +59,7 @@ const pageComponents = {
 };
 
 const Loading = () => (
-  <div style={{ padding: '4rem', textAlign: 'center', color: '#94a3b8', fontSize: '1.1rem' }}>Loading…</div>
+  <div style={{ padding: '4rem', textAlign: 'center', color: '#a6b5ca', fontSize: '1.1rem' }}>Loading…</div>
 );
 
 function HandlePage() {

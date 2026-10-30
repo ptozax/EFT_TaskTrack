@@ -60,7 +60,7 @@ const UI = {
     boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
   },
   cardTitle: {
-    fontSize: '13px', fontWeight: 800, color: '#9aabce',
+    fontSize: '13px', fontWeight: 800, color: '#a3b4d7',
     textTransform: 'uppercase', letterSpacing: '0.12em',
     marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px',
   },
@@ -70,7 +70,7 @@ const UI = {
     fontSize: '14px', fontWeight: 700, transition: 'all .15s ease',
     border: `1px solid ${active ? color : '#2a3550'}`,
     background: active ? `${color}22` : '#0e1730',
-    color: active ? color : '#8999b0',
+    color: active ? color : '#a5b5cc',
   }),
   /* ปุ่มไอคอนในการ์ดเควส — เดิมเป็นไอคอนเปล่า ๆ กับตัว × ขนาด 21px
      ไม่มีพื้นที่กดชัดเจน เล็งยาก และดูไม่เป็นปุ่ม */
@@ -92,7 +92,7 @@ const UI = {
     fontSize: '13px', fontWeight: 700, transition: 'all .15s ease',
     border: `1px solid ${active ? color : '#2a3550'}`,
     background: active ? `${color}22` : 'transparent',
-    color: active ? color : '#8999b0',
+    color: active ? color : '#a5b5cc',
   }),
   sectionHead: (open) => ({
     display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', userSelect: 'none',
@@ -108,7 +108,7 @@ const UI = {
     background: 'linear-gradient(180deg,#101b31 0%,#0d1729 100%)', padding: '12px',
   },
   label: {
-    fontSize: '12px', color: '#8999b0', textTransform: 'uppercase',
+    fontSize: '12px', color: '#a5b5cc', textTransform: 'uppercase',
     letterSpacing: '.1em', marginBottom: '6px',
   },
 };
@@ -120,7 +120,7 @@ const Section = ({ icon, title, badge, badgeColor, open, onToggle, children }) =
       <span style={{ fontSize: '15.5px', filter: 'saturate(0.9)' }}>{icon}</span>
       <span style={{ flex: 1 }}>{title}</span>
       {badge != null && <span style={UI.badge(badgeColor)}>{badge}</span>}
-      <span style={{ color: '#8999b0', display: 'flex' }}>
+      <span style={{ color: '#a5b5cc', display: 'flex' }}>
         {open ? <Icons.ChevronUp size={16} /> : <Icons.ChevronDown size={16} />}
       </span>
     </div>
@@ -775,7 +775,7 @@ const MapPage = () => {
               <h1 style={{ fontSize: '17.5px', fontWeight: 800, margin: 0, letterSpacing: '.02em' }}>Quest Map</h1>
             </header>
             <button
-              style={{ background: '#0e1730', border: '1px solid #24324f', borderRadius: '8px', color: '#94a3b8', cursor: 'pointer', padding: '3px 5px', display: 'flex' }}
+              style={{ background: '#0e1730', border: '1px solid #24324f', borderRadius: '8px', color: '#a6b5ca', cursor: 'pointer', padding: '3px 5px', display: 'flex' }}
               onClick={() => setIsSidebarOpen(false)}
               title="Hide panel"
             >
@@ -843,9 +843,9 @@ const MapPage = () => {
         }}>
           {[
             // Keys ยุบไปอยู่บนสุดของแท็บ Quests แล้ว — เหลือ 3 ช่อง กว้างขึ้นจาก ~72px เป็น ~96px
-            { k: 'quests', label: 'Quests', n: trackedQuests.length, color: '#38bdf8' },
-            { k: 'items', label: 'Items', n: trackedItems.length, color: '#a78bfa' },
-            { k: 'view', label: 'View', n: 0, color: '#10b981' },
+            { k: 'quests', label: 'Quests', n: trackedQuests.length, color: '#3bc0fb' },
+            { k: 'items', label: 'Items', n: trackedItems.length, color: '#c1a5ff' },
+            { k: 'view', label: 'View', n: 0, color: '#23cc94' },
           ].map((t) => {
             const on = tab === t.k;
             return (
@@ -859,15 +859,15 @@ const MapPage = () => {
                   padding: '11px 2px 10px', border: 'none', background: 'transparent',
                   cursor: 'pointer', whiteSpace: 'nowrap',
                   fontSize: '13.5px', fontWeight: 800,
-                  color: on ? t.color : '#8898b9',
+                  color: on ? t.color : '#a4b4d5',
                   transition: 'color .15s ease',
                 }}
               >
                 <span>{t.label}</span>
                 {t.n > 0 && (
                   <span style={{
-                    fontSize: '11.5px', fontWeight: 800,
-                    color: on ? t.color : '#45537a',
+                    fontSize: '12px', fontWeight: 800,
+                    color: on ? t.color : '#a5b5cc',
                     fontVariantNumeric: 'tabular-nums',
                   }}>{t.n}</span>
                 )}
@@ -903,7 +903,7 @@ const MapPage = () => {
                   <div key={k.id}>
                     <KeyChip item={k} />
                     {/* กุญแจดอกเดียวอาจใช้ได้หลายเควส — บอกว่าของใครบ้าง */}
-                    <div style={{ fontSize: '12.5px', color: '#8999b0', marginTop: '3px', lineHeight: 1.35 }}>
+                    <div style={{ fontSize: '12.5px', color: '#a5b5cc', marginTop: '3px', lineHeight: 1.35 }}>
                       {k.quests.join(' · ')}
                     </div>
                   </div>
@@ -923,7 +923,7 @@ const MapPage = () => {
               {questPlants.map((it) => (
                 <div key={it.id}>
                   <KeyChip item={it} note={placeNote({ ...it, mapName: null })} />
-                  <div style={{ fontSize: '12.5px', color: '#8999b0', marginTop: '3px', lineHeight: 1.35 }}>
+                  <div style={{ fontSize: '12.5px', color: '#a5b5cc', marginTop: '3px', lineHeight: 1.35 }}>
                     {it.quests.join(' · ')}
                   </div>
                 </div>
@@ -939,7 +939,7 @@ const MapPage = () => {
         >
           {(<>
           {trackedQuests.length === 0 && (
-            <div style={{ fontSize: '14px', color: '#8999b0', textAlign: 'center', padding: '12px 0' }}>
+            <div style={{ fontSize: '14px', color: '#a5b5cc', textAlign: 'center', padding: '12px 0' }}>
               No quests tracked yet
             </div>
           )}
@@ -1073,7 +1073,7 @@ const MapPage = () => {
                           href={fullQuest.wikiLink}
                           target="_blank"
                           rel="noreferrer"
-                          style={{ color: '#60a5fa', textDecoration: 'none' }}
+                          style={{ color: '#74b9ff', textDecoration: 'none' }}
                           onClick={(e) => e.stopPropagation()}
                         >
                           Wiki ↗
@@ -1112,10 +1112,10 @@ const MapPage = () => {
         >
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
             {[
-              { label: 'Exits', on: showExtracts, set: setShowExtracts, color: '#10b981' },
-              { label: 'Transits', on: showTransits, set: setShowTransits, color: '#f87171' },
+              { label: 'Exits', on: showExtracts, set: setShowExtracts, color: '#23cc94' },
+              { label: 'Transits', on: showTransits, set: setShowTransits, color: '#ff9696' },
               { label: 'Keys', on: showKeys, set: setShowKeys, color: '#eab308' },
-              { label: 'Labels', on: showLabels, set: setShowLabels, color: '#38bdf8' },
+              { label: 'Labels', on: showLabels, set: setShowLabels, color: '#3bc0fb' },
             ].map(f => (
               <div key={f.label} onClick={() => f.set(!f.on)} style={UI.pill(f.on, f.color)}>
                 <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: f.color, opacity: f.on ? 1 : 0.35 }} />
@@ -1155,10 +1155,10 @@ const MapPage = () => {
             title="Toggle, then click the map to drop a pin"
           >
             {pinMode ? '📍 Click the map to place' : '📍 Add pin'}
-            {pinsHere.length > 0 && !pinMode && <span style={{ color: '#9aabce', fontWeight: 600 }}> · {pinsHere.length} here</span>}
+            {pinsHere.length > 0 && !pinMode && <span style={{ color: '#a3b4d7', fontWeight: 600 }}> · {pinsHere.length} here</span>}
           </button>
           {useSatellite && tileLevel != null && (
-            <div style={{ fontSize: '12px', color: '#8898b9', marginTop: '8px' }}>
+            <div style={{ fontSize: '12px', color: '#a4b4d5', marginTop: '8px' }}>
               Satellite detail {tileLevel}/{maxLevel} · {tiles.length} tiles · zoom in for more
             </div>
           )}
@@ -1202,10 +1202,10 @@ const MapPage = () => {
         {credit && (
           <div style={{
             flexShrink: 0, padding: '8px 14px 10px', borderTop: '1px solid #1e293b',
-            background: '#0d1526', fontSize: '12px', color: '#8898b9', lineHeight: 1.5,
+            background: '#0d1526', fontSize: '12px', color: '#a4b4d5', lineHeight: 1.5,
           }}>
             Map art: {credit.link
-              ? <a href={credit.link} target="_blank" rel="noopener noreferrer" style={{ color: '#60a5fa' }}>{credit.author}</a>
+              ? <a href={credit.link} target="_blank" rel="noopener noreferrer" style={{ color: '#74b9ff' }}>{credit.author}</a>
               : credit.author} · CC BY-NC-SA 4.0
           </div>
         )}
@@ -1216,13 +1216,13 @@ const MapPage = () => {
         width: 'auto',
         flex: 1,
       }}>
-        {isLoading && <div style={{ position: 'absolute', zIndex: 60, color: '#60a5fa' }}>SYNCING...</div>}
+        {isLoading && <div style={{ position: 'absolute', zIndex: 60, color: '#74b9ff' }}>SYNCING...</div>}
 
         <div style={styles.coordBox}>
           <p style={{ margin: 0, fontSize: '14px', fontWeight: 'bold' }}>
-            GAME POS: <span style={{ color: '#f87171' }}>X: {mousePos.gameX}, Z: {mousePos.gameZ}</span>
+            GAME POS: <span style={{ color: '#ff9696' }}>X: {mousePos.gameX}, Z: {mousePos.gameZ}</span>
           </p>
-          <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#8999b0' }}>{currentMapName} TACTICAL ALIGNMENT</p>
+          <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#a5b5cc' }}>{currentMapName} TACTICAL ALIGNMENT</p>
         </div>
 
         <div style={styles.zoomControls}>
@@ -1720,7 +1720,7 @@ const MapPage = () => {
                 onClick={(e) => { e.stopPropagation(); if (window.confirm(`Remove pin${pin.label ? ` "${pin.label}"` : ''}?`)) removePin(pin.id); }}
               >
                 <div style={{ fontSize: '21px', lineHeight: 1, filter: 'drop-shadow(0 1px 2px #000)' }}>📍</div>
-                {pin.label && <div style={{ fontSize: '11.5px', color: '#fff', background: 'rgba(0,0,0,0.7)', borderRadius: '3px', padding: '0 3px', whiteSpace: 'nowrap' }}>{pin.label}</div>}
+                {pin.label && <div style={{ fontSize: '12px', color: '#fff', background: 'rgba(0,0,0,0.7)', borderRadius: '3px', padding: '0 3px', whiteSpace: 'nowrap' }}>{pin.label}</div>}
               </div>
             ))}
 

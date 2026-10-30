@@ -6,12 +6,12 @@ import { getData } from '../data/gameStore';
 const DATA_URL = `${import.meta.env.BASE_URL}gear_data.json`;
 
 const CATS = {
-    all: { label: 'All', color: '#c7a34f' },
-    rig: { label: 'Rigs', color: '#10b981' },
-    'armored-rig': { label: 'Armored rigs', color: '#f87171' },
-    backpack: { label: 'Backpacks', color: '#60a5fa' },
+    all: { label: 'All', color: '#d3af5b' },
+    rig: { label: 'Rigs', color: '#23cc94' },
+    'armored-rig': { label: 'Armored rigs', color: '#ff9696' },
+    backpack: { label: 'Backpacks', color: '#74b9ff' },
     container: { label: 'Containers', color: '#eab308' },
-    armor: { label: 'Body armor', color: '#f97316' },
+    armor: { label: 'Body armor', color: '#ff9c3f' },
 };
 const catColor = (c) => CATS[c]?.color || '#94a3b8';
 
@@ -82,7 +82,7 @@ const Penalty = ({ label, value }) => {
     const pct = Math.round(value * 1000) / 10;
     return (
         <div className="d-flex justify-content-between" style={{ fontSize: '0.8rem' }}>
-            <span className="text-muted text-uppercase" style={{ fontSize: '0.65rem', letterSpacing: '.05em' }}>{label}</span>
+            <span className="text-muted text-uppercase" style={{ fontSize: '0.75rem', letterSpacing: '.05em' }}>{label}</span>
             <span style={{ color: pct < 0 ? '#ef4444' : pct > 0 ? '#22c55e' : '#94a3b8', fontWeight: 700 }}>{pct > 0 ? '+' : ''}{pct}%</span>
         </div>
     );
@@ -157,7 +157,7 @@ export default function GearPreview() {
                                     color: active ? '#000' : c.color, fontWeight: active ? 700 : 500,
                                 }}>
                                 {c.label}
-                                <span className="badge" style={{ background: active ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.1)', color: active ? '#000' : '#aaa', fontSize: '0.6rem' }}>{n}</span>
+                                <span className="badge" style={{ background: active ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.1)', color: active ? '#000' : '#aaa', fontSize: '0.75rem' }}>{n}</span>
                             </button>
                         );
                     })}
@@ -188,7 +188,7 @@ export default function GearPreview() {
                                         </div>
                                         <div className="flex-grow-1" style={{ minWidth: 0 }}>
                                             <div className="fw-bold text-light text-truncate" style={{ fontSize: '0.85rem' }}>{it.shortName || it.name}</div>
-                                            <div className="d-flex align-items-center gap-2" style={{ fontSize: '0.68rem' }}>
+                                            <div className="d-flex align-items-center gap-2" style={{ fontSize: '0.75rem' }}>
                                                 <span style={{ color: catColor(it.category), textTransform: 'uppercase', letterSpacing: '.04em' }}>{CATS[it.category]?.label || it.category}</span>
                                                 {it.armorClass ? <span className="badge bg-secondary">Class {it.armorClass}</span> : null}
                                                 {it.capacity ? <span className="text-muted">{it.capacity} cells</span> : null}

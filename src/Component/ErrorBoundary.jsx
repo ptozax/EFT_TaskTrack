@@ -28,10 +28,10 @@ export default class ErrorBoundary extends React.Component {
     if (!error) return this.props.children;
     const isChunk = CHUNK_ERR.test(error?.message || '');
     return (
-      <div style={{ padding: '3rem 1.5rem', textAlign: 'center', color: '#e2e8f0', fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{ padding: '3rem 1.5rem', textAlign: 'center', color: '#f1f7ff', fontFamily: 'system-ui, sans-serif' }}>
         <div style={{ fontSize: 42, marginBottom: 12 }}>⚠️</div>
         <h2 style={{ marginBottom: 8 }}>{isChunk ? 'New version available' : 'This page hit an error'}</h2>
-        <p style={{ color: '#94a3b8', marginBottom: 20, maxWidth: 460, marginInline: 'auto' }}>
+        <p style={{ color: '#a6b5ca', marginBottom: 20, maxWidth: 460, marginInline: 'auto' }}>
           {isChunk ? 'เว็บอัปเดตเวอร์ชันใหม่ — กด Reload เพื่อโหลดล่าสุด' : 'เกิดข้อผิดพลาดในการแสดงผลหน้านี้ ลองรีโหลด'}
         </p>
         <button
@@ -40,7 +40,7 @@ export default class ErrorBoundary extends React.Component {
         >
           🔄 Reload
         </button>
-        <pre style={{ marginTop: 20, fontSize: 11, color: '#8999b0', whiteSpace: 'pre-wrap', maxWidth: 600, marginInline: 'auto', overflowX: 'auto' }}>
+        <pre style={{ marginTop: 20, fontSize: 12, color: '#a5b5cc', whiteSpace: 'pre-wrap', maxWidth: 600, marginInline: 'auto', overflowX: 'auto' }}>
           {String(error?.message || error)}
         </pre>
       </div>

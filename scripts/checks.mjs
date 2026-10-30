@@ -439,6 +439,9 @@ const contrast = (a, b) => {
   const [hi, lo] = [relLum(a), relLum(b)].sort((x, y) => y - x);
   return (hi + 0.05) / (lo + 0.05);
 };
+/* เล็ง AAA ไม่ใช่ AA — พื้นเข้มล้วนทั้งแอป ตัวหนังสือเทาอมน้ำเงินจมง่าย
+   และคนใช้งานจริงขอให้เน้นเห็นชัด ไม่ใช่แค่ "ผ่านเกณฑ์ขั้นต่ำ" */
+const AAA = 7.0;
 const DARKEST_TEXT_BG = '#1e293b';
 const panel = readFileSync(path.join(ROOT, 'src/Component/PanelUI.jsx'), 'utf8');
 const paletteOf = (key) => panel.match(new RegExp(`\\b${key}:\\s*'(#[0-9a-fA-F]{6})'`))?.[1];
@@ -448,7 +451,7 @@ ok(got.every(([, v]) => v), `อ่านสีจากพาเลตต์ไ
 for (const [k, v] of got) {
   if (!v) continue;
   const r = contrast(v, DARKEST_TEXT_BG);
-  ok(r >= 4.5, `P.${k} ${v} คอนทราสต์ ${r.toFixed(2)} บนพื้น ${DARKEST_TEXT_BG} (ต้อง >= 4.5)`);
+  ok(r >= AAA, `P.${k} ${v} คอนทราสต์ ${r.toFixed(2)} บนพื้น ${DARKEST_TEXT_BG} (ต้อง >= ${AAA})`);
 }
 /* ลำดับความสว่างต้องไม่สลับ ไม่งั้นลำดับความสำคัญของข้อความจะอ่านไม่ออก */
 const ratios = got.map(([, v]) => contrast(v, DARKEST_TEXT_BG));
@@ -472,15 +475,32 @@ const LIGHT_BG = '#e2e8f0';
 const unreadable = new Map();
 for (const f of srcFiles) {
   const body = readFileSync(f, 'utf8');
-  // เฉพาะ color: / fg: — ไม่เอา background-color / border-color / stroke
-  for (const m of body.matchAll(/(?<!-)\b(?:color|fg)\s*:\s*['"]?(#[0-9a-fA-F]{6})/g)) {
+  /* เฉพาะ color: / fg: — ไม่เอา background-color / border-color / stroke
+     และไม่เอา `x.color :` ซึ่งเป็นเทอร์นารี ไม่ใช่การประกาศพร็อพเพอร์ตี้
+     (เคยนับ background: tq.visible ? tq.color : '#475569' เป็นสีตัวหนังสือ) */
+  for (const m of body.matchAll(/(?<![.\w-])(?:color|fg)\s*:\s*['"]?(#[0-9a-fA-F]{6})/g)) {
     const hexv = m[1].toLowerCase();
     const best = Math.max(contrast(hexv, DARKEST_TEXT_BG), contrast(hexv, LIGHT_BG));
-    if (best < 4.5) unreadable.set(hexv, `${hexv} (${path.basename(f)}, ดีสุด ${best.toFixed(2)})`);
+    if (best < AAA) unreadable.set(hexv, `${hexv} (${path.basename(f)}, ดีสุด ${best.toFixed(2)})`);
   }
 }
 ok(unreadable.size === 0,
-  `ไม่มีสีตัวหนังสือที่อ่านไม่ออกทั้งบนพื้นเข้มและพื้นสว่าง${unreadable.size ? ' — ' + [...unreadable.values()].join(', ') : ''}`);
+  `สีตัวหนังสือทุกสีถึง AAA บนพื้นใดพื้นหนึ่ง${unreadable.size ? ' — ยังไม่ถึง: ' + [...unreadable.values()].join(', ') : ''}`);
+
+/* ขนาดตัวอักษร: สายตาที่เริ่มเพ่งต้องการขนาดพอ ๆ กับคอนทราสต์
+   ตั้งพื้นไว้ที่ 12px (0.75rem) ไม่ให้มีอะไรเล็กกว่านั้นหลุดเข้ามาใหม่ */
+const MIN_PX = 12;
+const tooSmall = [];
+for (const f of srcFiles) {
+  const body = readFileSync(f, 'utf8');
+  // รวม `fontSize: 11` แบบตัวเลขเปล่าด้วย — React เติม px ให้เอง เลยหลุดตาได้ง่าย
+  for (const m of body.matchAll(/font-?[sS]ize\s*:\s*['"]?([0-9.]+)(px|rem)?/g)) {
+    const px = m[2] === 'rem' ? parseFloat(m[1]) * 16 : parseFloat(m[1]);
+    if (px < MIN_PX) tooSmall.push(`${m[1]}${m[2] || ''} (${path.basename(f)})`);
+  }
+}
+ok(tooSmall.length === 0,
+  `ไม่มีตัวอักษรเล็กกว่า ${MIN_PX}px${tooSmall.length ? ' — ' + [...new Set(tooSmall)].slice(0, 6).join(', ') : ''}`);
 
 console.log(bad ? `\n✗ ไม่ผ่าน ${bad} ข้อ` : '\n✓ ผ่านหมด');
 process.exit(bad ? 1 : 0);

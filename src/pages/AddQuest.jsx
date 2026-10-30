@@ -17,7 +17,7 @@ const readJSON = (key, fallback) => {
 /* โหมดปลายทางของการเพิ่มเควส */
 const MODES = [
   { key: 'current', text: 'Active quests', hint: 'Add to "In Progress" list (Home page)', color: '#eab308' },
-  { key: 'done', text: 'Completed', hint: 'Mark as complete (including all preceding quests in the chain)', color: '#22c55e' },
+  { key: 'done', text: 'Completed', hint: 'Mark as complete (including all preceding quests in the chain)', color: '#2bce67' },
 ];
 
 const AddQuest = () => {

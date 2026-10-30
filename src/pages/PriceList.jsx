@@ -140,7 +140,7 @@ export default function PriceList() {
                 }}
             >
                 {label}
-                {count != null && <span className="badge" style={{ background: active ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.1)', color: active ? '#000' : '#aaa', fontSize: '0.6rem' }}>{count}</span>}
+                {count != null && <span className="badge" style={{ background: active ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.1)', color: active ? '#000' : '#aaa', fontSize: '0.75rem' }}>{count}</span>}
             </button>
         );
     };
@@ -187,7 +187,7 @@ export default function PriceList() {
                                 onClick={() => setLlFilter(l)}
                                 className="btn btn-sm"
                                 style={{
-                                    borderRadius: '16px', fontSize: '0.72rem',
+                                    borderRadius: '16px', fontSize: '0.75rem',
                                     border: '1px solid #c7a34f',
                                     background: active ? '#c7a34f' : 'transparent',
                                     color: active ? '#000' : '#c7a34f',
@@ -285,7 +285,7 @@ export default function PriceList() {
                                             <div className="fw-bold text-light text-truncate" style={{ fontSize: '0.82rem' }} title={it.name}>
                                                 {it.shortName || it.name}
                                             </div>
-                                            <div className="text-muted text-truncate mb-2" style={{ fontSize: '0.68rem' }}>{it.name}</div>
+                                            <div className="text-muted text-truncate mb-2" style={{ fontSize: '0.75rem' }}>{it.name}</div>
 
                                             <div className="mt-auto">
                                                 {inBarter ? (
@@ -293,12 +293,12 @@ export default function PriceList() {
                                                         const bc = traderTheme(bt.trader)?.bg || '#0dcaf0';
                                                         return (
                                                             <div key={i} className="rounded px-2 py-1 mb-1" style={{ background: 'rgba(0,0,0,0.35)', borderLeft: `3px solid ${bc}` }}>
-                                                                <div className="text-uppercase fw-bold mb-1" style={{ fontSize: '0.6rem', color: bc }}>
+                                                                <div className="text-uppercase fw-bold mb-1" style={{ fontSize: '0.75rem', color: bc }}>
                                                                     {bt.trader} · LL{bt.level}
                                                                 </div>
                                                                 <div className="d-flex flex-wrap gap-2 align-items-center">
                                                                     {bt.requiredItems.map((r, j) => (
-                                                                        <span key={j} className="d-flex align-items-center text-light" style={{ fontSize: '0.62rem' }} title={r.shortName}>
+                                                                        <span key={j} className="d-flex align-items-center text-light" style={{ fontSize: '0.75rem' }} title={r.shortName}>
                                                                             {r.icon && <img src={r.icon} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} onError={(e) => (e.target.style.display = 'none')} />}
                                                                             <span className="ms-1">×{r.count}</span>
                                                                         </span>
@@ -310,22 +310,22 @@ export default function PriceList() {
                                                 ) : (
                                                     <>
                                                         {!buy.isFlea && buy.currency !== 'RUB' && (
-                                                            <div className="text-end text-muted" style={{ fontSize: '0.62rem' }}>≈ {money(buy.priceRUB)}</div>
+                                                            <div className="text-end text-muted" style={{ fontSize: '0.75rem' }}>≈ {money(buy.priceRUB)}</div>
                                                         )}
                                                         {sel === 'all' && !buy.isFlea && it.buyFlea && (
-                                                            <div className="text-end text-danger" style={{ fontSize: '0.62rem' }}>flea {money(it.buyFlea.priceRUB)}</div>
+                                                            <div className="text-end text-danger" style={{ fontSize: '0.75rem' }}>flea {money(it.buyFlea.priceRUB)}</div>
                                                         )}
                                                         {barters.length > 0 && (
-                                                            <div className="text-info" style={{ fontSize: '0.6rem' }} title="Has barter — open the ⇄ Barter tab">⇄ barter available</div>
+                                                            <div className="text-info" style={{ fontSize: '0.75rem' }} title="Has barter — open the ⇄ Barter tab">⇄ barter available</div>
                                                         )}
                                                         {buy.buyLimit != null && (
-                                                            <div className="text-end text-secondary" style={{ fontSize: '0.6rem' }} title="Max you can buy per restock">🛒 max {buy.buyLimit}/restock</div>
+                                                            <div className="text-end text-secondary" style={{ fontSize: '0.75rem' }} title="Max you can buy per restock">🛒 max {buy.buyLimit}/restock</div>
                                                         )}
                                                         <div
                                                             className="rounded px-2 py-1 d-flex justify-content-between align-items-center"
                                                             style={{ background: 'rgba(0,0,0,0.35)', borderLeft: `3px solid ${accent}` }}
                                                         >
-                                                            <span className="text-uppercase fw-bold text-truncate" style={{ fontSize: '0.6rem', color: accent, maxWidth: '60%' }} title={buy.source}>
+                                                            <span className="text-uppercase fw-bold text-truncate" style={{ fontSize: '0.75rem', color: accent, maxWidth: '60%' }} title={buy.source}>
                                                                 {buy.isFlea ? 'FLEA' : `${buy.source}${buy.level ? ` · LL${buy.level}` : ''}`}
                                                             </span>
                                                             <span className="fw-bold text-light" style={{ fontSize: '0.85rem' }}>

@@ -69,7 +69,7 @@ const Bar = ({ value, total, color = ACCENT, height = 6 }) => (
 const Chip = ({ children, color = COLORS.textSecondary, bg = 'rgba(148, 163, 184, 0.12)', wrap = false }) => (
     <span style={{
         display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.12rem 0.45rem',
-        borderRadius: '999px', fontSize: '0.7rem', color, backgroundColor: bg,
+        borderRadius: '999px', fontSize: '0.75rem', color, backgroundColor: bg,
         // ป้ายสั้น ๆ ไม่ให้ตัดบรรทัด แต่ของยาว (ชื่อรางวัลถึง 63 ตัวอักษร) ต้องตัดได้
         // ไม่งั้นบนมือถือจะดันหน้าจอให้เลื่อนซ้ายขวา
         whiteSpace: wrap ? 'normal' : 'nowrap', maxWidth: '100%',
@@ -111,7 +111,7 @@ const ChapterRow = ({ chapter, done, total, forks, isActive, index, onSelect }) 
             }}
         >
             <span style={{
-                width: '1.5rem', height: '1.5rem', flexShrink: 0, borderRadius: '50%', fontSize: '0.7rem',
+                width: '1.5rem', height: '1.5rem', flexShrink: 0, borderRadius: '50%', fontSize: '0.75rem',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700,
                 backgroundColor: complete ? COLORS.success : started ? ACCENT : '#0b1120',
                 color: complete || started ? '#0b1120' : COLORS.textSecondary,
@@ -144,7 +144,7 @@ const ChapterRow = ({ chapter, done, total, forks, isActive, index, onSelect }) 
                         <Icons.Component size={12} />
                     </span>
                 )}
-                <span style={{ fontSize: '0.7rem', color: COLORS.textSecondary, fontFamily: 'monospace' }}>
+                <span style={{ fontSize: '0.75rem', color: COLORS.textSecondary, fontFamily: 'monospace' }}>
                     {done}/{total}
                 </span>
             </span>
@@ -182,7 +182,7 @@ const StepDetail = ({ step }) => {
 
             {step.items.length > 0 && (
                 <div>
-                    <div style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: COLORS.accent, marginBottom: '0.25rem' }}>
+                    <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: COLORS.accent, marginBottom: '0.25rem' }}>
                         Items needed
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
@@ -248,7 +248,7 @@ const StepRow = ({ step, index, isDone, isCurrent, expanded, onToggleDone, onTog
                     style={{ flexGrow: 1, minWidth: 0, cursor: hasDetail ? 'pointer' : 'default' }}
                 >
                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'baseline', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '0.7rem', color: COLORS.textSecondary, fontFamily: 'monospace' }}>
+                        <span style={{ fontSize: '0.75rem', color: COLORS.textSecondary, fontFamily: 'monospace' }}>
                             {String(index + 1).padStart(2, '0')}
                         </span>
                         <span style={{
@@ -300,7 +300,7 @@ const FocusCard = ({ step, index, total, onDone, chapterComplete }) => {
     return (
         <div style={{ ...styles.cardStyle, marginBottom: '0.9rem', borderLeft: `3px solid ${ACCENT}`, padding: '0.85rem 1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.4rem' }}>
-                <span style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.09em', color: ACCENT }}>
+                <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.09em', color: ACCENT }}>
                     Up next · step {index + 1} of {total}
                 </span>
                 <span style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}><StepTags step={step} /></span>
@@ -342,7 +342,7 @@ const EndingsPanel = ({ endings, intro, flowchart, flowchartCredit, wikiLink }) 
                     </div>
                 </div>
                 <a href={wikiLink} target="_blank" rel="noopener noreferrer"
-                    style={{ fontSize: '0.78rem', color: '#60a5fa', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                    style={{ fontSize: '0.78rem', color: '#74b9ff', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                     <Icons.ExternalLink size={13} /> Wiki
                 </a>
             </div>
@@ -393,7 +393,7 @@ const EndingsPanel = ({ endings, intro, flowchart, flowchartCredit, wikiLink }) 
                 {/* เส้นทาง + รางวัล วางคู่กันเมื่อจอกว้าง (grid ยุบเองเมื่อแคบ) */}
                 <div style={{ ...AUTO_GRID, marginTop: '1rem', alignItems: 'start' }}>
                 <div style={{ padding: '0.75rem 0.9rem', borderRadius: '0.5rem', backgroundColor: 'rgba(11, 17, 32, 0.6)', border: `1px solid ${COLORS.border}` }}>
-                    <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: ACCENT, marginBottom: '0.4rem' }}>
+                    <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: ACCENT, marginBottom: '0.4rem' }}>
                         How to get this ending
                     </div>
                     {ending.route.length === 0 ? (
@@ -412,13 +412,13 @@ const EndingsPanel = ({ endings, intro, flowchart, flowchartCredit, wikiLink }) 
                         <a
                             href={`${import.meta.env.BASE_URL}${flowchart}`}
                             target="_blank" rel="noopener noreferrer"
-                            style={{ fontSize: '0.78rem', color: '#60a5fa', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.6rem' }}
+                            style={{ fontSize: '0.78rem', color: '#74b9ff', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.6rem' }}
                         >
                             <Icons.ExternalLink size={13} /> Open full-resolution flowchart (1653×3890)
                         </a>
                     )}
                     {flowchartCredit && (
-                        <div style={{ fontSize: '0.7rem', color: COLORS.textSecondary, marginTop: '0.25rem' }}>
+                        <div style={{ fontSize: '0.75rem', color: COLORS.textSecondary, marginTop: '0.25rem' }}>
                             Flowchart by {flowchartCredit}
                         </div>
                     )}
@@ -426,7 +426,7 @@ const EndingsPanel = ({ endings, intro, flowchart, flowchartCredit, wikiLink }) 
 
                 {ending.rewards.length > 0 && (
                     <div style={{ padding: '0.75rem 0.9rem', borderRadius: '0.5rem', backgroundColor: 'rgba(11, 17, 32, 0.6)', border: `1px solid ${COLORS.border}` }}>
-                        <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: COLORS.accent, marginBottom: '0.4rem' }}>
+                        <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: COLORS.accent, marginBottom: '0.4rem' }}>
                             Rewards ({ending.rewards.length})
                         </div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
@@ -578,14 +578,14 @@ const StoryProgress = () => {
                             </div>
                             <div>
                                 <h1 style={{ fontSize: '1.4rem', fontWeight: 700, lineHeight: 1.15, margin: 0 }}>Story</h1>
-                                <p style={{ fontSize: '0.7rem', color: COLORS.textSecondary, fontFamily: 'monospace', letterSpacing: '0.06em', margin: 0 }}>
+                                <p style={{ fontSize: '0.75rem', color: COLORS.textSecondary, fontFamily: 'monospace', letterSpacing: '0.06em', margin: 0 }}>
                                     {chapters.length} CHAPTERS · {endings.length} ENDINGS
                                 </p>
                             </div>
                         </div>
 
                         <div style={{ flexGrow: 1, minWidth: '220px', maxWidth: '460px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.74rem', color: COLORS.textSecondary, marginBottom: '0.25rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: COLORS.textSecondary, marginBottom: '0.25rem' }}>
                                 <span>{overall.chaptersDone} of {chapters.length} chapters complete</span>
                                 <span>{overall.stepsDone}/{overall.steps} required steps · {overall.percent}%</span>
                             </div>
@@ -639,7 +639,7 @@ const StoryProgress = () => {
                 {/* ---------- สารบัญ ---------- */}
                 <aside style={{ flex: '0 1 272px', minWidth: '240px', position: 'sticky', top: '5.5rem' }}>
                     <div style={{ ...styles.cardStyle, marginBottom: 0, padding: '0.6rem' }}>
-                        <div style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: COLORS.textSecondary, padding: '0.2rem 0.4rem 0.5rem' }}>
+                        <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: COLORS.textSecondary, padding: '0.2rem 0.4rem 0.5rem' }}>
                             Chapters
                         </div>
                         {chapters.map((chapter, i) => (
@@ -676,7 +676,7 @@ const StoryProgress = () => {
                             <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '0.9rem 1rem', display: 'flex', alignItems: 'flex-end', gap: '0.7rem' }}>
                                 <ChapterImage file={selected.iconFile} alt="" lazy={false} style={{ width: 40, height: 40, objectFit: 'contain', flexShrink: 0 }} />
                                 <div style={{ flexGrow: 1, minWidth: 0 }}>
-                                    <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: ACCENT }}>
+                                    <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: ACCENT }}>
                                         Chapter {index + 1} of {chapters.length}
                                     </div>
                                     <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, lineHeight: 1.2 }}>{selected.name}</h2>
@@ -690,7 +690,7 @@ const StoryProgress = () => {
                                 {selected.previous && <Chip>Follows {selected.previous}</Chip>}
                                 {selected.leadsTo && <Chip color={ACCENT} bg={ACCENT_DIM}>Leads to {selected.leadsTo}</Chip>}
                                 <a href={selected.wikiLink} target="_blank" rel="noopener noreferrer"
-                                    style={{ fontSize: '0.75rem', color: '#60a5fa', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                                    style={{ fontSize: '0.75rem', color: '#74b9ff', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                                     <Icons.ExternalLink size={12} /> Read on wiki
                                 </a>
                             </div>
@@ -734,7 +734,7 @@ const StoryProgress = () => {
 
                             {selected.requirements.length > 0 && (
                                 <div style={{ marginTop: '0.85rem' }}>
-                                    <div style={{ fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: COLORS.accent, marginBottom: '0.25rem' }}>
+                                    <div style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: COLORS.accent, marginBottom: '0.25rem' }}>
                                         How it starts
                                     </div>
                                     <ul style={{ margin: 0, paddingLeft: '1.1rem', fontSize: '0.85rem', lineHeight: 1.55, color: COLORS.textSecondary }}>
@@ -801,7 +801,7 @@ const StoryProgress = () => {
                                 display: 'flex', gap: '0.45rem', flexWrap: 'wrap', alignItems: 'center',
                                 marginBottom: '0.6rem',
                             }}>
-                                <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: COLORS.textSecondary, flexGrow: 1 }}>
+                                <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: COLORS.textSecondary, flexGrow: 1 }}>
                                     All steps ({selected.objectives.length})
                                 </span>
                                 <button
@@ -899,7 +899,7 @@ const StoryProgress = () => {
             }}>
                 <p style={{ margin: 0 }}>
                     {license} —{' '}
-                    <a href={source} target="_blank" rel="noopener noreferrer" style={{ color: '#60a5fa' }}>
+                    <a href={source} target="_blank" rel="noopener noreferrer" style={{ color: '#74b9ff' }}>
                         Story chapters on the EFT Wiki
                     </a>
                 </p>

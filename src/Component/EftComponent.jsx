@@ -363,7 +363,7 @@ export const kappaStyles = {
         borderRadius: '0.5rem',
         border: '1px solid rgba(239, 68, 68, 0.3)',
         backgroundColor: 'transparent',
-        color: '#f87171', // red-400
+        color: '#ff9696', // red-400
         cursor: 'pointer',
         marginLeft: 'auto',
     },
@@ -472,7 +472,7 @@ export const mapStyles = {
     label: {
         fontSize: '12px',
         fontWeight: '800',
-        color: '#8b99ad',
+        color: '#a7b5c9',
         textTransform: 'uppercase',
         letterSpacing: '0.15em',
         marginBottom: '8px',
@@ -507,7 +507,7 @@ export const mapStyles = {
         fontWeight: 700,
         letterSpacing: '.1em',
         textTransform: 'uppercase',
-        color: '#8999b0',
+        color: '#a5b5cc',
         marginBottom: '6px',
         display: 'block',
     },
@@ -598,7 +598,7 @@ export const mapStyles = {
         whiteSpace: 'nowrap',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
-        fontSize: '11.5px',
+        fontSize: '12px',
         fontWeight: 700,
         color: '#fff',
         background: 'rgba(3, 7, 18, 0.82)',
@@ -720,7 +720,7 @@ export const mapStyles = {
         backgroundColor: '#0b1120',
         border: '1px solid #334155',
         borderRadius: '4px',
-        color: '#60a5fa',
+        color: '#74b9ff',
         fontSize: '13px',
         padding: '2px 4px',
         outline: 'none',
@@ -743,7 +743,7 @@ export const AmmoStyles = {
     container: {
         minHeight: '93vh',
         backgroundColor: '#0b1120', // zinc-950
-        color: '#e2e8f0', // zinc-100
+        color: '#f1f7ff', // zinc-100
         fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
     },
     header: {
@@ -794,8 +794,8 @@ export const AmmoStyles = {
         margin: 0,
     },
     subtitle: {
-        fontSize: '0.7rem',
-        color: '#8999b0',
+        fontSize: '0.75rem',
+        color: '#a5b5cc',
         margin: '2px 0 0',
     },
     searchContainer: {
@@ -806,7 +806,7 @@ export const AmmoStyles = {
     searchIcon: {
         position: 'absolute',
         left: '10px',
-        color: '#8999b0',
+        color: '#a5b5cc',
         pointerEvents: 'none',
     },
     searchInput: {
@@ -837,7 +837,7 @@ export const AmmoStyles = {
         transition: 'background-color 0.12s, border-color 0.12s',
     }),
     chipCount: {
-        fontSize: '0.65rem',
+        fontSize: '0.75rem',
         opacity: 0.65,
         fontVariantNumeric: 'tabular-nums',
     },
@@ -859,13 +859,13 @@ export const AmmoStyles = {
         border: '1px solid #2b3a52',
         borderRadius: '8px',
         marginBottom: '10px',
-        fontSize: '0.7rem',
+        fontSize: '0.75rem',
     },
     legendItem: {
         display: 'flex',
         alignItems: 'center',
         gap: '5px',
-        color: '#94a3b8',
+        color: '#a6b5ca',
         whiteSpace: 'nowrap',
     },
     legendSwatch: {
@@ -875,7 +875,7 @@ export const AmmoStyles = {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontSize: '0.6rem',
+        fontSize: '0.75rem',
         fontWeight: 700,
         flexShrink: 0,
     },
@@ -887,15 +887,15 @@ export const AmmoStyles = {
         flexWrap: 'wrap',
         marginBottom: '8px',
         fontSize: '0.75rem',
-        color: '#8999b0',
+        color: '#a5b5cc',
     },
     resetButton: {
         background: 'none',
         border: '1px solid #2b3a52',
         borderRadius: '6px',
         padding: '4px 10px',
-        color: '#94a3b8',
-        fontSize: '0.7rem',
+        color: '#a6b5ca',
+        fontSize: '0.75rem',
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
@@ -914,15 +914,15 @@ export const AmmoStyles = {
        ที่ลดช่องไฟบนจอแคบใน ammo.css จะไม่มีผลเลย ปล่อยให้ CSS คุมฝั่งเดียว */
     th: {
         fontWeight: '600',
-        fontSize: '0.7rem',
+        fontSize: '0.75rem',
         letterSpacing: '0.06em',
         textTransform: 'uppercase',
         textAlign: 'left',
-        color: '#94a3b8',
+        color: '#a6b5ca',
         userSelect: 'none',
     },
     td: {
-        color: '#e2e8f0',
+        color: '#f1f7ff',
     },
     nameCell: {
         display: 'flex',
@@ -944,7 +944,7 @@ export const AmmoStyles = {
     /* หัวคร่อมบอกว่าคอลัมน์ 1-6 คือ armor class — ของเดิมมีแค่เลขลอย ๆ ไม่มีอะไรบอก */
     groupHeader: {
         textAlign: 'center',
-        color: '#8999b0',
+        color: '#a5b5cc',
         fontWeight: '700',
         textTransform: 'uppercase',
     },
@@ -982,7 +982,7 @@ export const AmmoStyles = {
         position: 'absolute',
         top: '1rem',
         right: '1rem',
-        color: '#94a3b8', // zinc-400
+        color: '#a6b5ca', // zinc-400
         background: 'none',
         border: 'none',
         cursor: 'pointer',
@@ -1018,7 +1018,7 @@ export const AmmoStyles = {
     tracerPill: {
         padding: '0.25rem 0.75rem',
         backgroundColor: 'rgba(69, 10, 10, 0.5)', // red-950/50
-        color: '#f87171', // red-400
+        color: '#ff9696', // red-400
         borderRadius: '9999px',
         fontSize: '0.875rem',
         border: '1px solid rgba(127, 29, 29, 0.5)', // red-900/50
@@ -1045,7 +1045,7 @@ export const AmmoStyles = {
         border: '1px solid rgba(71, 85, 105, 0.5)', // slate-600/50
     },
     statLabel: {
-        color: '#8999b0', // zinc-500
+        color: '#a5b5cc', // zinc-500
         fontSize: '0.75rem',
         textTransform: 'uppercase',
         letterSpacing: '0.05em',
@@ -1072,8 +1072,8 @@ export const AmmoStyles = {
         flexDirection: 'column',
         alignItems: 'center',
         gap: '3px',
-        fontSize: '0.6rem',
-        color: '#8999b0',
+        fontSize: '0.75rem',
+        color: '#a5b5cc',
     },
 };
 

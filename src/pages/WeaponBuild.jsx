@@ -371,7 +371,7 @@ const WeaponPreview = ({ baseWeapon, buildState, onClear }) => {
                         <>
                             <button
                                 className="btn btn-sm btn-outline-warning py-0 px-2"
-                                style={{ fontSize: '0.7rem' }}
+                                style={{ fontSize: '0.75rem' }}
                                 disabled={exporting}
                                 onClick={(e) => { e.stopPropagation(); handleExport(); }}
                             >
@@ -379,7 +379,7 @@ const WeaponPreview = ({ baseWeapon, buildState, onClear }) => {
                             </button>
                             <button
                                 className="btn btn-sm btn-outline-danger py-0 px-2"
-                                style={{ fontSize: '0.7rem' }}
+                                style={{ fontSize: '0.75rem' }}
                                 disabled={parts.length === 0}
                                 onClick={(e) => { e.stopPropagation(); onClear?.(); }}
                             >
@@ -411,7 +411,7 @@ const WeaponPreview = ({ baseWeapon, buildState, onClear }) => {
                         {parts.map((p) => (
                             <div key={p.slotId} className="col-6 col-md-4 col-xl-3">
                                 <div className="border border-secondary rounded p-2 h-100 text-center bg-black d-flex flex-column">
-                                    <span className="badge bg-secondary mb-1 text-truncate w-100" style={{ fontSize: '0.6rem' }}>
+                                    <span className="badge bg-secondary mb-1 text-truncate w-100" style={{ fontSize: '0.75rem' }}>
                                         {p.slotName.replace('mod_', '').replace(/_/g, ' ').toUpperCase()}
                                     </span>
                                     <div className="d-flex align-items-center justify-content-center" style={{ height: '60px' }}>
@@ -422,11 +422,11 @@ const WeaponPreview = ({ baseWeapon, buildState, onClear }) => {
                                             onError={(e) => (e.target.style.display = 'none')}
                                         />
                                     </div>
-                                    <div className="text-light text-truncate small mt-1" style={{ fontSize: '0.7rem' }}>
+                                    <div className="text-light text-truncate small mt-1" style={{ fontSize: '0.75rem' }}>
                                         {p.item.shortName}
                                     </div>
                                     {itemBuyLabel(p.item) ? (
-                                        <div className="text-warning mt-auto" style={{ fontSize: '0.65rem' }} title={getBestBuy(p.item)?.vendor?.name || 'Base price'}>
+                                        <div className="text-warning mt-auto" style={{ fontSize: '0.75rem' }} title={getBestBuy(p.item)?.vendor?.name || 'Base price'}>
                                             {itemBuyLabel(p.item)}
                                         </div>
                                     ) : null}
@@ -528,7 +528,7 @@ const WeaponStats = ({ baseWeapon, buildState }) => {
 
     const StatRow = ({ label, value, unit, icon: Icon, barColor = "bg-info", max = 100 }) => (
         <div className="mb-2">
-            <div className="d-flex justify-content-between align-items-center mb-1 text-uppercase fw-bold small text-muted" style={{ fontSize: '0.7rem', letterSpacing: '1px' }}>
+            <div className="d-flex justify-content-between align-items-center mb-1 text-uppercase fw-bold small text-muted" style={{ fontSize: '0.75rem', letterSpacing: '1px' }}>
                 <span className="d-flex align-items-center gap-2">
                     {Icon && <Icon size={12} />} {label}
                 </span>
@@ -560,13 +560,13 @@ const WeaponStats = ({ baseWeapon, buildState }) => {
                 <div className="row mt-3 border-top border-secondary pt-3 g-2">
                     <div className="col-4">
                         <div className="p-2 bg-dark rounded border border-secondary text-center">
-                            <div className="text-muted small text-uppercase" style={{ fontSize: '0.65rem' }}>Fire Rate</div>
+                            <div className="text-muted small text-uppercase" style={{ fontSize: '0.75rem' }}>Fire Rate</div>
                             <div className="fw-bold text-white">{stats.fireRate} <span className="small text-muted">rpm</span></div>
                         </div>
                     </div>
                     <div className="col-4">
                         <div className="p-2 bg-dark rounded border border-secondary text-center" title="Accuracy — lower MOA = tighter groups">
-                            <div className="text-muted small text-uppercase" style={{ fontSize: '0.65rem' }}>MOA</div>
+                            <div className="text-muted small text-uppercase" style={{ fontSize: '0.75rem' }}>MOA</div>
                             <div className="fw-bold text-white">
                                 {stats.moa != null ? stats.moa : '—'}
                                 {stats.moa != null && stats.baseMoa != null && stats.moa !== stats.baseMoa && (
@@ -579,7 +579,7 @@ const WeaponStats = ({ baseWeapon, buildState }) => {
                     </div>
                     <div className="col-4">
                         <div className="p-2 bg-dark rounded border border-secondary text-center">
-                            <div className="text-muted small text-uppercase" style={{ fontSize: '0.65rem' }}>Caliber</div>
+                            <div className="text-muted small text-uppercase" style={{ fontSize: '0.75rem' }}>Caliber</div>
                             <div className="fw-bold text-white small">{stats.caliber}</div>
                         </div>
                     </div>
@@ -588,19 +588,19 @@ const WeaponStats = ({ baseWeapon, buildState }) => {
                 <div className="row mt-2 border-top border-secondary pt-3 g-2">
                     <div className="col-6">
                         <div className="p-2 bg-dark rounded border border-secondary text-center">
-                            <div className="text-muted small text-uppercase" style={{ fontSize: '0.65rem' }}>Base Weapon</div>
+                            <div className="text-muted small text-uppercase" style={{ fontSize: '0.75rem' }}>Base Weapon</div>
                             <div className="fw-bold text-white small">{formatPrice(stats.basePriceRUB)}</div>
                         </div>
                     </div>
                     <div className="col-6">
                         <div className="p-2 bg-dark rounded border border-secondary text-center">
-                            <div className="text-muted small text-uppercase" style={{ fontSize: '0.65rem' }}>Parts Total</div>
+                            <div className="text-muted small text-uppercase" style={{ fontSize: '0.75rem' }}>Parts Total</div>
                             <div className="fw-bold text-white small">{formatPrice(stats.partsPriceRUB)}</div>
                         </div>
                     </div>
                     <div className="col-12">
                         <div className="p-2 bg-dark rounded border border-warning text-center">
-                            <div className="text-warning small text-uppercase fw-bold" style={{ fontSize: '0.65rem' }}>Total Build Price (≈ RUB)</div>
+                            <div className="text-warning small text-uppercase fw-bold" style={{ fontSize: '0.75rem' }}>Total Build Price (≈ RUB)</div>
                             <div className="fw-bold text-warning">{formatPrice(stats.totalPriceRUB)}</div>
                         </div>
                     </div>
@@ -608,7 +608,7 @@ const WeaponStats = ({ baseWeapon, buildState }) => {
                     {Object.keys(stats.spend).length > 0 && (
                         <div className="col-12">
                             <div className="p-2 bg-dark rounded border border-secondary">
-                                <div className="text-muted small text-uppercase mb-1" style={{ fontSize: '0.65rem' }}>You Need (by currency)</div>
+                                <div className="text-muted small text-uppercase mb-1" style={{ fontSize: '0.75rem' }}>You Need (by currency)</div>
                                 <div className="d-flex flex-wrap gap-2 justify-content-center">
                                     {Object.entries(stats.spend).map(([cur, v]) => (
                                         <span key={cur} className="badge bg-black border border-secondary text-warning" style={{ fontSize: '0.8rem' }}>
@@ -717,9 +717,9 @@ const SlotItem = ({ slot, equippedItem, onEquip, depth, buildState }) => {
 
                     <div className="d-flex flex-column">
                         <div className="d-flex align-items-center gap-2">
-                            <span className="badge bg-secondary text-light" style={{ fontSize: '0.65rem' }}>{displaySlotName}</span>
-                            {slot.required && <span className="badge bg-warning text-dark" style={{ fontSize: '0.6rem' }}>REQUIRED</span>}
-                            {depth > 0 && <span className="badge border border-secondary text-secondary" style={{ fontSize: '0.6rem' }}>SUB</span>}
+                            <span className="badge bg-secondary text-light" style={{ fontSize: '0.75rem' }}>{displaySlotName}</span>
+                            {slot.required && <span className="badge bg-warning text-dark" style={{ fontSize: '0.75rem' }}>REQUIRED</span>}
+                            {depth > 0 && <span className="badge border border-secondary text-secondary" style={{ fontSize: '0.75rem' }}>SUB</span>}
                         </div>
 
                         {equippedItem ? (
@@ -732,7 +732,7 @@ const SlotItem = ({ slot, equippedItem, onEquip, depth, buildState }) => {
                                     onError={(e) => e.target.style.display = 'none'}
                                 />
                                 <small className="text-light text-truncate" style={{ maxWidth: '150px' }}>{equippedItem.shortName}</small>
-                                <div className="d-flex gap-2 small ms-1 mt-1" style={{ fontSize: '0.7rem' }}>
+                                <div className="d-flex gap-2 small ms-1 mt-1" style={{ fontSize: '0.75rem' }}>
                                     {equippedItem.properties?.ergonomics ? <span className={equippedItem.properties.ergonomics > 0 ? "text-success" : "text-danger"}>Ergo {equippedItem.properties.ergonomics > 0 ? '+' : ''}{equippedItem.properties.ergonomics}</span> : null}
                                     {equippedItem.properties?.recoil ? <span className="text-info">Recoil {equippedItem.properties.recoil}</span> : null}
                                     {itemBuyLabel(equippedItem) ? <span className="text-warning" title={getBestBuy(equippedItem)?.vendor?.name || 'Base price'}>{itemBuyLabel(equippedItem)}</span> : null}

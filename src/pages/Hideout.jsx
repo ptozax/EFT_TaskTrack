@@ -267,7 +267,7 @@ const Hideout = () => {
                                         {isMax ? (
                                             <span style={styles.maxBadge}>MAX</span>
                                         ) : (
-                                            <span style={{ fontSize: '10px', color: level > 0 ? theme.colors.accent : theme.colors.textMuted, fontFamily: 'monospace' }}>
+                                            <span style={{ fontSize: '12px', color: level > 0 ? theme.colors.accent : theme.colors.textMuted, fontFamily: 'monospace' }}>
                                                 {level === 0 ? "Not Built" : `Lvl ${level}`}
                                             </span>
                                         )}
@@ -321,7 +321,7 @@ const Hideout = () => {
                                         </div>
                                     ) : (
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
-                                            <span style={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: 'bold', color: theme.colors.textMuted }}>LV:</span>
+                                            <span style={{ fontSize: '12px', textTransform: 'uppercase', fontWeight: 'bold', color: theme.colors.textMuted }}>LV:</span>
                                             <span style={{
                                                 padding: '2px 15px',
                                                 borderRadius: '4px',
@@ -382,7 +382,7 @@ const Hideout = () => {
                                                                     <img src={req.skill.imageLink} alt={req.skill.name} style={{ width: '100%', height: '100%', objectFit: 'contain', opacity: 0.8 }} />
                                                                 </div>
                                                                 <div>
-                                                                    <div style={{ fontSize: '14px', fontWeight: '500', color: '#e2e8f0' }}>{req.skill.name}</div>
+                                                                    <div style={{ fontSize: '14px', fontWeight: '500', color: '#f1f7ff' }}>{req.skill.name}</div>
                                                                     <div style={{ fontSize: '12px', color: theme.colors.textMuted }}>Level {req.level}+</div>
                                                                 </div>
                                                             </div>
@@ -424,7 +424,7 @@ const Hideout = () => {
                                                                         </div>
                                                                         <div>
                                                                             <div style={{ fontSize: '14px', fontWeight: '500', color: isChecked ? theme.colors.textMuted : '#e2e8f0' }}>{req.name}</div>
-                                                                            <div style={{ fontSize: '10px', color: theme.colors.textMuted }}>
+                                                                            <div style={{ fontSize: '12px', color: theme.colors.textMuted }}>
                                                                                 Level {req.level}
                                                                                 {isTracked && <span style={{ marginLeft: '6px', color: isMetAuto ? theme.colors.success : theme.colors.danger }}>({currentTrackedLevel})</span>}
                                                                             </div>
@@ -521,7 +521,7 @@ const Hideout = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <h2 style={{
                             display: 'flex', justifyContent: 'center', width: '100%', alignItems: 'center',
-                            fontSize: '20px', fontWeight: 'bold', color: '#e2e8f0', gap: '8px', margin: 0
+                            fontSize: '20px', fontWeight: 'bold', color: '#f1f7ff', gap: '8px', margin: 0
                         }}>
                             <Icons.Cart size={20} color={theme.colors.accent} />
                             Shopping List
@@ -593,7 +593,7 @@ const Hideout = () => {
                                             {showUseInModule && (
                                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                                                     {item.from.map((source, i) => (
-                                                        <span key={i} style={{ fontSize: '10px', backgroundColor: theme.colors.bgCard, padding: '2px 6px', borderRadius: '4px', color: theme.colors.textMuted, border: `1px solid ${theme.colors.border}` }}>
+                                                        <span key={i} style={{ fontSize: '12px', backgroundColor: theme.colors.bgCard, padding: '2px 6px', borderRadius: '4px', color: theme.colors.textMuted, border: `1px solid ${theme.colors.border}` }}>
                                                             {source}
                                                         </span>
                                                     ))}

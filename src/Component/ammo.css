@@ -88,7 +88,7 @@
     top: calc(var(--ammo-top, 0px) + var(--ammo-gap, 0px));
     height: 24px;                    /* ตายตัว เพื่อให้แถวที่สองคำนวณ top ต่อได้ */
     padding: 0;
-    font-size: 0.625rem;
+    font-size: 0.75rem;
     letter-spacing: 0.14em;
     /* ขอบบนของการ์ดอยู่ที่แถวนี้ ไม่ใช่ที่กล่อง เพื่อให้ตอนหนึบยังเห็นขอบบนอยู่ */
     border-top: 1px solid #2b3a52;

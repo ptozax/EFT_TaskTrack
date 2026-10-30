@@ -45,7 +45,7 @@ const getEffectivenessScore = (pen, armorClass) => {
    ของเดิมใช้สีล้วน (#00FF00 / #FFFF00 / #FF0000) ซึ่งแสบตาและ 5 สว่างกว่า 6
    label ใช้ทั้งในแถบคำอธิบายและใน title ของทุกช่อง (ชี้เมาส์แล้วอ่านได้เลย) */
 const EFFECT = [
-    { bg: '#1b2740', fg: '#8999b0', label: 'Pointless' },
+    { bg: '#1b2740', fg: '#a5b5cc', label: 'Pointless' },
     { bg: '#7f1d1d', fg: '#fecaca', label: 'Last resort' },
     { bg: '#ef4444', fg: '#ffffff', label: 'Magdump only' },
     { bg: '#fb923c', fg: '#1c1917', label: 'Slightly effective' },
@@ -150,7 +150,7 @@ const Modal = ({ item, onClose }) => {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                                 <div style={styles.statBox}>
                                     <div style={styles.statLabel}>Damage</div>
-                                    <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#f87171' }}>{item.damage}</div>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#ff9696' }}>{item.damage}</div>
                                 </div>
                                 <div style={styles.statBox}>
                                     <div style={styles.statLabel}>Penetration</div>
@@ -158,7 +158,7 @@ const Modal = ({ item, onClose }) => {
                                 </div>
                                 <div style={styles.statBox}>
                                     <div style={styles.statLabel}>Armor Dmg</div>
-                                    <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#fb923c' }}>{item.armorDamage}%</div>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: '700', color: '#ff9c46' }}>{item.armorDamage}%</div>
                                 </div>
                                 <div style={styles.statBox}>
                                     <div style={styles.statLabel}>Speed</div>
@@ -173,23 +173,23 @@ const Modal = ({ item, onClose }) => {
                             </h3>
                             <div style={{ ...styles.statBox, backgroundColor: 'rgba(39, 39, 42, 0.2)', border: '1px solid #27272a' }}>
                                 <div style={styles.statRow}>
-                                    <span style={{ color: '#a1a1aa', fontSize: '0.875rem' }}>Accuracy</span>
+                                    <span style={{ color: '#b3b3bc', fontSize: '0.875rem' }}>Accuracy</span>
                                     <span style={{ fontFamily: 'monospace', color: item.accuracy > 0 ? "#4ade80" : item.accuracy < 0 ? "#f87171" : "#71717a" }}>
                                         {item.accuracy > 0 ? '+' : ''}{item.accuracy}%
                                     </span>
                                 </div>
                                 <div style={styles.statRow}>
-                                    <span style={{ color: '#a1a1aa', fontSize: '0.875rem' }}>Recoil</span>
+                                    <span style={{ color: '#b3b3bc', fontSize: '0.875rem' }}>Recoil</span>
                                     <span style={{ fontFamily: 'monospace', color: item.recoil > 0 ? "#f87171" : item.recoil < 0 ? "#4ade80" : "#71717a" }}>
                                         {item.recoil > 0 ? '+' : ''}{item.recoil}
                                     </span>
                                 </div>
                                 <div style={styles.statRow}>
-                                    <span style={{ color: '#a1a1aa', fontSize: '0.875rem' }}>Frag Chance</span>
+                                    <span style={{ color: '#b3b3bc', fontSize: '0.875rem' }}>Frag Chance</span>
                                     <span style={{ color: '#d4d4d8', fontFamily: 'monospace' }}>{Math.round(item.fragmentationChance * 100)}%</span>
                                 </div>
                                 <div style={{ ...styles.statRow, borderBottom: 'none' }}>
-                                    <span style={{ color: '#a1a1aa', fontSize: '0.875rem' }}>Ricochet</span>
+                                    <span style={{ color: '#b3b3bc', fontSize: '0.875rem' }}>Ricochet</span>
                                     <span style={{ color: '#d4d4d8', fontFamily: 'monospace' }}>{Math.round(item.ricochetChance * 100)}%</span>
                                 </div>
                             </div>
@@ -198,10 +198,10 @@ const Modal = ({ item, onClose }) => {
 
                     <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid #27272a' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.025em' }}>
-                            <div style={{ color: '#9797a0' }}>Light Bleed: <span style={{ color: '#d4d4d8', fontWeight: '700', marginLeft: '0.25rem' }}>{(item.lightBleedModifier * 100).toFixed(0)}%</span></div>
-                            <div style={{ color: '#9797a0' }}>Heavy Bleed: <span style={{ color: '#d4d4d8', fontWeight: '700', marginLeft: '0.25rem' }}>{(item.heavyBleedModifier * 100).toFixed(0)}%</span></div>
-                            <div style={{ color: '#9797a0' }}>Stack Size: <span style={{ color: '#d4d4d8', fontWeight: '700', marginLeft: '0.25rem' }}>{item.stackMaxSize}</span></div>
-                            <div style={{ color: '#9797a0' }}>Weight: <span style={{ color: '#d4d4d8', fontWeight: '700', marginLeft: '0.25rem' }}>{item.weight}kg</span></div>
+                            <div style={{ color: '#b3b3bc' }}>Light Bleed: <span style={{ color: '#d4d4d8', fontWeight: '700', marginLeft: '0.25rem' }}>{(item.lightBleedModifier * 100).toFixed(0)}%</span></div>
+                            <div style={{ color: '#b3b3bc' }}>Heavy Bleed: <span style={{ color: '#d4d4d8', fontWeight: '700', marginLeft: '0.25rem' }}>{(item.heavyBleedModifier * 100).toFixed(0)}%</span></div>
+                            <div style={{ color: '#b3b3bc' }}>Stack Size: <span style={{ color: '#d4d4d8', fontWeight: '700', marginLeft: '0.25rem' }}>{item.stackMaxSize}</span></div>
+                            <div style={{ color: '#b3b3bc' }}>Weight: <span style={{ color: '#d4d4d8', fontWeight: '700', marginLeft: '0.25rem' }}>{item.weight}kg</span></div>
                         </div>
                     </div>
                 </div>
@@ -380,7 +380,7 @@ const Ammo = () => {
 
                 {/* ไม่มีผลลัพธ์ -> ไม่ต้องกางกล่องตารางเปล่าสูง 320px ค้างไว้ */}
                 {filteredData.length === 0 ? (
-                    <div style={{ ...styles.tableContainer, padding: '2.5rem', textAlign: 'center', color: '#8999b0' }}>
+                    <div style={{ ...styles.tableContainer, padding: '2.5rem', textAlign: 'center', color: '#a5b5cc' }}>
                         <div style={{ marginBottom: 10 }}>
                             No ammo matches {searchTerm.trim() && <>“{searchTerm.trim()}”</>}
                             {activeCaliber !== 'All' && ` in ${caliberLabel(activeCaliber)}`}.
@@ -432,9 +432,9 @@ const Ammo = () => {
                                                     <div style={{ minWidth: 0 }}>
                                                         <div style={{ fontWeight: 500, color: '#e4e4e7' }}>
                                                             {item.item.name}
-                                                            {item.tracer && <span title={`Tracer (${item.tracerColor})`} style={{ marginLeft: 6, color: '#f87171' }}>●</span>}
+                                                            {item.tracer && <span title={`Tracer (${item.tracerColor})`} style={{ marginLeft: 6, color: '#ff9696' }}>●</span>}
                                                         </div>
-                                                        <div style={{ fontSize: '0.65rem', color: '#8999b0', fontWeight: 700, letterSpacing: '0.04em' }}>
+                                                        <div style={{ fontSize: '0.75rem', color: '#a5b5cc', fontWeight: 700, letterSpacing: '0.04em' }}>
                                                             {caliberLabel(item.caliber)}
                                                         </div>
                                                     </div>
@@ -443,7 +443,7 @@ const Ammo = () => {
 
                                             <td style={{ ...styles.td, textAlign: 'center', fontFamily: 'monospace', fontWeight: 700 }}>{item.damage}</td>
                                             <td style={{ ...styles.td, textAlign: 'center', fontFamily: 'monospace', fontWeight: 700 }}>{item.penetrationPower}</td>
-                                            <td style={{ ...styles.td, textAlign: 'center', fontFamily: 'monospace', fontSize: '0.75rem', color: '#94a3b8' }}>{item.armorDamage}%</td>
+                                            <td style={{ ...styles.td, textAlign: 'center', fontFamily: 'monospace', fontSize: '0.75rem', color: '#a6b5ca' }}>{item.armorDamage}%</td>
 
                                             {scores.map((score, index) => (
                                                 <td
@@ -459,7 +459,7 @@ const Ammo = () => {
                                             {/* ของเดิมเป็นปุ่มที่ไม่มี onClick เลย — ตอนนี้กดแล้วเปิดจริง */}
                                             <td style={{ ...styles.td, textAlign: 'center' }}>
                                                 <button
-                                                    style={{ color: '#8999b0', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}
+                                                    style={{ color: '#a5b5cc', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}
                                                     onClick={(e) => { e.stopPropagation(); setSelectedItem(item); }}
                                                     aria-label={`Details for ${item.item.name}`}
                                                 >
