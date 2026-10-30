@@ -2,9 +2,9 @@
  "source": "https://escapefromtarkov.fandom.com/wiki/Category:Quests",
  "note": "ช่อง previous / LL requirement / LL quests ใน infobox ของแต่ละหน้าเควส",
  "license": "CC BY-SA 3.0",
- "fetchedAt": "2026-10-29T09:26:48.995Z",
- "wikiTouched": "2026-10-28T22:37:27Z",
- "pagesScanned": 913,
+ "fetchedAt": "2026-10-30T04:20:03.419Z",
+ "wikiTouched": "2026-10-30T03:50:44Z",
+ "pagesScanned": 927,
  "quests": {
   "Aid Stations": {
    "ll": 2
@@ -1159,6 +1159,11 @@
   "Fog of War": {
    "ll": 2
   },
+  "Flesh of Steel": {
+   "prev": [
+    "Scream in the Dark"
+   ]
+  },
   "General Wares": {
    "ll": 2,
    "llQuests": 1
@@ -1233,11 +1238,6 @@
   "Green Corridor": {
    "ll": 2,
    "faction": "BEAR"
-  },
-  "Gunsmith Master - Part 10": {
-   "prev": [
-    "Gunsmith Master - Part 9"
-   ]
   },
   "Glory to CPSU": {
    "ll": 2
@@ -1355,9 +1355,6 @@
     "Gladiator Doping - Part 3"
    ]
   },
-  "Humanitarian Supplies": {
-   "ll": 2
-  },
   "Health Care Privacy - Part 1": {
    "ll": 1
   },
@@ -1390,9 +1387,6 @@
   },
   "Hot Delivery": {
    "ll": 2
-  },
-  "Hunting Trip": {
-   "ll": 4
   },
   "Home Comfort": {
    "prev": [
@@ -1429,9 +1423,10 @@
     "Gunsmith Master - Part 5"
    ]
   },
-  "House Arrest": {
-   "ll": 2,
-   "faction": "USEC"
+  "Gunsmith Master - Part 10": {
+   "prev": [
+    "Gunsmith Master - Part 9"
+   ]
   },
   "Gunsmith Master - Part 11": {
    "prev": [
@@ -1451,11 +1446,6 @@
   "Healing": {
    "prev": [
     "Remedy"
-   ]
-  },
-  "Hustle (2024)": {
-   "prev": [
-    "Acquaintance"
    ]
   },
   "Hell on Earth - Part 1": {
@@ -1489,16 +1479,6 @@
     "Christmas Dinner"
    ]
   },
-  "Hot Wheels": {
-   "prev": [
-    "Shipping Delay - Part 1"
-   ]
-  },
-  "Hot Wheels - Let's Try Again": {
-   "prev": [
-    "Hot Wheels"
-   ]
-  },
   "Hindsight 20/20": {
    "prev": [
     "Route Deviation"
@@ -1512,11 +1492,6 @@
   "Hidden Layer": {
    "prev": [
     "Needle in a Haystack"
-   ]
-  },
-  "Hypotheses Testing": {
-   "prev": [
-    "Offensive Reconnaissance"
    ]
   },
   "Hobby Club": {
@@ -1555,6 +1530,48 @@
     "...for the Good of the Chosen"
    ]
   },
+  "Halloween: The Best Defense": {
+   "prev": [
+    "Halloween: Rumors"
+   ]
+  },
+  "Halloween: Follow-Up Examination": {
+   "prev": [
+    "Halloween: The Best Defense"
+   ]
+  },
+  "Halloween: A new Vaccine": {
+   "prev": [
+    "Halloween: Initial Examination",
+    "Halloween: Tightening The Quarantine"
+   ]
+  },
+  "Halloween: Unexpected Help": {
+   "prev": [
+    "Halloween: Follow-Up Examination"
+   ]
+  },
+  "Halloween: Tightening The Quarantine": {
+   "prev": [
+    "Halloween: A new Vaccine",
+    "Halloween: Unexpected Help"
+   ]
+  },
+  "Halloween: Initial Examination": {
+   "prev": [
+    "Halloween: Unexpected Help"
+   ]
+  },
+  "Halloween: Danger Zone": {
+   "prev": [
+    "Halloween: Tightening The Quarantine"
+   ]
+  },
+  "Halloween: Coincidence?": {
+   "prev": [
+    "Halloween: Danger Zone"
+   ]
+  },
   "Ice Cream Cones": {
    "ll": 2
   },
@@ -1562,6 +1579,9 @@
    "ll": 3,
    "llQuests": 3,
    "faction": "USEC"
+  },
+  "Humanitarian Supplies": {
+   "ll": 2
   },
   "I Need More Power": {
    "ll": 2
@@ -1591,13 +1611,16 @@
    "ll": 1,
    "llQuests": 0
   },
+  "Hunting Trip": {
+   "ll": 4
+  },
   "Intimidator": {
    "ll": 4,
    "llQuests": 1
   },
-  "Kings of the Rooftops": {
+  "House Arrest": {
    "ll": 2,
-   "llQuests": 5
+   "faction": "USEC"
   },
   "Information Source": {
    "prev": [
@@ -1611,6 +1634,11 @@
   "Key Component": {
    "prev": [
     "Pursuit of Power"
+   ]
+  },
+  "Hustle (2024)": {
+   "prev": [
+    "Acquaintance"
    ]
   },
   "Key to the City": {
@@ -1641,14 +1669,19 @@
   "Irresistible": {
    "ll": 3
   },
-  "Khorovod": {
-   "prev": [
-    "Cheer Up"
-   ]
-  },
   "Illegal Logging": {
    "prev": [
     "Chilly"
+   ]
+  },
+  "Hot Wheels": {
+   "prev": [
+    "Shipping Delay - Part 1"
+   ]
+  },
+  "Hot Wheels - Let's Try Again": {
+   "prev": [
+    "Hot Wheels"
    ]
   },
   "Inevitable Response": {
@@ -1661,9 +1694,9 @@
     "Hindsight 20/20"
    ]
   },
-  "Killer Argument": {
+  "Hypotheses Testing": {
    "prev": [
-    "Key Partner"
+    "Offensive Reconnaissance"
    ]
   },
   "Keeper's Word": {
@@ -1716,16 +1749,6 @@
     "Gladiator Doping - Part 4"
    ]
   },
-  "KnivesOut - Part 2": {
-   "prev": [
-    "KnivesOut - Part 1"
-   ]
-  },
-  "KnivesOut - Part 3": {
-   "prev": [
-    "KnivesOut - Part 2"
-   ]
-  },
   "Key to Every Door": {
    "prev": [
     "Wrench and Waterboarding"
@@ -1734,11 +1757,6 @@
   "If I Can't Have It": {
    "prev": [
     "Patch the Vulnerability"
-   ]
-  },
-  "Key to Understanding": {
-   "prev": [
-    "Reverse Gear"
    ]
   },
   "Invasive Therapy": {
@@ -1791,6 +1809,10 @@
   },
   "Long Road": {
    "ll": 3
+  },
+  "Kings of the Rooftops": {
+   "ll": 2,
+   "llQuests": 5
   },
   "Missing Informant": {
    "prev": [
@@ -1846,21 +1868,15 @@
     "The Root Cause"
    ]
   },
-  "Natural Exchange": {
+  "Khorovod": {
    "prev": [
-    "Building Foundations"
+    "Cheer Up"
    ]
   },
-  "Needle in a Haystack": {
+  "Killer Argument": {
    "prev": [
-    "Shady Contractor"
+    "Key Partner"
    ]
-  },
-  "Never Too Late To Learn": {
-   "prev": [
-    "Profitable Venture"
-   ],
-   "faction": "USEC"
   },
   "Lay Low": {
    "prev": [
@@ -1897,14 +1913,14 @@
     "Alloy"
    ]
   },
-  "Munchkin": {
+  "KnivesOut - Part 2": {
    "prev": [
-    "Safety First"
+    "KnivesOut - Part 1"
    ]
   },
-  "My Blood Type Mark is on the Sleeve": {
+  "KnivesOut - Part 3": {
    "prev": [
-    "Key to Every Door"
+    "KnivesOut - Part 2"
    ]
   },
   "Magazines Are for the Weak": {
@@ -1915,6 +1931,11 @@
   "Know Your Enemy": {
    "prev": [
     "Cast the Net"
+   ]
+  },
+  "Key to Understanding": {
+   "prev": [
+    "Reverse Gear"
    ]
   },
   "Lose the Tail": {
@@ -1935,11 +1956,6 @@
   "Operation Aquarius": {
    "ll": 1
   },
-  "Out of Curiosity": {
-   "prev": [
-    "Chemical - Part 4"
-   ]
-  },
   "One-Way Ticket": {
    "ll": 2
   },
@@ -1953,36 +1969,9 @@
    "ll": 4,
    "llQuests": 1
   },
-  "Overpopulation": {
-   "ll": 3
-  },
-  "Our Own Land": {
-   "ll": 3,
-   "llQuests": 3,
-   "faction": "BEAR"
-  },
-  "Party Preparations": {
-   "prev": [
-    "Only Business"
-   ]
-  },
   "No Gifts for You": {
    "prev": [
     "Disrupting the Party"
-   ]
-  },
-  "Paramedic": {
-   "ll": 2,
-   "llQuests": 2
-  },
-  "Overseas Trust - Part 2": {
-   "prev": [
-    "Overseas Trust - Part 1"
-   ]
-  },
-  "Parasites": {
-   "prev": [
-    "Poisoning"
    ]
   },
   "No Swiping": {
@@ -2019,22 +2008,19 @@
   "New Paths": {
    "ll": 1
   },
-  "Ours by Right": {
-   "prev": [
-    "In and Out"
-   ]
-  },
   "Not a Step Back!": {
    "prev": [
     "Don’t Believe Your Eyes"
    ]
   },
-  "Passion for Ergonomics": {
-   "ll": 1
-  },
-  "Order From Outside": {
+  "Natural Exchange": {
    "prev": [
-    "Inevitable Response"
+    "Building Foundations"
+   ]
+  },
+  "Needle in a Haystack": {
+   "prev": [
+    "Shady Contractor"
    ]
   },
   "Offensive Reconnaissance": {
@@ -2042,6 +2028,12 @@
     "Hidden Layer"
    ],
    "ll": 3
+  },
+  "Never Too Late To Learn": {
+   "prev": [
+    "Profitable Venture"
+   ],
+   "faction": "USEC"
   },
   "Not Below Zero": {
    "prev": [
@@ -2098,6 +2090,16 @@
     "No Limit to Perfection - Part 7"
    ]
   },
+  "Munchkin": {
+   "prev": [
+    "Safety First"
+   ]
+  },
+  "My Blood Type Mark is on the Sleeve": {
+   "prev": [
+    "Key to Every Door"
+   ]
+  },
   "No Man Is an Island": {
    "prev": [
     "Unsurpassed Skill"
@@ -2106,6 +2108,11 @@
   "Number Temporarily Unavailable": {
    "prev": [
     "Fog of War"
+   ]
+  },
+  "Movie Star": {
+   "prev": [
+    "Let the Blades Do the Talking"
    ]
   },
   "Postman Pat - Part 1": {
@@ -2134,17 +2141,32 @@
    "ll": 1,
    "llQuests": 2
   },
+  "Out of Curiosity": {
+   "prev": [
+    "Chemical - Part 4"
+   ]
+  },
   "Playing the Market": {
    "ll": 2
   },
   "Pathfinder": {
    "ll": 1
   },
-  "Psycho Sniper": {
-   "ll": 4
-  },
   "Peacekeeping Mission": {
    "ll": 4
+  },
+  "Overpopulation": {
+   "ll": 3
+  },
+  "Our Own Land": {
+   "ll": 3,
+   "llQuests": 3,
+   "faction": "BEAR"
+  },
+  "Party Preparations": {
+   "prev": [
+    "Only Business"
+   ]
   },
   "Population Census": {
    "ll": 2
@@ -2158,48 +2180,35 @@
     "Return the Favor"
    ]
   },
-  "Provocation": {
-   "prev": [
-    "Payback"
-   ]
-  },
   "Pets Won't Need It": {
    "ll": 2,
    "llQuests": 4
   },
-  "Pursuit of Power": {
+  "Paramedic": {
+   "ll": 2,
+   "llQuests": 2
+  },
+  "Overseas Trust - Part 2": {
    "prev": [
-    "Virtue"
+    "Overseas Trust - Part 1"
    ]
   },
-  "Properties All Around": {
-   "ll": 2,
-   "llQuests": 3
-  },
-  "Pyramid Scheme": {
-   "ll": 3
+  "Parasites": {
+   "prev": [
+    "Poisoning"
+   ]
   },
   "Photo Hunt": {
    "prev": [
     "Take Two"
    ]
   },
-  "Proper Comeback": {
-   "prev": [
-    "Camera, Action!"
-   ]
-  },
-  "Protection of Interests": {
-   "prev": [
-    "Caught Red-Handed"
-   ]
-  },
   "Possessor": {
    "ll": 2
   },
-  "Provide Cover": {
+  "Ours by Right": {
    "prev": [
-    "Ours by Right"
+    "In and Out"
    ]
   },
   "Pressured by Circumstances": {
@@ -2207,10 +2216,8 @@
     "Don’t Believe Your Eyes"
    ]
   },
-  "Provide Viewership": {
-   "prev": [
-    "Easy Money - Part 2"
-   ]
+  "Passion for Ergonomics": {
+   "ll": 1
   },
   "Private Club": {
    "prev": [
@@ -2220,9 +2227,9 @@
    "ll": 1,
    "llQuests": 1
   },
-  "Protect the Sky": {
+  "Order From Outside": {
    "prev": [
-    "Battery Change"
+    "Inevitable Response"
    ]
   },
   "Postponed Reward": {
@@ -2285,16 +2292,6 @@
     "Oil Change"
    ]
   },
-  "Project of the Century (Finale)": {
-   "prev": [
-    "Dish Served Cold"
-   ]
-  },
-  "Project of the Century (Consequences)": {
-   "prev": [
-    "Project of the Century (Finale)"
-   ]
-  },
   "Patch the Vulnerability": {
    "prev": [
     "My Blood Type Mark is on the Sleeve"
@@ -2317,18 +2314,11 @@
    "ll": 2,
    "llQuests": 2
   },
-  "Scrap Metal": {
-   "ll": 2,
-   "faction": "BEAR"
-  },
   "Rat Hunting": {
    "ll": 2
   },
-  "Scout": {
-   "ll": 2
-  },
-  "Scavenger": {
-   "ll": 3
+  "Psycho Sniper": {
+   "ll": 4
   },
   "Regulated Materials": {
    "ll": 4
@@ -2343,17 +2333,10 @@
   "Samples": {
    "ll": 4
   },
-  "Search Mission": {
-   "ll": 1
-  },
   "Revision - Reserve": {
    "ll": 3
   },
   "Safe Corridor": {
-   "ll": 3,
-   "llQuests": 1
-  },
-  "Seaside Vacation": {
    "ll": 3,
    "llQuests": 1
   },
@@ -2379,18 +2362,30 @@
     "Snatch"
    ]
   },
+  "Provocation": {
+   "prev": [
+    "Payback"
+   ]
+  },
   "Remedy": {
    "prev": [
     "Healer"
    ]
   },
+  "Pursuit of Power": {
+   "prev": [
+    "Virtue"
+   ]
+  },
   "Saving the Mole": {
    "ll": 1
   },
-  "Seeking Information": {
-   "prev": [
-    "Forgotten Acquaintance"
-   ]
+  "Properties All Around": {
+   "ll": 2,
+   "llQuests": 3
+  },
+  "Pyramid Scheme": {
+   "ll": 3
   },
   "Radio Club": {
    "prev": [
@@ -2407,7 +2402,17 @@
     "The Good Times - Part 1"
    ]
   },
+  "Proper Comeback": {
+   "prev": [
+    "Camera, Action!"
+   ]
+  },
   "Risks of Small Business": {
+   "prev": [
+    "Caught Red-Handed"
+   ]
+  },
+  "Protection of Interests": {
    "prev": [
     "Caught Red-Handed"
    ]
@@ -2417,8 +2422,10 @@
     "Acquaintance"
    ]
   },
-  "Secrets of Polikhim": {
-   "ll": 2
+  "Provide Cover": {
+   "prev": [
+    "Ours by Right"
+   ]
   },
   "Sample IV - A New Hope": {
    "prev": [
@@ -2435,17 +2442,19 @@
     "Don’t Believe Your Eyes"
    ]
   },
-  "Seizing the Initiative": {
-   "ll": 1
+  "Provide Viewership": {
+   "prev": [
+    "Easy Money - Part 2"
+   ]
   },
   "Route Deviation": {
    "prev": [
     "The Higher They Fly"
    ]
   },
-  "Secret Benefactor": {
+  "Protect the Sky": {
    "prev": [
-    "Fight Back"
+    "Battery Change"
    ]
   },
   "Safety Guarantee": {
@@ -2477,9 +2486,14 @@
     "Stick to It"
    ]
   },
-  "SBEU Mimicry": {
+  "Project of the Century (Finale)": {
    "prev": [
-    "The Bad Batch"
+    "Dish Served Cold"
+   ]
+  },
+  "Project of the Century (Consequences)": {
+   "prev": [
+    "Project of the Century (Finale)"
    ]
   },
   "Safety First": {
@@ -2495,14 +2509,6 @@
   "Riding the Wave": {
    "prev": [
     "Reverse Gear"
-   ]
-  },
-  "Secret Message": {
-   "ll": 2
-  },
-  "Scope the Clearing": {
-   "prev": [
-    "A Familiar Face..."
    ]
   },
   "Shootout Picnic": {
@@ -2523,8 +2529,15 @@
    "llQuests": 5,
    "faction": "USEC"
   },
+  "Scrap Metal": {
+   "ll": 2,
+   "faction": "BEAR"
+  },
   "Semiconductor Crisis": {
    "ll": 3
+  },
+  "Scout": {
+   "ll": 2
   },
   "Sew it Good - Part 3": {
    "prev": [
@@ -2548,16 +2561,19 @@
    "ll": 4,
    "llQuests": 1
   },
-  "Small Things, Big Help": {
-   "ll": 1
+  "Scavenger": {
+   "ll": 3
   },
   "Setup": {
    "ll": 2,
    "llQuests": 4
   },
-  "Special Equipment": {
-   "ll": 4,
-   "llQuests": 3
+  "Search Mission": {
+   "ll": 1
+  },
+  "Seaside Vacation": {
+   "ll": 3,
+   "llQuests": 1
   },
   "Slaughterhouse": {
    "prev": [
@@ -2565,18 +2581,13 @@
     "Broadcast - Part 4"
    ]
   },
-  "Snatch": {
-   "prev": [
-    "Missing Informant"
-   ]
-  },
-  "Spotter": {
-   "prev": [
-    "Following the Bread Crumbs"
-   ]
-  },
   "Shooting Cans": {
    "ll": 1
+  },
+  "Seeking Information": {
+   "prev": [
+    "Forgotten Acquaintance"
+   ]
   },
   "Serious Allegations": {
    "prev": [
@@ -2588,29 +2599,13 @@
     "Immunity"
    ]
   },
-  "Special Offer": {
-   "prev": [
-    "Circulate"
-   ]
-  },
   "Small Business - Part 2": {
    "prev": [
     "Small Business - Part 1"
    ]
   },
-  "Small Business - Part 3": {
-   "prev": [
-    "Small Business - Part 2"
-   ]
-  },
-  "Special Comms": {
-   "ll": 3,
-   "llQuests": 1
-  },
-  "Spread the Damage": {
-   "prev": [
-    "Don’t Believe Your Eyes"
-   ]
+  "Secrets of Polikhim": {
+   "ll": 2
   },
   "Shell Game": {
    "prev": [
@@ -2636,6 +2631,9 @@
     "A Helping Hand"
    ]
   },
+  "Seizing the Initiative": {
+   "ll": 1
+  },
   "Simple Side Job": {
    "prev": [
     "Swift Retribution"
@@ -2655,9 +2653,10 @@
     "Sensory Analysis - Part 1"
    ]
   },
-  "Special Order": {
-   "ll": 4,
-   "llQuests": 2
+  "Secret Benefactor": {
+   "prev": [
+    "Fight Back"
+   ]
   },
   "Setting Priorities": {
    "ll": 4
@@ -2672,9 +2671,22 @@
     "Knuckle Sandwich"
    ]
   },
+  "SBEU Mimicry": {
+   "prev": [
+    "The Bad Batch"
+   ]
+  },
   "Sheep in Wolf's Clothing": {
    "prev": [
     "Forbidden Knowledge"
+   ]
+  },
+  "Secret Message": {
+   "ll": 2
+  },
+  "Scope the Clearing": {
+   "prev": [
+    "A Familiar Face..."
    ]
   },
   "Sisyphus": {
@@ -2685,16 +2697,13 @@
     "Information Trail"
    ]
   },
+  "Scream in the Dark": {
+   "prev": [
+    "Movie Star"
+   ]
+  },
   "Supplier": {
    "ll": 1
-  },
-  "The Extortionist": {
-   "prev": [
-    "Burning Rubber",
-    "Supplier"
-   ],
-   "ll": 1,
-   "llQuests": 2
   },
   "Stirrup": {
    "ll": 2,
@@ -2702,9 +2711,6 @@
   },
   "Supply Plans": {
    "ll": 1
-  },
-  "The Cult": {
-   "ll": 2
   },
   "Supervisor": {
    "ll": 2
@@ -2714,6 +2720,9 @@
    "llQuests": 3,
    "faction": "USEC"
   },
+  "Small Things, Big Help": {
+   "ll": 1
+  },
   "Textile - Part 1": {
    "ll": 4
   },
@@ -2721,9 +2730,6 @@
    "prev": [
     "Textile - Part 1"
    ]
-  },
-  "The Bunker": {
-   "ll": 3
   },
   "Tarkov-Style Diplomacy": {
    "ll": 3,
@@ -2735,17 +2741,9 @@
   "Surplus Goods": {
    "ll": 3
   },
-  "The Choice": {
-   "prev": [
-    "The Punisher - Part 6"
-   ]
-  },
-  "The Cleaner": {
-   "ll": 3,
-   "llQuests": 4
-  },
-  "The Courier": {
-   "ll": 1
+  "Special Equipment": {
+   "ll": 4,
+   "llQuests": 3
   },
   "Stop the Fight!": {
    "prev": [
@@ -2759,16 +2757,18 @@
     "The Huntsman Path - Woods Keeper"
    ]
   },
-  "The Delicious Sausage": {
-   "prev": [
-    "The Survivalist Path - Thrifty"
-   ]
-  },
   "Surveillance": {
    "ll": 2
   },
-  "The Door": {
-   "ll": 3
+  "Snatch": {
+   "prev": [
+    "Missing Informant"
+   ]
+  },
+  "Spotter": {
+   "prev": [
+    "Following the Bread Crumbs"
+   ]
   },
   "Straw": {
    "prev": [
@@ -2798,9 +2798,28 @@
     "Balancing - Part 2"
    ]
   },
+  "Special Offer": {
+   "prev": [
+    "Circulate"
+   ]
+  },
+  "Small Business - Part 3": {
+   "prev": [
+    "Small Business - Part 2"
+   ]
+  },
   "Supply and Demand": {
    "prev": [
     "Customer Communication"
+   ]
+  },
+  "Special Comms": {
+   "ll": 3,
+   "llQuests": 1
+  },
+  "Spread the Damage": {
+   "prev": [
+    "Don’t Believe Your Eyes"
    ]
   },
   "Swift Retribution": {
@@ -2823,9 +2842,6 @@
     "Against the Conscience - Part 2"
    ]
   },
-  "The Art of Explosion": {
-   "ll": 4
-  },
   "Staff Shortage": {
    "prev": [
     "Preemptive Strike"
@@ -2835,6 +2851,10 @@
    "prev": [
     "Shoot First"
    ]
+  },
+  "Special Order": {
+   "ll": 4,
+   "llQuests": 2
   },
   "Stay Frosty": {
    "prev": [
@@ -2860,6 +2880,14 @@
    "prev": [
     "Desperate Assault"
    ]
+  },
+  "The Extortionist": {
+   "prev": [
+    "Burning Rubber",
+    "Supplier"
+   ],
+   "ll": 1,
+   "llQuests": 2
   },
   "The Punisher - Part 2": {
    "prev": [
@@ -2888,44 +2916,14 @@
     "The Punisher - Part 5"
    ]
   },
+  "The Cult": {
+   "ll": 2
+  },
   "The Key to Success": {
    "ll": 2
   },
   "The Guide": {
    "ll": 4
-  },
-  "The Survivalist Path - Unprotected but Dangerous": {
-   "prev": [
-    "The Survivalist Path - Zhivchik"
-   ]
-  },
-  "The Survivalist Path - Thrifty": {
-   "ll": 2
-  },
-  "The Survivalist Path - Zhivchik": {
-   "prev": [
-    "The Survivalist Path - Thrifty"
-   ]
-  },
-  "The Survivalist Path - Wounded Beast": {
-   "prev": [
-    "The Survivalist Path - Unprotected but Dangerous"
-   ]
-  },
-  "The Survivalist Path - Tough Guy": {
-   "prev": [
-    "The Survivalist Path - Wounded Beast"
-   ]
-  },
-  "The Survivalist Path - Cold Blooded": {
-   "prev": [
-    "The Huntsman Path - Controller"
-   ]
-  },
-  "The Survivalist Path - Eagle-Owl": {
-   "prev": [
-    "The Survivalist Path - Cold Blooded"
-   ]
   },
   "The Huntsman Path - Secured Perimeter": {
    "ll": 3
@@ -2960,6 +2958,9 @@
   "The Huntsman Path - Liberation": {
    "ll": 3
   },
+  "The Bunker": {
+   "ll": 3
+  },
   "The Huntsman Path - Sadist": {
    "ll": 4
   },
@@ -2968,6 +2969,18 @@
     "Scout",
     "The Huntsman Path - Forest Cleaning"
    ]
+  },
+  "The Choice": {
+   "prev": [
+    "The Punisher - Part 6"
+   ]
+  },
+  "The Cleaner": {
+   "ll": 3,
+   "llQuests": 4
+  },
+  "The Courier": {
+   "ll": 1
   },
   "The Hermit": {
    "prev": [
@@ -2979,14 +2992,10 @@
     "The Huntsman Path - Forest Cleaning"
    ]
   },
-  "The Survivalist Path - Junkie": {
+  "The Delicious Sausage": {
    "prev": [
-    "The Survivalist Path - Eagle-Owl"
-   ],
-   "ll": 4
-  },
-  "The Secret Recipe": {
-   "ll": 2
+    "The Survivalist Path - Thrifty"
+   ]
   },
   "The Huntsman Path - Big Game": {
    "prev": [
@@ -2994,9 +3003,8 @@
     "Urban Medicine"
    ]
   },
-  "The Secret to Productivity": {
-   "ll": 2,
-   "faction": "USEC"
+  "The Door": {
+   "ll": 3
   },
   "The Huntsman Path - Crooked Cop": {
    "ll": 2
@@ -3017,11 +3025,6 @@
     "Night of The Cult"
    ]
   },
-  "The Root Cause": {
-   "prev": [
-    "Burn It Down"
-   ]
-  },
   "The Price of Celebration": {
    "prev": [
     "Holiday Beyond the Means"
@@ -3038,6 +3041,9 @@
     "Discombobulate"
    ]
   },
+  "The Art of Explosion": {
+   "ll": 4
+  },
   "The Old-Fashioned Way": {
    "prev": [
     "No Man Is an Island"
@@ -3046,9 +3052,10 @@
   "The Huntsman Path - Control": {
    "ll": 4
   },
-  "Tigr Safari": {
-   "ll": 1,
-   "faction": "USEC"
+  "The Final Scene": {
+   "prev": [
+    "Flesh of Steel"
+   ]
   },
   "The Tarkov Shooter - Part 1": {
    "prev": [
@@ -3088,6 +3095,45 @@
   "The Tarkov Import": {
    "ll": 3,
    "llQuests": 3
+  },
+  "The Survivalist Path - Unprotected but Dangerous": {
+   "prev": [
+    "The Survivalist Path - Zhivchik"
+   ]
+  },
+  "The Survivalist Path - Thrifty": {
+   "ll": 2
+  },
+  "The Survivalist Path - Zhivchik": {
+   "prev": [
+    "The Survivalist Path - Thrifty"
+   ]
+  },
+  "The Survivalist Path - Wounded Beast": {
+   "prev": [
+    "The Survivalist Path - Unprotected but Dangerous"
+   ]
+  },
+  "The Survivalist Path - Tough Guy": {
+   "prev": [
+    "The Survivalist Path - Wounded Beast"
+   ]
+  },
+  "The Survivalist Path - Cold Blooded": {
+   "prev": [
+    "The Huntsman Path - Controller"
+   ]
+  },
+  "The Survivalist Path - Eagle-Owl": {
+   "prev": [
+    "The Survivalist Path - Cold Blooded"
+   ]
+  },
+  "The Survivalist Path - Junkie": {
+   "prev": [
+    "The Survivalist Path - Eagle-Owl"
+   ],
+   "ll": 4
   },
   "The TerraGroup Trail - Part 1": {
    "prev": [
@@ -3187,34 +3233,16 @@
     "The TerraGroup Trail - Part 18"
    ]
   },
+  "The Secret Recipe": {
+   "ll": 2
+  },
+  "The Secret to Productivity": {
+   "ll": 2,
+   "faction": "USEC"
+  },
   "The Tarkov Mystery": {
    "prev": [
     "Burning Rubber"
-   ]
-  },
-  "To Great Heights! - Part 1": {
-   "prev": [
-    "Professional Fitness - Part 2"
-   ]
-  },
-  "To Great Heights! - Part 2": {
-   "prev": [
-    "To Great Heights! - Part 1"
-   ]
-  },
-  "To Great Heights! - Part 3": {
-   "prev": [
-    "To Great Heights! - Part 2"
-   ]
-  },
-  "To Great Heights! - Part 4": {
-   "prev": [
-    "To Great Heights! - Part 3"
-   ]
-  },
-  "To Great Heights! - Part 5": {
-   "prev": [
-    "To Great Heights! - Part 4"
    ]
   },
   "Thirsty - Hounds": {
@@ -3242,27 +3270,12 @@
     "Thirsty - Echo"
    ]
   },
-  "Time-Tested": {
-   "prev": [
-    "Protection of Interests"
-   ]
-  },
   "The Walls Have Eyes": {
    "ll": 2
   },
-  "This Is My Party": {
+  "The Root Cause": {
    "prev": [
-    "Holiday Beyond the Means"
-   ]
-  },
-  "This Tape Sucks": {
-   "prev": [
-    "Offensive Reconnaissance"
-   ]
-  },
-  "To Great Heights! - Part 6": {
-   "prev": [
-    "To Great Heights! - Part 5"
+    "Burn It Down"
    ]
   },
   "Thirty Pieces of Silver": {
@@ -3270,64 +3283,15 @@
     "Accept Delivery"
    ]
   },
-  "To the Light - Bite the Dust": {
-   "prev": [
-    "To the Light - Fallen Bird"
-   ]
-  },
-  "To the Light - A Time to Throw Stones": {
-   "prev": [
-    "To the Light - Bite the Dust"
-   ]
-  },
-  "To the Light - A Time to Gather Stones": {
-   "prev": [
-    "To the Light - A Time to Throw Stones"
-   ]
-  },
-  "What’s on the Flash Drive?": {
-   "prev": [
-    "Burning Rubber",
-    "Supplier"
-   ],
+  "Tigr Safari": {
    "ll": 1,
-   "llQuests": 3
-  },
-  "Wet Job - Part 6": {
-   "prev": [
-    "Wet Job - Part 5"
-   ]
+   "faction": "USEC"
   },
   "Weapons Circulation": {
    "ll": 2
   },
-  "Wet Job - Part 1": {
-   "ll": 2
-  },
   "Tracker": {
    "ll": 3
-  },
-  "Wet Job - Part 2": {
-   "prev": [
-    "Wet Job - Part 1"
-   ]
-  },
-  "Wet Job - Part 3": {
-   "prev": [
-    "Wet Job - Part 2"
-   ],
-   "ll": 3
-  },
-  "Wet Job - Part 4": {
-   "prev": [
-    "Wet Job - Part 3"
-   ]
-  },
-  "Wet Job - Part 5": {
-   "prev": [
-    "Wet Job - Part 4"
-   ],
-   "ll": 4
   },
   "Vitamins": {
    "ll": 2,
@@ -3382,19 +3346,44 @@
     "Trade Embargo"
    ]
   },
+  "To Great Heights! - Part 1": {
+   "prev": [
+    "Professional Fitness - Part 2"
+   ]
+  },
+  "To Great Heights! - Part 2": {
+   "prev": [
+    "To Great Heights! - Part 1"
+   ]
+  },
+  "To Great Heights! - Part 3": {
+   "prev": [
+    "To Great Heights! - Part 2"
+   ]
+  },
+  "To Great Heights! - Part 4": {
+   "prev": [
+    "To Great Heights! - Part 3"
+   ]
+  },
+  "To Great Heights! - Part 5": {
+   "prev": [
+    "To Great Heights! - Part 4"
+   ]
+  },
   "Viewer": {
    "prev": [
     "Minute of Fame"
    ]
   },
-  "What’s Your Evidence?": {
-   "prev": [
-    "Import Control"
-   ]
-  },
   "Western Quality Standards": {
    "prev": [
     "Risks of Small Business"
+   ]
+  },
+  "Time-Tested": {
+   "prev": [
+    "Protection of Interests"
    ]
   },
   "Until Dawn": {
@@ -3411,7 +3400,17 @@
    "ll": 4,
    "llQuests": 1
   },
+  "This Is My Party": {
+   "prev": [
+    "Holiday Beyond the Means"
+   ]
+  },
   "Vacate the Premises": {
+   "prev": [
+    "Offensive Reconnaissance"
+   ]
+  },
+  "This Tape Sucks": {
    "prev": [
     "Offensive Reconnaissance"
    ]
@@ -3424,6 +3423,11 @@
   "Weather the Blizzard": {
    "prev": [
     "Frost and Sun"
+   ]
+  },
+  "To Great Heights! - Part 6": {
+   "prev": [
+    "To Great Heights! - Part 5"
    ]
   },
   "Unsurpassed Skill": {
@@ -3439,11 +3443,6 @@
   "Uninvited Guests - Part 2": {
    "prev": [
     "Uninvited Guests - Part 1"
-   ]
-  },
-  "What's in the Bag?": {
-   "prev": [
-    "Key to Understanding"
    ]
   },
   "Unanswered Calls": {
@@ -3476,6 +3475,21 @@
     "To the Light - Fallen Bird"
    ]
   },
+  "To the Light - Bite the Dust": {
+   "prev": [
+    "To the Light - Fallen Bird"
+   ]
+  },
+  "To the Light - A Time to Throw Stones": {
+   "prev": [
+    "To the Light - Bite the Dust"
+   ]
+  },
+  "To the Light - A Time to Gather Stones": {
+   "prev": [
+    "To the Light - A Time to Throw Stones"
+   ]
+  },
   "To the Light - The Other Side": {
    "prev": [
     "To the Light - A Time to Gather Stones"
@@ -3486,20 +3500,43 @@
     "To the Light - False Call"
    ]
   },
-  "Wildcard: In a Hurry": {
+  "What’s on the Flash Drive?": {
    "prev": [
-    "Wildcard: Winner's Pick"
+    "Burning Rubber",
+    "Supplier"
+   ],
+   "ll": 1,
+   "llQuests": 3
+  },
+  "Wet Job - Part 6": {
+   "prev": [
+    "Wet Job - Part 5"
    ]
   },
-  "Wildcard: Heavy Weapons Guy": {
+  "Wet Job - Part 1": {
+   "ll": 2
+  },
+  "Wet Job - Part 2": {
    "prev": [
-    "Wildcard: True Marksman"
+    "Wet Job - Part 1"
    ]
   },
-  "Wildcard: Let's Start Over": {
+  "Wet Job - Part 3": {
    "prev": [
-    "Wildcard: Slayer"
+    "Wet Job - Part 2"
+   ],
+   "ll": 3
+  },
+  "Wet Job - Part 4": {
+   "prev": [
+    "Wet Job - Part 3"
    ]
+  },
+  "Wet Job - Part 5": {
+   "prev": [
+    "Wet Job - Part 4"
+   ],
+   "ll": 4
   },
   "You've Got Mail": {
    "ll": 2
@@ -3509,6 +3546,11 @@
   },
   "Worst Job in the World": {
    "ll": 4
+  },
+  "What’s Your Evidence?": {
+   "prev": [
+    "Import Control"
+   ]
   },
   "Work Smarter": {
    "prev": [
@@ -3530,9 +3572,19 @@
     "Wolf's Grip (Finale)"
    ]
   },
+  "What's in the Bag?": {
+   "prev": [
+    "Key to Understanding"
+   ]
+  },
   "Wildcard: Winner's Pick": {
    "prev": [
     "Wildcard: Breaking the Mold"
+   ]
+  },
+  "Wildcard: In a Hurry": {
+   "prev": [
+    "Wildcard: Winner's Pick"
    ]
   },
   "Wildcard: Next Candidate!": {
@@ -3545,6 +3597,11 @@
     "Wildcard: Next Candidate!"
    ]
   },
+  "Wildcard: Heavy Weapons Guy": {
+   "prev": [
+    "Wildcard: True Marksman"
+   ]
+  },
   "Wildcard: Limits Are Only in Your Head": {
    "prev": [
     "Wildcard: Heavy Weapons Guy"
@@ -3553,6 +3610,11 @@
   "Wildcard: Slayer": {
    "prev": [
     "Wildcard: Limits Are Only in Your Head"
+   ]
+  },
+  "Wildcard: Let's Start Over": {
+   "prev": [
+    "Wildcard: Slayer"
    ]
   }
  },

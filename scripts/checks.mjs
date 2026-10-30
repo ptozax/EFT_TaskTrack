@@ -200,15 +200,21 @@ const maps = renderHome();
 const mapsOf = (q) => (q.objectives || []).flatMap((o) => (o.maps || []).map((m) => m?.name));
 const questsOn = (name) => TASKS.filter((q) => mapsOf(q).includes(name));
 
-for (const alias of ['The Lab (Dark)', 'Ground Zero 21+', 'Ground Zero Tutorial']) {
-  ok(!maps.includes(`>${alias}<`), `ไม่มีชิป "${alias}" (ยุบไปกับตัวหลักแล้ว)`);
+/* อ่าน MAP_ALIAS จากซอร์สจริง ไม่ลอกมาวางซ้ำ — เคยลอกไว้แล้วหลุดกันตอนเกม
+   เพิ่มแมพอีเวนต์ใหม่ ตัวตรวจผ่านทั้งที่ชิปจริงเปลี่ยนไปแล้ว */
+const homeSrc = readFileSync(path.join(ROOT, 'src/home/home.jsx'), 'utf8');
+const aliasBlock = homeSrc.match(/const MAP_ALIAS = \{([\s\S]*?)\};/)?.[1] || '';
+const MAP_ALIAS = Object.fromEntries([...aliasBlock.matchAll(/'([^']+)':\s*'([^']+)'/g)].map((m) => [m[1], m[2]]));
+ok(Object.keys(MAP_ALIAS).length > 0, `อ่าน MAP_ALIAS จาก home.jsx ได้ ${Object.keys(MAP_ALIAS).length} รายการ`);
+
+for (const alias of Object.keys(MAP_ALIAS)) {
+  ok(!maps.includes(`>${alias}<`), `ไม่มีชิป "${alias}" (ยุบไปกับ "${MAP_ALIAS[alias]}" แล้ว)`);
 }
 ok(maps.includes('>The Lab<') && maps.includes('>Ground Zero<'), 'ชิปตัวหลักยังอยู่');
 
 /* แถว Maps โชว์ครบทุกแมพเสมอ ไม่ขึ้นกับว่ามีเควสอยู่ในรายการไหม — เหตุผลเดียว
    กับแถว Traders: รายชื่อที่ขยับตามเควสที่เหลือทำให้ปลดตัวกรองที่ค้างไม่ได้ */
-const ALL_MAPS = [...new Set(TASKS.flatMap(mapsOf).filter(Boolean)
-  .map((n) => ({ 'Ground Zero 21+': 'Ground Zero', 'Ground Zero Tutorial': 'Ground Zero', 'The Lab (Dark)': 'The Lab' }[n] || n)))];
+const ALL_MAPS = [...new Set(TASKS.flatMap(mapsOf).filter(Boolean).map((n) => MAP_ALIAS[n] || n))];
 const shown = (html) => ALL_MAPS.filter((m) => html.includes(`>${m}<`));
 ok(shown(maps).length === ALL_MAPS.length,
   `โชว์ครบทุกแมพ ${ALL_MAPS.length} อัน (ขาด: ${ALL_MAPS.filter((m) => !maps.includes(`>${m}<`)).join(', ') || 'ไม่ขาด'})`);

@@ -37,11 +37,21 @@ const byTraderOrder = (a, b) => {
    Night Factory ไม่ยุบ — ต่างกับข้างบนตรงที่มี 3 เควสติดป้ายเฉพาะกลางคืน
    (Night Sweep / Hell on Earth - Part 2 / Broadcast - Part 5) ซึ่งเป็นเควสลัทธิ
    ที่ลัทธิโผล่บน Factory เฉพาะตอนกลางคืน ยุบเข้าไปแล้วการ์ดจะบอกว่าทำที่
-   Factory ได้ ซึ่งไปกลางวันหาไม่เจอ */
+   Factory ได้ ซึ่งไปกลางวันหาไม่เจอ
+
+   Infected Factory / Infected Lab ยุบ — เป็นแมพเดิมที่อีเวนต์ซอมบี้ใส่ศัตรูเข้าไป
+   ไม่ได้เปลี่ยนผังหรือทางออก คนที่กำลังจะลง Factory จึงอยากเห็นเควสของทั้งสองแบบ
+   รวมกัน ต่างจาก Night Factory ที่กลางวันกับกลางคืนเจอของคนละอย่างจริง ๆ
+
+   หมายเหตุ: มี 5 เควสที่ติดป้ายเฉพาะเวอร์ชันซอมบี้ (Combat Proven,
+   The Huntsman Path - Relentless, The Punisher - Part 6) พอยุบแล้วจะไปโผล่
+   ใต้แมพแม่ ซึ่งตรงกับที่ผู้เล่นคาด เพราะมันคือแมพเดียวกัน */
 const MAP_ALIAS = {
   'Ground Zero 21+': 'Ground Zero',
   'Ground Zero Tutorial': 'Ground Zero',
   'The Lab (Dark)': 'The Lab',
+  'Infected Factory': 'Factory',
+  'Infected Lab': 'The Lab',
 };
 const mapName = (n) => MAP_ALIAS[n] || n;
 
