@@ -468,6 +468,69 @@ const oilRun = TASKS.find((q) => q.name === 'Oil Run');
 ok((oilRun?.objectives?.[0]?.zones || []).length === 4,
   `Oil Run มีรถน้ำมัน 4 คัน (ได้ ${(oilRun?.objectives?.[0]?.zones || []).length})`);
 
+group('เลเยอร์กล่องบนหน้าแมพ');
+/* ตัวแปลงเป็นฟังก์ชันบริสุทธิ์ ทดสอบด้วยข้อมูลที่จัดฉากเองได้ตรง ๆ */
+const { transformContainers } = await import(path.join(ROOT, 'src/data/transforms.js'));
+const fake = transformContainers({
+  data: {
+    lootContainers: [{ id: 'C1', normalizedName: 'jacket' }, { id: 'C2', normalizedName: 'safe' }],
+    maps: {
+      a: {
+        id: 'mapA',
+        lootContainers: [
+          { lootContainer: 'C1', position: { x: 1.2345, y: -2.5678, z: 3 } },
+          { lootContainer: 'C1', position: { x: 9, y: 9, z: 9 } },
+          { lootContainer: 'C2', position: { x: 0, y: 0, z: 0 } },
+          { lootContainer: 'C9', position: { x: 5, y: 5, z: 5 } },   // ชนิดที่ไม่รู้จัก
+          { lootContainer: 'C1' },                                    // ไม่มีพิกัด
+        ],
+      },
+      b: { id: 'mapB', lootContainers: [] },
+    },
+  },
+});
+ok(Object.keys(fake).join() === 'mapA', `แมพที่ไม่มีกล่องเลยไม่ถูกใส่ลงไฟล์ (ได้ ${Object.keys(fake).join() || 'ว่าง'})`);
+ok(fake.mapA.jacket?.length === 2, `จัดกลุ่มตามชนิดถูก (jacket ได้ ${fake.mapA.jacket?.length})`);
+ok(JSON.stringify(fake.mapA.jacket[0]) === '[1.2,-2.6,3]',
+  `ปัดพิกัดเหลือทศนิยมเดียว (ได้ ${JSON.stringify(fake.mapA.jacket[0])})`);
+ok(fake.mapA.other?.length === 1, 'ชนิดที่ไม่รู้จักตกไปเป็น other ไม่ใช่หายไป');
+ok(Object.values(fake.mapA).flat().length === 4, 'รายการที่ไม่มีพิกัดถูกข้าม ไม่ทำให้พัง');
+
+/* ไฟล์จริงที่ generate ออกมา */
+const BOXES = path.join(ROOT, 'public/container_data.json');
+const boxes = JSON.parse(readFileSync(BOXES, 'utf8'));
+const boxPts = Object.values(boxes).reduce((s, m) => s + Object.values(m).reduce((t, a) => t + a.length, 0), 0);
+const boxTypes = new Set(Object.values(boxes).flatMap((m) => Object.keys(m)));
+ok(Object.keys(boxes).length >= 10, `มีข้อมูลกล่อง ${Object.keys(boxes).length} แมพ`);
+ok(boxPts > 5000, `จุดกล่องรวม ${boxPts} จุด`);
+ok(boxTypes.size >= 15, `ชนิดกล่อง ${boxTypes.size} ชนิด`);
+for (const t of ['jacket', 'toolbox', 'safe', 'medbag', 'drawer', 'weapon-box']) {
+  ok(boxTypes.has(t), `มีชนิด ${t}`);
+}
+/* ขนาดไฟล์คือเหตุผลที่ปัดทศนิยม — ถ้าหลุดขึ้นมาเป็นเมกะแปลว่าการปัดหายไป */
+const boxKb = statSync(BOXES).size / 1024;
+ok(boxKb < 250, `ไฟล์ ${boxKb.toFixed(0)} KB (loot_data.json ${(statSync(path.join(ROOT, 'public/loot_data.json')).size / 1024).toFixed(0)} KB)`);
+ok(Object.values(boxes).flatMap((m) => Object.values(m)).flat().flat()
+  .every((n) => Math.abs(n * 10 - Math.round(n * 10)) < 1e-9), 'ทุกพิกัดในไฟล์จริงเป็นทศนิยมเดียว');
+
+/* ส่วน UI */
+ok(/usePersisted\(CONTAINERS_KEY, null\)/.test(mapSrc), 'ชนิดที่เลือกไว้ถูกจำข้ามครั้ง');
+ok(/containerTypes === null \|\| containerTypes\.includes\(type\)/.test(mapSrc),
+  'ค่าตั้งต้น null = เปิดทุกชนิด — เปิดเลเยอร์แล้วต้องเห็นอะไรทันที');
+ok(/prev === null \? allContainerTypes : prev/.test(mapSrc),
+  'กดชิปครั้งแรกกาง null เป็นทุกชนิดในข้อมูล ไม่ใช่แค่ชนิดบนแมพนี้');
+ok(/\{showContainers && \(/.test(mapSrc), 'ตัวกรองชนิดโผล่เฉพาะตอนเปิดเลเยอร์');
+ok(/not what is inside them/.test(mapSrc),
+  'บอกตรง ๆ ว่าเลเยอร์นี้ไม่รู้ว่าของอยู่ในกล่องใบไหน');
+ok(/isMarkerVisible\(layerEntry, visibleFloors, pos\)/.test(mapSrc), 'หมุดกล่องเคารพชั้นที่ปิดไว้');
+const boxPin = mapSrc.match(/containerPins\.map\(\(pin\) => \([\s\S]*?\)\)\}/)?.[0] || '';
+ok(/borderRadius: '2px'/.test(boxPin), 'หมุดกล่องเป็นสี่เหลี่ยม แยกจากหมุดกลมของเควส/item ด้วยรูปทรง');
+ok(/zIndex: 24/.test(boxPin), 'หมุดกล่องอยู่ใต้หมุดเควส (30) และ item (39)');
+/* สีแฮชใช้เป็นพื้นหมุดได้ แต่ห้ามเป็นสีตัวหนังสือ — โทนน้ำเงินเข้มได้คอนทราสต์แค่ ~3 */
+ok(/UI\.chip\(containerTypeOn\(type\), CONTAINER_ACCENT\)/.test(mapSrc),
+  'ชิปชนิดกล่องใช้สีตัวหนังสือคงที่ ไม่ใช่สีแฮชที่คอนทราสต์เอาแน่ไม่ได้');
+/* คอนทราสต์ของ CONTAINER_ACCENT ตรวจรวมอยู่ในกลุ่ม WCAG ข้างล่าง (ตัวช่วยอยู่ที่นั่น) */
+
 group('ค้นหาในรายการ Tracked quests');
 /* ตัวกรองอยู่ใน QuestComponent จึงทดสอบกับข้อมูลจริงได้ตรง ๆ ไม่ต้องเดาจากซอร์ส */
 const questByName = (n) => TASKS.find((q) => q.name === n);
@@ -549,6 +612,12 @@ for (const [k, v] of got) {
 const ratios = got.map(([, v]) => contrast(v, DARKEST_TEXT_BG));
 ok(ratios.every((r, i) => i === 0 || r < ratios[i - 1]),
   `เรียงจากสว่างไปหม่นตามลำดับ text > muted > label > dim (${ratios.map((r) => r.toFixed(1)).join(' > ')})`);
+
+/* สีเน้นของชิปชนิดกล่อง — ประกาศเป็น const เปล่า ๆ ตัวกวาดข้างล่างจึงมองไม่เห็น
+   แต่มันถูกส่งเข้า UI.chip/UI.pill เป็นสีตัวหนังสือ เลยต้องถึง AAA เหมือนกัน */
+const accent = mapSrc.match(/const CONTAINER_ACCENT = '(#[0-9a-fA-F]{6})'/)?.[1];
+ok(!!accent && contrast(accent, DARKEST_TEXT_BG) >= AAA,
+  `CONTAINER_ACCENT ${accent || '(หาไม่เจอ)'} คอนทราสต์ ${accent ? contrast(accent, DARKEST_TEXT_BG).toFixed(2) : '?'} บนพื้น ${DARKEST_TEXT_BG} (ต้อง >= ${AAA})`);
 
 /* กวาดสีตัวหนังสือที่เขียนตายไว้ในทุกไฟล์ด้วย — พาเลตต์คุมได้แค่ที่เรียกใช้ P */
 const srcFiles = [];

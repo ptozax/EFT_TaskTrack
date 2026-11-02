@@ -29,7 +29,7 @@ const TARGETS = [
   { files: ['public/pve_prices.json'], script: 'update-pve-prices.mjs' },
   { files: ['public/gear_data.json'], script: 'update-gear-data.mjs' },
   { files: ['public/optimizer_data.json'], script: 'update-optimizer-data.mjs' },
-  { files: ['public/loot_data.json'], script: 'update-loot.mjs' },
+  { files: ['public/loot_data.json', 'public/container_data.json'], script: 'update-loot.mjs' },
   { files: ['src/data/story.json'], script: 'update-story.mjs' },
   { files: ['src/data/map_layers.json'], script: 'update-maps.mjs' },
 ];

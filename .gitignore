@@ -25,6 +25,7 @@ public/pve_prices.json
 public/gear_data.json
 public/optimizer_data.json
 public/loot_data.json
+public/container_data.json
 src/data/story.json
 public/story/
 src/data/map_layers.json

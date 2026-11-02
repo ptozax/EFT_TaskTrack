@@ -380,6 +380,39 @@ export function transformLoot(mapsJson) {
 }
 
 /* ========================================================================= *
+ * container_data.json  (MapPage — เลเยอร์กล่อง)
+ *
+ * lootLoose ข้างบนคือ "ของที่วางอยู่กับพื้น" ซึ่งครอบคลุมแค่ 350 จาก 5,499 ไอเทม
+ * ไอเทมเควส 177 จาก 267 ชิ้นจึงไม่มีหมุดเลย เพราะของพวกนั้นเกิดในกล่อง/ตู้/กระเป๋า
+ *
+ * ข้อมูลนี้ไม่ได้บอกว่าไอเทมไหนออกจากกล่องใบไหน — tarkov.dev ไม่แจกส่วนนั้น
+ * บอกได้แค่ว่ากล่อง "ชนิดไหน" อยู่ตรงไหน ซึ่งก็พอให้รู้ว่าต้องไปวิ่งตรงไหน
+ *
+ * ปัดพิกัดเหลือทศนิยมเดียว (ละเอียดระดับ 10 ซม. เกินพอสำหรับหมุด) ทำให้ทั้งไฟล์
+ * เหลือราว 130 KB เทียบกับ loot_data.json ที่ 1.8 MB
+ * ========================================================================= */
+const roundPos = (n) => Math.round(n * 10) / 10;
+
+export function transformContainers(mapsJson) {
+  const defs = mapsJson.data.lootContainers || {};
+  const typeName = Object.fromEntries(
+    (Array.isArray(defs) ? defs : Object.values(defs)).map((c) => [c.id, c.normalizedName]));
+
+  const out = {};
+  for (const m of Object.values(mapsJson.data.maps)) {
+    const byType = {};
+    for (const c of m.lootContainers || []) {
+      const p = c.position;
+      if (!p) continue;
+      const t = typeName[c.lootContainer] || 'other';
+      (byType[t] = byType[t] || []).push([roundPos(p.x), roundPos(p.y), roundPos(p.z)]);
+    }
+    if (Object.keys(byType).length) out[m.id] = byType;
+  }
+  return out;
+}
+
+/* ========================================================================= *
  * tasks.json  (QuestTree / MapPage / Kappa / home / AddQuest)
  * ========================================================================= */
 const TYPENAME = {

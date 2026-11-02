@@ -17,6 +17,14 @@ import {
 
 // นอก component — ค่าคงที่ ไม่ต้องสร้างใหม่ทุก render (และไม่ต้องใส่ใน deps)
 const LOOT_URL = `${import.meta.env.BASE_URL}loot_data.json`;
+const CONTAINERS_URL = `${import.meta.env.BASE_URL}container_data.json`;
+
+/* สีประจำชนิดกล่อง — แฮชจากชื่อ ไม่ต้องมาไล่ตั้งทีละชนิดเวลาเกมเพิ่มของใหม่
+   ใช้เป็นสีหมุดกับจุดสีบนชิปเท่านั้น ตัวหนังสือของชิปใช้สีคงที่ที่ผ่าน AAA
+   เพราะโทนน้ำเงินเข้ม (hue ~254) ได้คอนทราสต์แค่ 3.0 บนพื้นแผงซึ่งอ่านไม่ออก */
+const containerColor = (type) =>
+  `hsl(${[...String(type)].reduce((a, c) => a + c.charCodeAt(0) * 7, 0) % 360}, 75%, 68%)`;
+const CONTAINER_ACCENT = '#d8b4fe';
 
 /* ---------------- STORAGE KEYS ---------------- */
 const OBJECTIVE_CHECK_KEY = "eft_objective_checklist";
@@ -172,6 +180,14 @@ const MapPage = () => {
   const [showKeys, setShowKeys] = useState(false);
   const [showCalibration, setShowCalibration] = useState(false);
 
+  /* เลเยอร์กล่อง — ชนิดที่เลือกไว้จำข้ามครั้ง (เป็นรสนิยมของคนเล่น ไม่ใช่ของแมพ)
+     null = เปิดทุกชนิด ซึ่งเป็นค่าตั้งต้นโดยตั้งใจ: เปิดเลเยอร์แล้วต้องเห็นอะไรทันที
+     แล้วค่อยหรี่ลง ถ้าเริ่มจากไม่เลือกอะไรเลยจะเจออาการ "เปิดแล้วไม่มีอะไรเกิดขึ้น"
+     แบบเดียวกับที่ Item Tracker เป็นอยู่ */
+  const CONTAINERS_KEY = 'eft_map_container_types';
+  const [showContainers, setShowContainers] = useState(false);
+  const [containerTypes, setContainerTypes] = usePersisted(CONTAINERS_KEY, null);
+
   // faction filter ของ extract (pmc / scav / shared)
   const [extractFactions, setExtractFactions] = useState({ pmc: true, scav: true, shared: true });
   const [showLabels, setShowLabels] = useState(true); // ป้ายชื่อทางออก/transit
@@ -186,7 +202,9 @@ const MapPage = () => {
   const allItems = useLiveData(itemsStatic, 'items');       // รายการ item ทั้งหมด (ค้น/meta)
   const [loot, setLoot] = useState(null);                    // { mapId: { itemId: [pos] } }
   const [trackedItems, setTrackedItems] = usePersisted(ITEMS_KEY, []);   // [{id, hidden}]
+  const [containers, setContainers] = useState(null);         // { mapId: { type: [[x,y,z]] } }
   useEffect(() => { getData('loot', LOOT_URL).then((d) => d && setLoot(d)).catch(() => {}); }, []);
+  useEffect(() => { getData('containers', CONTAINERS_URL).then((d) => d && setContainers(d)).catch(() => {}); }, []);
 
   // แท็บของไซด์บาร์ — จำไว้ข้ามครั้ง จะได้ไม่ต้องกดกลับมาแท็บเดิมทุกรอบ
   const [tab, setTab] = usePersisted(SECTIONS_KEY, 'quests');
@@ -554,6 +572,46 @@ const MapPage = () => {
     }
     return out;
   }, [loot, tarkovMapId, trackedItems, trackedNames, posToPerc]);   // calib อยู่ใน posToPerc แล้ว
+
+  /* --- เลเยอร์กล่อง ---
+     lootLoose ที่ Item Tracker ใช้คือของที่วางกับพื้น ครอบคลุมแค่ 350 จาก 5,499 ไอเทม
+     ของเควส 177 จาก 267 ชิ้นจึงไม่มีหมุดเลย เพราะเกิดในกล่อง
+     ข้อมูลชุดนี้ไม่ได้บอกว่าไอเทมไหนอยู่ในกล่องใบไหน (tarkov.dev ไม่มี) บอกได้แค่ว่า
+     กล่องชนิดไหนอยู่ตรงไหน ซึ่งก็พอให้รู้ว่าควรไปวิ่งหาตรงไหน */
+  const allContainerTypes = useMemo(
+    () => [...new Set(Object.values(containers || {}).flatMap((m) => Object.keys(m)))].sort(),
+    [containers]);
+  const containerTypeOn = useCallback(
+    (type) => containerTypes === null || containerTypes.includes(type),
+    [containerTypes]);
+  // ชนิดที่มีอยู่จริงบนแมพนี้ พร้อมจำนวน — เรียงจากมากไปน้อย
+  const containerTypesHere = useMemo(() => {
+    const here = (tarkovMapId && containers?.[tarkovMapId]) || {};
+    return Object.entries(here).map(([type, list]) => ({ type, n: list.length }))
+      .sort((a, b) => b.n - a.n || a.type.localeCompare(b.type));
+  }, [containers, tarkovMapId]);
+  const containerPins = useMemo(() => {
+    if (!showContainers || !tarkovMapId) return [];
+    const here = containers?.[tarkovMapId] || {};
+    const out = [];
+    for (const [type, list] of Object.entries(here)) {
+      if (!containerTypeOn(type)) continue;
+      const color = containerColor(type);
+      list.forEach(([x, y, z], i) => {
+        const pos = { x, y, z };
+        if (!isMarkerVisible(layerEntry, visibleFloors, pos)) return;
+        const p = posToPerc(pos);
+        out.push({ key: `${type}-${i}`, x: p.x, y: p.y, color, type });
+      });
+    }
+    return out;
+  }, [showContainers, containers, tarkovMapId, containerTypeOn, layerEntry, visibleFloors, posToPerc]);
+  /* กดชิปครั้งแรกต้องกาง null ออกเป็น "ทุกชนิดที่มีในข้อมูล" ไม่ใช่แค่ชนิดบนแมพนี้
+     ไม่งั้นพอสลับแมพ ชนิดที่แมพนี้ไม่มีจะหายไปจากรายการที่เลือกไว้เงียบ ๆ */
+  const toggleContainerType = (type) => setContainerTypes((prev) => {
+    const base = prev === null ? allContainerTypes : prev;
+    return base.includes(type) ? base.filter((t) => t !== type) : [...base, type];
+  });
   // ไม่ต้องเขียน localStorage เองแล้ว — usePersisted(PINS_KEY) ทำให้ตอนค่าเปลี่ยน
   const addPin = (xPerc, yPerc) => {
     const label = (typeof window !== 'undefined' && window.prompt('Pin label (optional):', '')) || '';
@@ -1207,8 +1265,8 @@ const MapPage = () => {
         {/* ---- Markers: สิ่งที่แสดงบนแมพ ---- */}
         <Section
           icon="🧭" title="Markers" open={openSec.layers} onToggle={() => toggleSec('layers')}
-          badge={[showExtracts && 'exits', showTransits && 'transits', showKeys && 'keys'].filter(Boolean).length || 'off'}
-          badgeColor={showExtracts || showTransits || showKeys ? '#10b981' : '#64748b'}
+          badge={[showExtracts && 'exits', showTransits && 'transits', showKeys && 'keys', showContainers && 'boxes'].filter(Boolean).length || 'off'}
+          badgeColor={showExtracts || showTransits || showKeys || showContainers ? '#10b981' : '#64748b'}
         >
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
             {[
@@ -1216,6 +1274,7 @@ const MapPage = () => {
               { label: 'Transits', on: showTransits, set: setShowTransits, color: '#ff9696' },
               { label: 'Keys', on: showKeys, set: setShowKeys, color: '#eab308' },
               { label: 'Labels', on: showLabels, set: setShowLabels, color: '#3bc0fb' },
+              { label: 'Containers', on: showContainers, set: setShowContainers, color: CONTAINER_ACCENT },
             ].map(f => (
               <div key={f.label} onClick={() => f.set(!f.on)} style={UI.pill(f.on, f.color)}>
                 <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: f.color, opacity: f.on ? 1 : 0.35 }} />
@@ -1239,6 +1298,53 @@ const MapPage = () => {
                     {f.toUpperCase()}
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* ตัวกรองชนิดกล่อง — โผล่เมื่อเปิดเลเยอร์ไว้ เหมือนตัวกรองฝ่ายของทางออก
+              Streets มีกล่อง 1,282 จุด ถ้าไม่ให้เลือกชนิดก็กลายเป็นพรมหมุดจนอ่านแมพไม่ออก */}
+          {showContainers && (
+            <div style={{ marginTop: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '6px' }}>
+                <div style={{ ...UI.label, marginBottom: 0, flex: 1 }}>Container type</div>
+                <span
+                  onClick={() => setContainerTypes(null)}
+                  style={{ fontSize: '12px', color: '#74b9ff', cursor: 'pointer' }}
+                >All</span>
+                <span
+                  onClick={() => setContainerTypes([])}
+                  style={{ fontSize: '12px', color: '#74b9ff', cursor: 'pointer' }}
+                >None</span>
+              </div>
+              {containerTypesHere.length === 0 ? (
+                <div style={{ fontSize: '12.5px', color: '#a5b5cc' }}>
+                  No container data for {currentMapName}
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                  {containerTypesHere.map(({ type, n }) => (
+                    <div
+                      key={type}
+                      onClick={() => toggleContainerType(type)}
+                      style={UI.chip(containerTypeOn(type), CONTAINER_ACCENT)}
+                      title={`${n} on ${currentMapName}`}
+                    >
+                      <span style={{
+                        width: '7px', height: '7px', borderRadius: '2px',
+                        background: containerColor(type), opacity: containerTypeOn(type) ? 1 : 0.35,
+                      }} />
+                      {type.replace(/-/g, ' ')}
+                      <span style={{ opacity: 0.75, fontVariantNumeric: 'tabular-nums' }}>{n}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* ต้องบอกให้ชัดว่าเลเยอร์นี้ไม่รู้ว่าของอยู่ในกล่องใบไหน
+                  ไม่งั้นคนจะอ่านว่า "เปิดแล้วจะเจอของที่ตามหา" ซึ่งไม่จริง */}
+              <div style={{ fontSize: '12px', color: '#a5b5cc', marginTop: '8px', lineHeight: 1.45 }}>
+                Where the containers are — not what is inside them. The game data has no
+                per-container loot table.
               </div>
             </div>
           )}
@@ -1794,6 +1900,19 @@ const MapPage = () => {
                 <div style={{ fontSize: '21px', lineHeight: 1, filter: 'drop-shadow(0 1px 2px #000)' }}>📍</div>
                 {pin.label && <div style={{ fontSize: '12px', color: '#fff', background: 'rgba(0,0,0,0.7)', borderRadius: '3px', padding: '0 3px', whiteSpace: 'nowrap' }}>{pin.label}</div>}
               </div>
+            ))}
+
+            {/* Containers — สี่เหลี่ยมมุมมน แยกจากหมุดกลมของเควสกับ item ด้วยรูปทรง
+                ไม่ใช่แค่สี · zIndex ต่ำกว่าหมุดเควส กล่องเป็นฉากหลังไม่ใช่พระเอก */}
+            {!isLoading && containerPins.map((pin) => (
+              <div key={`box-${pin.key}`} style={{
+                position: 'absolute', left: `${pin.x}%`, top: `${pin.y}%`,
+                width: '8px', height: '8px', borderRadius: '2px',
+                background: pin.color, border: '1px solid rgba(255,255,255,0.85)',
+                boxShadow: '0 0 3px #000',
+                transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg)`,
+                zIndex: 24, pointerEvents: 'none',
+              }} title={pin.type.replace(/-/g, ' ')} />
             ))}
 
             {/* Item Tracker pins (loot spawn) — หด/ขยายคุมผ่าน item tracker (t.expanded) */}
