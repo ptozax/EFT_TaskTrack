@@ -243,6 +243,9 @@ const Home = () => {
       setCheckedObjectives(readJSON(OBJECTIVE_CHECK_KEY, {}));
       setCompletedQuests(readJSON(COMPLETE_KEY, []));
       setHiddenObjectives(readJSON(HIDDEN_KEY, {}));
+      /* LL ก็ต้องอ่านใหม่ด้วย — ของเดิมอ่านแค่ตอน mount ครั้งเดียว กด Reset แล้ว
+         ค่าใน localStorage กลับเป็น 1 จริง แต่ป้ายบนชิปยังค้างเลขเดิมจนกว่าจะรีเฟรชหน้า */
+      setTraderLevels(QuestComponent.getTraderLevels());
     };
     /* เก็บกวาดเควสผิดฝ่ายที่ค้างอยู่จากก่อนหน้านี้ — การสแกนรูปใน Add Quest เคยไม่กรองฝ่าย
        เลยมีโอกาสเพิ่มเวอร์ชันของอีกฝ่ายเข้ามา (Textile / Drip-Out ชื่อเหมือนกันทั้งสองฝ่าย) */

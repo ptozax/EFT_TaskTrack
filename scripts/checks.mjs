@@ -154,6 +154,44 @@ resetState({ eft_home_drawer: 'true', eft_trader_levels: JSON.stringify({ Fence:
 ok(/title="Fence — Loyalty Level 2 \(max\)"/.test(renderHome()),
   'Fence ที่เคยตั้งไว้ 4 ตอนปุ่มยังเป็น 1-4 ทุกคน ถูกบีบเหลือ 2');
 
+group('กด Reset แล้ว LL ต้องกลับไปที่ 1');
+/* อาการที่เจอ: ค่าใน localStorage กลับเป็น 1 จริง แต่ป้ายบนชิปยังค้างเลขเดิม
+   เพราะ handleStorageChange ของ Home อ่านกลับแค่ 4 คีย์ ไม่มี eft_trader_levels
+   (หน้าเดียวที่โชว์ LL คือ Home จึงตรวจที่นี่) */
+const homeLoad = readFileSync(path.join(ROOT, 'src/home/home.jsx'), 'utf8')
+  .match(/const handleStorageChange = \(\) => \{([\s\S]*?)\n    \};/)?.[1] || '';
+ok(homeLoad.length > 0, 'หา handleStorageChange ของ Home เจอ');
+ok(/setTraderLevels\(QuestComponent\.getTraderLevels\(\)\)/.test(homeLoad),
+  'Home อ่าน LL ใหม่ทุกครั้งที่ localStorage เปลี่ยน ไม่ใช่แค่ตอน mount');
+for (const [re, name] of [
+  [/setSelectedQuests/, 'รายการเควส'], [/setCheckedObjectives/, 'ช่องติ๊ก objective'],
+  [/setCompletedQuests/, 'เควสที่ทำเสร็จ'], [/setHiddenObjectives/, 'objective ที่ซ่อนไว้'],
+]) ok(re.test(homeLoad), `ยังอ่านกลับเหมือนเดิม: ${name}`);
+
+/* Reset แบบเลือก Questline ต้องล้าง LL ด้วย — LL ขึ้นมาจากการไล่ทำเควส
+   ถ้าเหลือไว้จะได้สถานะที่เป็นไปไม่ได้: เริ่มใหม่หมดแต่เทรดเดอร์ยัง LL4 */
+const navSrc = readFileSync(path.join(ROOT, 'src/Component/AppNavbar.jsx'), 'utf8');
+const questlineBranch = navSrc.match(/if \(value === "Questline"\) \{([\s\S]*?)\} else if/)?.[1] || '';
+ok(/TRADER_LEVELS_KEY/.test(questlineBranch), 'Reset Questline ล้าง eft_trader_levels ด้วย');
+for (const k of ['eft_selected_quests', 'eft_objective_checklist', 'eft_completed_quests', 'eft_select_quest_hidden']) {
+  ok(questlineBranch.includes(k), `Reset Questline ยังล้าง ${k}`);
+}
+/* Reset All ใช้ localStorage.clear() — state ของ navbar เองไม่ได้อ่านซ้ำ ต้องดึงกลับมาให้ตรง */
+const allBranch = navSrc.match(/if \(selectReset\.length === 0\) \{([\s\S]*?)\} else \{/)?.[1] || '';
+ok(/localStorage\.clear\(\)/.test(allBranch), 'Reset All ล้าง localStorage ทั้งก้อน');
+ok(/setFactionName\(QuestComponent\.getFaction\(\)\)/.test(allBranch),
+  'Reset All ดึงฝ่ายกลับมาให้ตรงกับที่ทั้งแอปอ่าน (ไม่งั้นปุ่มยังโชว์ USEC)');
+ok(/setGameplayMode\('pve'\)/.test(allBranch) && /setGameMode\('pve'\)/.test(allBranch),
+  'Reset All ดึงโหมด PvE/PvP กลับมาด้วย ทั้ง state และชั้นข้อมูลราคา');
+
+/* LL ที่ว่างเปล่า (เพิ่งถูกล้าง) ต้องอ่านออกมาเป็น 1 ไม่ใช่ว่างหรือพัง */
+ok(QC.traderLevelOf({}, 'Prapor') === 1 && QC.traderLevelOf(null, 'Prapor') === 1,
+  'ไม่มีค่าใน localStorage = LL1');
+resetState({ eft_home_drawer: 'true', eft_trader_levels: '' });
+const afterReset = chipBlocks(renderHome());
+ok(SEED_TRADERS.every((t) => afterReset[t]?.level === 1),
+  `ล้าง LL แล้วทุกชิปโชว์ 1 (ได้ ${SEED_TRADERS.map((t) => `${t}=${afterReset[t]?.level}`).join(' ')})`);
+
 group('โหมด Loyalty — ปิดอยู่');
 resetState({ eft_home_drawer: 'false' });
 const off = renderHome();

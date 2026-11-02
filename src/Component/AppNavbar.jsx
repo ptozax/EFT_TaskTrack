@@ -114,6 +114,11 @@ function AppNavbar() {
     const confirmReset = () => {
         if (selectReset.length === 0) {
             localStorage.clear();
+            /* state ของ navbar เองไม่ได้อ่าน localStorage ซ้ำ — ล้างแล้วต้องดึงกลับมาให้ตรง
+               ไม่งั้นปุ่มยังโชว์ USEC/PvP ขณะที่ทั้งแอปอ่านค่าเริ่มต้น (BEAR/PvE) ไปแล้ว */
+            setFactionName(QuestComponent.getFaction());
+            setGameplayMode('pve');
+            setGameMode('pve');
         } else {
             selectReset.forEach((value) => {
                 if (value === "Questline") {
@@ -121,6 +126,10 @@ function AppNavbar() {
                     localStorage.removeItem('eft_objective_checklist');
                     localStorage.removeItem('eft_completed_quests');
                     localStorage.removeItem('eft_select_quest_hidden');
+                    /* LL ขึ้นมาจากการไล่ทำเควส ล้างความคืบหน้าแล้วปล่อย LL ค้างไว้
+                       จะได้สถานะที่เป็นไปไม่ได้: เริ่มใหม่หมดแต่เทรดเดอร์ยัง LL4
+                       แล้วตัวเสนอเควสก็จะเสนอของ LL สูงตั้งแต่เควสแรก */
+                    localStorage.removeItem(QuestComponent.TRADER_LEVELS_KEY);
                 } else if (value === "Story") {
                     localStorage.removeItem('eft_story_progress');
                     localStorage.removeItem('eft_story_view');
