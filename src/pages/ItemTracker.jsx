@@ -12,6 +12,7 @@ import { Icons } from '../Component/EftComponent';
  *   tracked  : [{id, hidden}]
  *   onChange : (next) => void
  *   colorFor : (id) => css color   (ให้สี dot ตรงกับหมุดบนแผนที่)
+ *   containersOn / onToggleContainers : เลเยอร์กล่องของ MapPage (optional)
  * ========================================================================= */
 
 const box = { background: '#0f172a', border: '1px solid #1e293b', borderRadius: 8, padding: 10, marginTop: 8 };
@@ -20,7 +21,7 @@ const chip = (on) => ({
   background: on ? '#1e293b' : '#141c2b', border: '1px solid #24324a', opacity: on ? 1 : 0.55,
 });
 
-export default function ItemTracker({ items, loot, mapId, mapName, tracked, colorFor, onChange }) {
+export default function ItemTracker({ items, loot, mapId, mapName, tracked, colorFor, onChange, containersOn, onToggleContainers }) {
   const [q, setQ] = useState('');
   const [open, setOpen] = useState(true);       // หุบ/แสดงทั้ง panel
 
@@ -155,6 +156,33 @@ export default function ItemTracker({ items, loot, mapId, mapName, tracked, colo
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* ---- สะพานไปเลเยอร์กล่อง ----
+            ข้อมูลจุดเกิดที่แผงนี้ใช้คือ lootLoose = ของที่วางกับพื้น ครอบคลุม 350
+            จาก 5,499 ไอเทม ของเควส 177 จาก 267 ชิ้นจึงไม่มีหมุดเลย เพราะเกิดในกล่อง
+            ถ้าไม่บอกตรงนี้ คนจะเจอแค่ "เพิ่มแล้วเงียบ" แล้วไม่มีทางรู้ว่ามีเลเยอร์
+            กล่องอยู่อีกแท็บหนึ่ง */}
+        {onToggleContainers && (
+          <div style={{ ...box, marginTop: 10 }}>
+            <div style={{ fontSize: 12.5, color: '#a5b5cc', lineHeight: 1.5 }}>
+              Spawn points only cover loose loot on the floor. Most quest items spawn inside
+              containers, which the game data does not map per item.
+            </div>
+            <button
+              onClick={onToggleContainers}
+              style={{
+                marginTop: 8, width: '100%', padding: '7px', borderRadius: 8, cursor: 'pointer',
+                border: `1px solid ${containersOn ? '#d8b4fe' : '#2a3550'}`,
+                background: containersOn ? 'rgba(216,180,254,.16)' : '#0e1730',
+                color: containersOn ? '#d8b4fe' : '#cbdcfc',
+                fontWeight: 700, fontSize: 13.5, transition: 'all .15s ease',
+              }}
+              title="Shows where the containers are — not what is inside them"
+            >
+              {containersOn ? '📦 Container layer is on' : '📦 Show containers on the map'}
+            </button>
           </div>
         )}
       </div>)}

@@ -529,6 +529,15 @@ ok(/zIndex: 24/.test(boxPin), 'หมุดกล่องอยู่ใต้�
 /* สีแฮชใช้เป็นพื้นหมุดได้ แต่ห้ามเป็นสีตัวหนังสือ — โทนน้ำเงินเข้มได้คอนทราสต์แค่ ~3 */
 ok(/UI\.chip\(containerTypeOn\(type\), CONTAINER_ACCENT\)/.test(mapSrc),
   'ชิปชนิดกล่องใช้สีตัวหนังสือคงที่ ไม่ใช่สีแฮชที่คอนทราสต์เอาแน่ไม่ได้');
+/* เลเยอร์ตั้งต้นปิด และอยู่คนละแท็บกับ Item Tracker ซึ่งเป็นที่ที่คนเจอปัญหา
+   ถ้าไม่มีสะพานตรงนั้น ก็เท่ากับไม่มีใครหาเจอ */
+const trackerSrc = readFileSync(path.join(ROOT, 'src/pages/ItemTracker.jsx'), 'utf8');
+ok(/onToggleContainers/.test(trackerSrc) && /containersOn/.test(trackerSrc),
+  'Item Tracker มีปุ่มเปิดเลเยอร์กล่อง — ที่ที่คนเจอปัญหาต้องชี้ทางไปต่อได้');
+ok(/Most quest items spawn inside/.test(trackerSrc),
+  'Item Tracker บอกเหตุผลว่าทำไมไอเทมส่วนใหญ่ไม่มีหมุด');
+ok(/containersOn=\{showContainers\}/.test(mapSrc) && /onToggleContainers=\{\(\) => setShowContainers/.test(mapSrc),
+  'ปุ่มในแท็บ Items ต่อกับ state เดียวกับ toggle ในแท็บ View');
 /* คอนทราสต์ของ CONTAINER_ACCENT ตรวจรวมอยู่ในกลุ่ม WCAG ข้างล่าง (ตัวช่วยอยู่ที่นั่น) */
 
 group('ค้นหาในรายการ Tracked quests');

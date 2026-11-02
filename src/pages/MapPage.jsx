@@ -1257,6 +1257,8 @@ const MapPage = () => {
           tracked={trackedItems}
           colorFor={colorForItem}
           onChange={setTrackedItems}
+          containersOn={showContainers}
+          onToggleContainers={() => setShowContainers((v) => !v)}
         />
         </>)}
 
@@ -1907,9 +1909,9 @@ const MapPage = () => {
             {!isLoading && containerPins.map((pin) => (
               <div key={`box-${pin.key}`} style={{
                 position: 'absolute', left: `${pin.x}%`, top: `${pin.y}%`,
-                width: '8px', height: '8px', borderRadius: '2px',
-                background: pin.color, border: '1px solid rgba(255,255,255,0.85)',
-                boxShadow: '0 0 3px #000',
+                width: '10px', height: '10px', borderRadius: '2px',
+                background: pin.color, border: '1.5px solid rgba(255,255,255,0.9)',
+                boxShadow: '0 0 4px #000',
                 transform: `translate(-50%, -50%) scale(${markerScale}) rotate(${-rotation}deg)`,
                 zIndex: 24, pointerEvents: 'none',
               }} title={pin.type.replace(/-/g, ' ')} />
