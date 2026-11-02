@@ -462,6 +462,11 @@ export function transformTasks(tasksJson, tasksEnJson, mapsEnJson, tradersJson, 
       id: it.id, name: itemsEn[it.name] ?? it.name, shortName: itemsEn[it.shortName] ?? it.shortName,
       link: it.link ?? null, wikiLink: it.wikiLink ?? null, image512pxLink: it.image512pxLink, image8xLink: it.image8xLink,
       gridImageLink: it.gridImageLink, baseImageLink: it.baseImageLink, iconLink: it.iconLink, backgroundColor: it.backgroundColor,
+      /* ธงกุญแจ คิดตอน transform ครั้งเดียว — items.json ที่แอปโหลดไม่ได้เก็บ types ไว้
+         แต่หน้าเควสต้องรู้ให้ได้ว่าของที่ต้องหามาส่งหรือของที่เทรดเดอร์แจกเป็นกุญแจไหม
+         (neededKeys ของ tarkov.dev นับเฉพาะกุญแจเปิดประตู ไม่นับสองกลุ่มนั้น)
+         ใส่เฉพาะตอนเป็นจริง ไฟล์จะได้ไม่โตเพราะ false ที่ไม่มีใครอ่าน */
+      ...((it.types || []).includes('keys') ? { isKey: true } : {}),
     };
   };
   const parts = (ids) => (ids || []).flat().map(itemPart).filter(Boolean);

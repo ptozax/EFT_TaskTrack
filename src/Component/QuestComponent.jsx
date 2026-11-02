@@ -666,17 +666,57 @@ export const questPlantItems = (quest, mapName = null) => {
  *                 รับชื่อแมพตัวแปรย่อยด้วย (ดู MAP_VARIANTS)
  * @returns [{ ...key, mapName }] ยุบกุญแจดอกซ้ำแล้ว
  */
+/* objective ที่แปลว่า "ต้องหาของชิ้นนี้มาให้ได้" — plantItem ไม่นับ เพราะของที่เอาไปวาง
+   โชว์อยู่ในกลุ่ม Bring to place แล้ว ใส่ซ้ำก็ได้ป้ายสองอันของชิ้นเดียวกัน */
+const TURN_IN_TYPES = ['giveItem', 'findItem'];
+
+/* กุญแจของเควสมีสามแบบ แต่ neededKeys ของ tarkov.dev นับแค่แบบแรก:
+     door   — กุญแจเปิดประตูบนแมพ (ผูกกับแมพ กรองตาม mapName ได้)
+     turnIn — กุญแจที่เป็นตัวของที่ต้องหามาส่ง เช่น Debtor ต้องส่ง Iron gate key
+     given  — กุญแจที่เทรดเดอร์แจกให้ตอนรับเควส ไม่ต้องไปหาเอง
+   สองแบบหลังไม่ผูกกับแมพ (ดอกที่ต้องหาอาจอยู่คนละแมพกับที่เควสพาไป) จึงโชว์เฉพาะ
+   บนการ์ดเควสที่ไม่ได้ส่ง mapName มา ส่วนรายการกุญแจของหน้าแมพยังเป็นกุญแจประตูล้วน
+
+   ถ้าไม่แยกสองแบบหลังออกมา: 11 เควส 14 ดอกจะเงียบสนิท และอีก 5 เควสจะบอกให้ไปซื้อ
+   กุญแจที่เทรดเดอร์แจกให้ฟรีอยู่แล้ว */
 export const questKeys = (quest, mapName = null) => {
     const out = [];
+    const seen = new Map();
+    const push = (k) => { seen.set(k.id, k); out.push(k); };
+
     (quest?.neededKeys || []).forEach(group => {
         const onMap = group.map?.name;
         // เดิมเช็คเองแค่ `${mapName} 21+` ตัวเดียว -> ใช้ sameMap ร่วมกับ questPlantItems
         // จะได้ไม่หลุดกันเวลาเกมเพิ่มแมพรุ่นย่อยใหม่
         if (mapName && !sameMap(onMap, mapName)) return;
-        (group.keys || []).forEach(k => k?.id && out.push({ ...k, mapName: onMap }));
+        // กุญแจดอกเดียวอาจอยู่หลายกลุ่ม (คนละ objective) -> เหลือดอกละรายการ
+        (group.keys || []).forEach(k => {
+            if (k?.id && !seen.has(k.id)) push({ ...k, mapName: onMap, kind: 'door' });
+        });
     });
-    // กุญแจดอกเดียวอาจอยู่หลายกลุ่ม (คนละ objective) -> เหลือดอกละรายการ
-    return [...new Map(out.map(k => [k.id, k])).values()];
+
+    if (!mapName) {
+        (quest?.objectives || []).forEach(o => {
+            if (!TURN_IN_TYPES.includes(o?.type) || !o.item?.isKey) return;
+            const count = o.count ?? 1;
+            const cur = seen.get(o.item.id);
+            // เควสเดียวมักมีทั้ง findItem และ giveItem ของดอกเดียวกัน -> เอาจำนวนที่มากกว่า
+            if (cur) {
+                cur.count = Math.max(cur.count ?? 0, count);
+                cur.foundInRaid = cur.foundInRaid || !!o.foundInRaid;
+                return;
+            }
+            push({ ...o.item, mapName: null, kind: 'turnIn', count, foundInRaid: !!o.foundInRaid });
+        });
+        (quest?.startRewards?.items || []).forEach(r => {
+            if (!r?.item?.isKey) return;
+            const cur = seen.get(r.item.id);
+            // ดอกที่เป็นกุญแจประตูอยู่แล้วและเทรดเดอร์แจกให้ด้วย -> ติดธงบนดอกเดิม ไม่เพิ่มป้ายใหม่
+            if (cur) { cur.given = true; return; }
+            push({ ...r.item, mapName: null, kind: 'given', given: true, count: r.count ?? 1 });
+        });
+    }
+    return out;
 };
 
 /* ค้นเควสจากชื่อ / ชื่อเทรดเดอร์ / ข้อความเป้าหมาย

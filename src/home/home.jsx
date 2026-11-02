@@ -4,7 +4,7 @@ import questsStatic from "../data/tasks";
 import { useLiveData } from '../data/gameStore';
 import * as QuestComponent from '../Component/QuestComponent';
 import { Icons, TRADER_THEMES } from '../Component/EftComponent';
-import { P, card, chip, badge, label, Bar, SearchBox, Empty, KeyChip, TraderChip, placeNote, useNavbarOffset } from '../Component/PanelUI.jsx';
+import { P, card, chip, badge, label, Bar, SearchBox, Empty, KeyChip, TraderChip, placeNote, keyNote, useNavbarOffset } from '../Component/PanelUI.jsx';
 import { usePersisted } from '../Component/usePersisted.js';
 
 const STORAGE_KEY = "eft_selected_quests";
@@ -1009,7 +1009,7 @@ const Home = () => {
                               <span style={{ ...label, display: 'flex', alignItems: 'center', gap: 5 }}>
                                 <Icons.Lock size={12} /> Keys
                               </span>
-                              {keys.map((k) => <KeyChip key={k.id} item={k} showMap />)}
+                              {keys.map((k) => <KeyChip key={k.id} item={k} note={keyNote(k)} />)}
                             </div>
                           )}
 

@@ -73,6 +73,7 @@ import { MemoryRouter } from 'react-router-dom';
 import Home from ${JSON.stringify(path.join(ROOT, 'src/home/home.jsx'))};
 import AddQuest from ${JSON.stringify(path.join(ROOT, 'src/pages/AddQuest.jsx'))};
 export * as QC from ${JSON.stringify(path.join(ROOT, 'src/Component/QuestComponent.jsx'))};
+export { keyNote, placeNote } from ${JSON.stringify(path.join(ROOT, 'src/Component/PanelUI.jsx'))};
 const wrap = (C) => renderToString(React.createElement(MemoryRouter, null, React.createElement(C)));
 export const renderHome = () => wrap(Home);
 export const renderAddQuest = () => wrap(AddQuest);
@@ -86,7 +87,7 @@ await build({
   absWorkingDir: ROOT, nodePaths: [path.join(ROOT, 'node_modules')], logLevel: 'error',
   plugins: [publicAssets],
 });
-const { QC, renderHome, renderAddQuest } = await import(path.join(OUT, 'app.mjs'));
+const { QC, keyNote, renderHome, renderAddQuest } = await import(path.join(OUT, 'app.mjs'));
 
 let bad = 0;
 const ok = (cond, name) => { console.log(`  ${cond ? '✓' : '✗'} ${name}`); if (!cond) bad++; };
@@ -467,6 +468,83 @@ ok(mostPoints >= 19, `objective ที่จุดเยอะสุดมี ${
 const oilRun = TASKS.find((q) => q.name === 'Oil Run');
 ok((oilRun?.objectives?.[0]?.zones || []).length === 4,
   `Oil Run มีรถน้ำมัน 4 คัน (ได้ ${(oilRun?.objectives?.[0]?.zones || []).length})`);
+
+group('กุญแจของเควส');
+/* neededKeys ของ tarkov.dev นับเฉพาะกุญแจเปิดประตู ทำให้สองกลุ่มนี้หายไปทั้งหมด:
+   ดอกที่ต้องหามาส่ง (11 เควส 14 ดอก) กับดอกที่เทรดเดอร์แจก (9 เควส)
+   และ 5 เควสในกลุ่มหลังยังโดนบอกให้พกไปเองทั้งที่ได้ฟรี */
+const byTitle = (n) => TASKS.find((q) => q.name === n);
+const keysOf = (n, map) => QC.questKeys(byTitle(n), map);
+const keyNamed = (list, n) => list.find((k) => k.name === n);
+
+const debtor = keysOf('Debtor');
+ok(keyNamed(debtor, 'Iron gate key')?.kind === 'turnIn',
+  `Debtor: Iron gate key ขึ้นเป็นดอกที่ต้องหามาส่ง (ได้ ${keyNamed(debtor, 'Iron gate key')?.kind || 'ไม่ขึ้นเลย'})`);
+ok(keyNamed(debtor, 'Chekannaya 15 apartment key')?.given === true,
+  'Debtor: Chekannaya 15 apartment key ขึ้นพร้อมบอกว่า Skier แจกให้');
+ok(keysOf('Debtor', 'Streets of Tarkov').length === 0,
+  `หน้าแมพไม่เปลี่ยน — Debtor ไม่มีกุญแจเปิดประตู (ได้ ${keysOf('Debtor', 'Streets of Tarkov').length})`);
+
+/* House Arrest กับ Debtor สลับกุญแจกัน — ดอกที่ House Arrest ได้แจก คือดอกที่ Debtor ต้องส่ง */
+const arrest = keysOf('House Arrest');
+const ironArrest = keyNamed(arrest, 'Iron gate key');
+ok(ironArrest?.kind === 'door' && ironArrest?.given === true,
+  'House Arrest: Iron gate key เป็นกุญแจประตูที่เทรดเดอร์แจก ติดธงบนดอกเดิมไม่แตกเป็นสองป้าย');
+ok(arrest.filter((k) => k.name === 'Iron gate key').length === 1, 'ไม่มีกุญแจซ้ำสองป้ายในเควสเดียว');
+ok(keyNamed(arrest, 'Chekannaya 15 apartment key')?.kind === 'turnIn', 'House Arrest: อีกดอกเป็นของที่ต้องหามาส่ง');
+
+/* ทั้ง 11 เควสต้องโผล่ครบ ไม่ใช่แก้เฉพาะ Debtor */
+const TURN_IN_QUESTS = ['Aid Stations', 'Ice Cream Cones', 'Fishing Place', 'Offensive Reconnaissance',
+  'Collector', 'The Huntsman Path - Woods Keeper', 'A Difficult Choice', 'Safe Corridor',
+  'House Arrest', 'Debtor', 'Hidden Layer'];
+const stillSilent = TURN_IN_QUESTS.filter((n) => !keysOf(n).some((k) => k.kind === 'turnIn'));
+ok(stillSilent.length === 0, `เควสที่ต้องหากุญแจมาส่ง โผล่ครบ ${TURN_IN_QUESTS.length} เควส${stillSilent.length ? ' — ยังเงียบ: ' + stillSilent.join(', ') : ''}`);
+const aid = keysOf('Aid Stations').filter((k) => k.kind === 'turnIn');
+ok(aid.length === 4, `Aid Stations ต้องหากุญแจ 4 ดอก (ได้ ${aid.length})`);
+
+/* 5 เควสที่เคยบอกให้ไปซื้อกุญแจที่ได้ฟรี */
+const FREE_KEY_QUESTS = ['Bad Rep Evidence', 'Shaking Up the Teller', 'Chemical - Part 2',
+  'Your Car Needs a Service', 'House Arrest'];
+const unflagged = FREE_KEY_QUESTS.filter((n) => !keysOf(n).some((k) => k.kind === 'door' && k.given));
+ok(unflagged.length === 0, `กุญแจประตูที่เทรดเดอร์แจก ติดธงครบ ${FREE_KEY_QUESTS.length} เควส${unflagged.length ? ' — ยังไม่ติด: ' + unflagged.join(', ') : ''}`);
+
+/* กุญแจเปิดประตูต้องไม่หายไปสักดอกจากของเดิม */
+const doorFromData = (q) => new Set((q.neededKeys || []).flatMap((g) => (g.keys || []).map((k) => k.id)));
+const doorFromFn = (q) => new Set(QC.questKeys(q).filter((k) => k.kind === 'door').map((k) => k.id));
+const lostDoor = TASKS.filter((q) => {
+  const a = doorFromData(q); const b = doorFromFn(q);
+  return a.size !== b.size || [...a].some((id) => !b.has(id));
+});
+const doorTotal = new Set(TASKS.flatMap((q) => [...doorFromData(q)])).size;
+ok(lostDoor.length === 0, `กุญแจเปิดประตูครบทุกดอก ${doorTotal} ดอก${lostDoor.length ? ' — หาย: ' + lostDoor.slice(0, 5).map((q) => q.name).join(', ') : ''}`);
+/* กรองตามแมพแล้วต้องเหลือแต่กุญแจประตู ไม่มีสองกลุ่มใหม่หลุดเข้าไปในรายการของหน้าแมพ */
+const mapped = TASKS.filter((q) => q.map?.name);
+const leaked = mapped.flatMap((q) => QC.questKeys(q, q.map.name).filter((k) => k.kind !== 'door'));
+ok(leaked.length === 0, `ส่งชื่อแมพเข้าไปแล้วได้แต่กุญแจประตู — ลอง ${mapped.length} เควส (หลุดมา ${leaked.length})`);
+
+/* ข้อความกำกับใต้ชื่อกุญแจ */
+ok(keyNote({ kind: 'turnIn', count: 10, foundInRaid: true }) === 'hand in · ×10 · found in raid',
+  `ป้ายของดอกที่ต้องหามาส่งบอกจำนวนกับ FiR (ได้ "${keyNote({ kind: 'turnIn', count: 10, foundInRaid: true })}")`);
+ok(keyNote({ kind: 'door', given: true, mapName: 'Customs' }) === 'the trader gives you this · Customs',
+  `ดอกที่แจกให้บอกทั้งว่าแจกและอยู่แมพไหน (ได้ "${keyNote({ kind: 'door', given: true, mapName: 'Customs' })}")`);
+ok(keyNote({ kind: 'door', mapName: 'Customs' }) === 'Customs', 'กุญแจประตูธรรมดายังบอกชื่อแมพเหมือนเดิม');
+ok(keyNote({ kind: 'turnIn', count: 1, foundInRaid: false }) === 'hand in', 'ดอกเดียวไม่ต้องขึ้น ×1');
+
+/* ฝั่ง mark/วางของ — ตรวจแล้วสะอาด ล็อกไว้กันหลุดทีหลัง */
+const brokenPlace = [];
+for (const q of TASKS) {
+  for (const o of q.objectives || []) {
+    if (o.type === 'mark' && !o.markerItem?.id) brokenPlace.push(`${q.name}: mark ไม่มี markerItem`);
+    if (o.type === 'plantItem' && !o.item?.id) brokenPlace.push(`${q.name}: plantItem ไม่มี item`);
+    if (o.type === 'plantQuestItem' && !o.questItem?.id) brokenPlace.push(`${q.name}: plantQuestItem ไม่มี questItem`);
+    if (o.type === 'useItem' && !(o.useAny || []).length) brokenPlace.push(`${q.name}: useItem ไม่มี useAny`);
+  }
+}
+const markCount = TASKS.flatMap((q) => q.objectives || []).filter((o) => o.type === 'mark').length;
+ok(brokenPlace.length === 0, `objective วาง/มาร์ก/ใช้ มีของกำกับครบทุกอัน (mark ${markCount} อัน)${brokenPlace.length ? ' — ขาด: ' + brokenPlace.slice(0, 5).join(' | ') : ''}`);
+/* ทุกกลุ่มกุญแจต้องมีชื่อแมพ ไม่งั้นโดน sameMap กรองทิ้งเงียบ ๆ ตอนอยู่หน้าแมพ */
+const mapless = TASKS.flatMap((q) => (q.neededKeys || []).filter((g) => !g.map?.name).map(() => q.name));
+ok(mapless.length === 0, `กลุ่มกุญแจทุกกลุ่มมีชื่อแมพกำกับ${mapless.length ? ' — ไม่มี: ' + mapless.slice(0, 5).join(', ') : ''}`);
 
 group('เลเยอร์กล่องบนหน้าแมพ');
 /* ตัวแปลงเป็นฟังก์ชันบริสุทธิ์ ทดสอบด้วยข้อมูลที่จัดฉากเองได้ตรง ๆ */

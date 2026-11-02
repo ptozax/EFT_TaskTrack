@@ -184,6 +184,16 @@ export const placeNote = (it) => [
   it.mapName,
 ].filter(Boolean).join(' · ');
 
+/* บรรทัดใต้ชื่อกุญแจบนการ์ดเควส — ลิสต์เดียวมีกุญแจสามแบบปนกัน
+   ถ้าไม่กำกับไว้ คนจะอ่านว่าต้องไปหาซื้อมาเองทุกดอก ทั้งที่บางดอกเทรดเดอร์แจกให้ */
+export const keyNote = (k) => [
+  k.kind === 'turnIn' ? 'hand in' : null,
+  k.kind === 'turnIn' && k.count > 1 ? `×${k.count}` : null,
+  k.kind === 'turnIn' && k.foundInRaid ? 'found in raid' : null,
+  k.given ? 'the trader gives you this' : null,
+  k.kind === 'door' ? k.mapName : null,
+].filter(Boolean).join(' · ') || null;
+
 export const input = {
   background: P.inputBg,
   border: `1px solid ${P.border}`,

@@ -7,7 +7,7 @@ import { useLiveData, getData } from '../data/gameStore';
 import { mapStyles as styles, Icons, TRADER_THEMES } from '../Component/EftComponent';
 import * as QuestComponent from '../Component/QuestComponent';
 import { usePersisted, readStored } from '../Component/usePersisted';
-import { KeyChip, placeNote } from '../Component/PanelUI.jsx';
+import { KeyChip, placeNote, keyNote } from '../Component/PanelUI.jsx';
 import ItemTracker from './ItemTracker';
 import {
   findMapLayers, usableFloors, isMarkerVisible, mapCredit,
@@ -1186,7 +1186,8 @@ const MapPage = () => {
                         Complete
                       </button>
                       {/* กุญแจที่เควสนี้ต้องใช้ — เอาทุกแมพ ไม่ใช่แค่แมพที่เปิดอยู่
-                          จะได้รู้ตั้งแต่ตอนวางแผนว่าต้องหาดอกไหนเพิ่ม */}
+                          จะได้รู้ตั้งแต่ตอนวางแผนว่าต้องหาดอกไหนเพิ่ม
+                          รวมดอกที่ต้องหามาส่งกับดอกที่เทรดเดอร์แจก ซึ่ง neededKeys ไม่มี */}
                       {(() => {
                         const keys = QuestComponent.questKeys(fullQuest);
                         if (keys.length === 0) return null;
@@ -1194,7 +1195,7 @@ const MapPage = () => {
                           <>
                             <div style={{ ...styles.fieldLabel, margin: '13px 0 7px' }}>Keys needed</div>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginBottom: 12 }}>
-                              {keys.map((k) => <KeyChip key={k.id} item={k} showMap />)}
+                              {keys.map((k) => <KeyChip key={k.id} item={k} note={keyNote(k)} />)}
                             </div>
                           </>
                         );
