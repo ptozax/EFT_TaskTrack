@@ -679,7 +679,7 @@ const TURN_IN_TYPES = ['giveItem', 'findItem'];
 
    ถ้าไม่แยกสองแบบหลังออกมา: 11 เควส 14 ดอกจะเงียบสนิท และอีก 5 เควสจะบอกให้ไปซื้อ
    กุญแจที่เทรดเดอร์แจกให้ฟรีอยู่แล้ว */
-export const questKeys = (quest, mapName = null) => {
+export const questKeys = (quest, mapName = null, { offMap = !mapName } = {}) => {
     const out = [];
     const seen = new Map();
     const push = (k) => { seen.set(k.id, k); out.push(k); };
@@ -695,7 +695,7 @@ export const questKeys = (quest, mapName = null) => {
         });
     });
 
-    if (!mapName) {
+    if (offMap) {
         (quest?.objectives || []).forEach(o => {
             if (!TURN_IN_TYPES.includes(o?.type) || !o.item?.isKey) return;
             const count = o.count ?? 1;
@@ -708,14 +708,17 @@ export const questKeys = (quest, mapName = null) => {
             }
             push({ ...o.item, mapName: null, kind: 'turnIn', count, foundInRaid: !!o.foundInRaid });
         });
-        (quest?.startRewards?.items || []).forEach(r => {
-            if (!r?.item?.isKey) return;
-            const cur = seen.get(r.item.id);
-            // ดอกที่เป็นกุญแจประตูอยู่แล้วและเทรดเดอร์แจกให้ด้วย -> ติดธงบนดอกเดิม ไม่เพิ่มป้ายใหม่
-            if (cur) { cur.given = true; return; }
-            push({ ...r.item, mapName: null, kind: 'given', given: true, count: r.count ?? 1 });
-        });
     }
+
+    /* ธง "เทรดเดอร์แจกให้" ติดเสมอ แม้ตอนกรองตามแมพ — มันเป็นเรื่องของกุญแจดอกนั้น
+       ในเควสนี้ ไม่ได้ขึ้นกับแมพ และเป็นสิ่งที่ต้องรู้ "ก่อน" เสียเงินซื้อ
+       ส่วนป้ายใบใหม่ของดอกที่ไม่ได้เป็นกุญแจประตู เพิ่มเฉพาะตอน offMap */
+    (quest?.startRewards?.items || []).forEach(r => {
+        if (!r?.item?.isKey) return;
+        const cur = seen.get(r.item.id);
+        if (cur) { cur.given = true; return; }
+        if (offMap) push({ ...r.item, mapName: null, kind: 'given', given: true, count: r.count ?? 1 });
+    });
     return out;
 };
 

@@ -1965,14 +1965,19 @@ const MapPage = () => {
             <div style={{ fontSize: '15px', lineHeight: 1.45, color: '#e6efff' }}>{pointDetail.obj.description}</div>
 
             {/* กุญแจกับของที่ต้องพกไปวางของเควสนี้บนแมพนี้ — แท็บด้านข้างมีรวมไว้แล้ว
-                แต่ตอนยืนดูหมุดอยู่ไม่มีใครย้อนไปเปิดแท็บอ่าน */}
+                แต่ตอนยืนดูหมุดอยู่ไม่มีใครย้อนไปเปิดแท็บอ่าน
+                offMap: เอาดอกที่ต้องหามาส่งกับดอกที่เทรดเดอร์แจกมาด้วย ถึงจะไม่ผูกกับแมพนี้
+                ก็ตาม — ยืนดูหมุดอยู่คือจังหวะที่อยากรู้ว่ายังขาดอะไร
+                ตัด mapName ออกจากป้าย เพราะกำลังยืนอยู่บนแมพนั้นแล้ว */}
             {(() => {
-              const keys = QuestComponent.questKeys(pointDetail.quest, currentMapName);
+              const keys = QuestComponent.questKeys(pointDetail.quest, currentMapName, { offMap: true });
               const plants = QuestComponent.questPlantItems(pointDetail.quest, currentMapName);
               if (!keys.length && !plants.length) return null;
               return (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
-                  {keys.map((k) => <KeyChip key={k.id} item={k} compact />)}
+                  {keys.map((k) => (
+                    <KeyChip key={k.id} item={k} compact note={keyNote({ ...k, mapName: null })} />
+                  ))}
                   {plants.map((it) => (
                     <KeyChip key={it.id} item={it} compact note={placeNote({ ...it, mapName: null })} />
                   ))}

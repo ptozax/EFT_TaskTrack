@@ -522,6 +522,17 @@ const mapped = TASKS.filter((q) => q.map?.name);
 const leaked = mapped.flatMap((q) => QC.questKeys(q, q.map.name).filter((k) => k.kind !== 'door'));
 ok(leaked.length === 0, `ส่งชื่อแมพเข้าไปแล้วได้แต่กุญแจประตู — ลอง ${mapped.length} เควส (หลุดมา ${leaked.length})`);
 
+/* การ์ด popup ใต้แมพขอดูสองกลุ่มใหม่ด้วย ทั้งที่กรองตามแมพอยู่ — offMap: true */
+const barKeys = QC.questKeys(byTitle('Debtor'), 'Streets of Tarkov', { offMap: true });
+ok(barKeys.length === 2, `การ์ดใต้แมพของ Debtor ได้กุญแจ 2 ดอก (ได้ ${barKeys.length})`);
+ok(keyNamed(barKeys, 'Iron gate key')?.kind === 'turnIn' && keyNamed(barKeys, 'Chekannaya 15 apartment key')?.given,
+  'การ์ดใต้แมพได้ทั้งดอกที่ต้องหามาส่งและดอกที่เทรดเดอร์แจก');
+/* ธง given ต้องติดแม้ตอนกรองตามแมพ — ไม่งั้นรายการของหน้าแมพยังบอกให้ซื้อของฟรี */
+const arrestOnMap = QC.questKeys(byTitle('House Arrest'), byTitle('House Arrest').map?.name);
+ok(arrestOnMap.every((k) => k.kind === 'door'), 'กรองตามแมพแล้วยังได้แต่กุญแจประตู');
+ok(keyNamed(arrestOnMap, 'Iron gate key')?.given === true,
+  'ธง "เทรดเดอร์แจกให้" ติดแม้ตอนกรองตามแมพ');
+
 /* ข้อความกำกับใต้ชื่อกุญแจ */
 ok(keyNote({ kind: 'turnIn', count: 10, foundInRaid: true }) === 'hand in · ×10 · found in raid',
   `ป้ายของดอกที่ต้องหามาส่งบอกจำนวนกับ FiR (ได้ "${keyNote({ kind: 'turnIn', count: 10, foundInRaid: true })}")`);
