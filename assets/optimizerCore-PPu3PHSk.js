@@ -1,4 +1,4 @@
-import{r as cr,j as R,R as Fs}from"./index-1d76SRR9.js";/*!
+import{r as cr,j as R,R as Fs}from"./index-Cxjr4iqI.js";/*!
  * html2canvas 1.4.1 <https://html2canvas.hertzen.com>
  * Copyright (c) 2022 Niklas von Hertzen <https://hertzen.com>
  * Released under MIT License
